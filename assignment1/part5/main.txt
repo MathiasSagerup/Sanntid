@@ -1,0 +1,57 @@
+Concepts
+
+What is the difference between concurrency and parallelism?
+
+concurrency går bort fra det sekvensielle og åpner for å utføre flere oppgaver samtidig. Avhengig av hvor mange CPU kjerner som jobber, 
+har vi at det ikke nødvendigvis er paralellitet i coucurrency. Parallelisme viser til at det alltid er oppgaver som kjører samtidig. 
+
+Concurrence er at vi kan ha flere prosesser som jober
+
+
+What is the difference between a race condition and a data race?
+
+data race er entall og race conditions er flertall. 
+
+
+
+Very roughly - what does a scheduler do, and how does it do it?
+
+
+Den bestemmer hvem som skal gjøre hva når. Den ser på hvem som avhenger av hvem. F.eks gjennom å se hvem som er mottakere og sendere.  DEt wer ulike algoritmer for 
+få ulike type oppførsels logikk for hvem som prioriteres. 
+
+
+
+Why would we use multiple threads? What kinds of problems do threads solve?
+
+Flere tråder gir raskere kjøretid dersom det åpner for paralellitet. Derimot krever det at vi har moduler som kan kjøres paralelt,
+altså avhenger dette av situasjon. Man kan sette opp reele sitasjoner gjennom simuleringer, f.eks heiser som snakker sammen for
+å sjekke om logikk fungerer .
+
+
+Some languages support "fibers" (sometimes called "green threads") or "coroutines"? What are they, and why would we rather use them over threads?
+Tråder: Det er krevende for CPU å bytte mellom de. MAnge tråder krever mye 
+Grønne tråder: Schedualer velger mellom coroutines 
+- spørrew mom ?
+
+
+
+Does creating concurrent programs make the programmer's life easier? Harder? Maybe both?
+
+pros:
+- god modulinndeling
+- oversikt ved store programmer
+- mer avansert 
+- kan kan vente kortere før koden er ferdig yiha 
+cons:
+- 
+- mindre avansert 
+
+
+
+
+What do you think is best - shared variables or message passing?
+
+Message passing fordi:
+- er det sykronisert. Hindrer race condition
+- Man får mer oversikt over å ha servere som eier dataen. Det øker sikkerheten 
