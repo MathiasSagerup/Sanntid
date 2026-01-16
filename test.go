@@ -10,4 +10,5 @@ func main() {
 	fmt.Printf("Go version: %s\n", runtime.Version())
 	fmt.Printf("OS: %s\n", runtime.GOOS)
 	fmt.Printf("Architecture: %s\n", runtime.GOARCH)
+	fmt.Printf("Github Repository")
 }
