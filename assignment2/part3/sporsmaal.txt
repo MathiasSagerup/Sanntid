@@ -1,62 +1,260 @@
-2.1: Network design
+Before proceeding with any project-related networking code, think about how you would
+solve these problems, and what you need in order to solve them.
 
-Before proceeding with any project-related networking code, think about how you would solve these problems, and what you need in order to solve them.
+============================================================
+Guarantees about elevators
+============================================================
 
-    Guarantees about elevators:
+What should happen if one of the nodes loses its network connection?
 
+- Heisen som mister nettverket skal fortsette å fungere lokalt.
+  - Den skal fortsette å kjøre.
+  - Den skal stoppe i etasjer der det finnes bestillinger.
+  - Cab calls (inne i heisen) skal kunne ta nye bestillinger.
+  - Lys som allerede er tent skal betjenes.
+  - Ingen knappetrykk som brukeren har fått bekreftelse på (lys på) skal bli glemt.
+    - Utfordringen her er lokal hukommelse og eventuell gjenoppretting.
 
-        What should happen if one of the nodes loses its network connection?
-        - en node er hver pc
-        - vi må jevnlig sende status til en server 
-        - Serveren må delegere ansvaret og restarte enheten - make it simple 
-        
-
-
-
-        What should happen if one of the nodes loses power for a brief moment?
-        - Hvis strømmen går vil:
-            - variabel verdier går tapt 
-            - Pågående beregninger forsvinner 
-            - Den vil ikke huske tidligere bestillinger
-        - Løsning er:
-            - Vi ønsker at de andre heisene skal kjøre videre uten å bli påvirket av heis som mister strøm. 
-            - Kall skal uansett bli utført, ikke glemt bort:
-                - Cab-calls (inni heis) utføres når driften er oppe igjen
-                - Denne tiden skal være rimelig. 
-                - HVRODAN??
+- De andre heisene skal kunne fortsette å fungere uten den ene noden.
 
 
+What should happen if one of the nodes loses power for a brief moment?
 
-        What should happen if some unforeseen event causes the elevator to never reach its destination, but communication remains intact?
+- Mål:
+  - Ingen kall som er «lovet» skal bli borte.
+  - Systemet skal komme tilbake i drift i løpet av sekunder.
 
-    Guarantees about orders:
-        Do all your nodes need to "agree" on a call for it to be accepted? In that case, how is a faulty node handled?
-        How can you be sure that a remote node "agrees" on an call?
-        How do you handle losing packets between the nodes?
-        Do you share the entire state of the current calls, or just the changes as they occur?
-            For either one: What should happen when an elevator re-joins after having been offline?
+- Avhenger av type strømbrudd:
 
-Pencil and paper is encouraged! Drawing a diagram/graph of the message pathways between nodes (elevators) will aid in visualizing complexity. Drawing the order of messages through time will let you more easily see what happens when communication fails.
+  - Strøm til motor forsvinner, men styreprogrammet lever:
+    - Heisen stopper fysisk, men programmet fortsetter å kjøre.
+    - Dersom dette varer for lenge, bør en annen heis kunne ta over hall calls.
+    - Når motoren er tilbake:
+      - Aktive kall utføres.
+      - Nye cab calls skal aksepteres.
 
-    Topology:
-        What kind of network topology do you want to implement? Peer to peer? Master slave? Circle? Something else?
-        In the case of a master-slave configuration: Do you have only one program, or two (a "master" executable and a "slave")?
-            How do you handle a master node disconnecting?
-            Is a slave becoming a master a part of the network module?
-        In the case of a peer-to-peer configuration:
-            Who decides the order assignment?
-            What happens if someone presses the same button on two panels at once? Is this even a problem?
-        Remember that you only have three machines available, no outside always-online fourth machine is permitted.
+  - Strøm til styreprogrammet forsvinner:
+    - Programmet bør restarte automatisk innen rimelig tid.
+    - Programmet mister minne og må starte i en konsistent tilstand.
+    - Utfordringen er å delegere ansvar til andre heiser og gjenoppta betjening
+      av kall på en god måte.
 
-    Technical implementation and module boundary:
-        Protocols: TCP, UDP, or something else?
-            If you are using TCP: How do you know who connects to who?
-                Do you need an initialization phase to set up all the connections?
-            If you are using UDP broadcast: How do you differentiate between messages from different nodes?
-            If you are using a library or language feature to do the heavy lifting - what is it, and does it satisfy your needs?
-        Do you want to build the necessary reliability into the module, or handle that at a higher level?
-        Is detection (and handling) of things like lost messages or lost nodes a part of the network module?
-        How will you pack and unpack (serialize) data?
-            Do you use structs, classes, tuples, lists, ...?
-            JSON, XML, plain strings, or just plain memcpy?
-            Is serialization a part of the network module?
+
+What should happen if some unforeseen event causes the elevator to never reach its
+destination, but communication remains intact?
+
+- Dette regnes som en feiltilstand der heisen ikke kan betjene kall videre.
+- Kravet «no calls are lost» betyr at systemet:
+  - ikke kan vente for evig på denne heisen
+  - må sørge for at kallene blir betjent av andre heiser
+
+- Relevante krav:
+  - No calls are lost.
+  - Heisen skal ikke kreve manuell reinitialisering etter midlertidige strøm-
+    eller nettverksproblemer.
+  - Håndtering skal skje på sekunders skala.
+
+- Valg:
+  - Resten av systemet bør behandle heisen som «midlertidig borte».
+  - Andre heiser kan ta over hall calls dersom heisen ikke lenger deltar,
+    etter en viss tidsgrense.
+
+
+============================================================
+Guarantees about orders
+============================================================
+
+Do all your nodes need to "agree" on a call for it to be accepted?
+How is a faulty node handled?
+
+- Vi skiller mellom AND-system og OR-system.
+  - I et AND-system er systemet avhengig av at flere noder fungerer samtidig.
+  - Dette gjør systemet sårbart for bugs og frakoblede heiser.
+
+- Valg vi har tatt:
+  - Vi ønsker et OR-system med færrest mulig sterke avhengigheter mellom noder.
+  - Et kall trenger ikke å bli godkjent av alle noder for å bli akseptert.
+
+- Et kall anses som akseptert:
+  - Så snart hall light er tent.
+  - Når én fungerende heis har registrert kallet i sin lokale tilstand.
+
+- Det er ikke nødvendig at alle heiser registrerer kallet samtidig.
+  - Lys skal likevel vises likt på alle workspaces.
+  - Forsvinner heisen som har registrert kallet, skal en annen kunne ta over.
+
+- En «faulty node» behandles som:
+  - midlertidig frakoblet (kommunikasjon borte), eller
+  - utilgjengelig (stuck / kan ikke betjene), selv om kommunikasjon virker.
+
+
+How can you be sure that a remote node "agrees" on a call?
+
+- Spørsmålet er hvordan man vet at andre heiser har fått med seg et knappetrykk.
+- Dette kan man ikke være sikker på:
+  - Meldinger kan bli borte eller forsinket.
+  - Nettverket kan være tregt.
+  - En heis kan være i feiltilstand.
+
+- Valg:
+  - Systemet skal fungere selv om heiser midlertidig er uenige.
+  - Vi ønsker et design der uenighet ikke ødelegger systemet.
+
+
+How do you handle losing packets between the nodes?
+
+- Vi planlegger å bruke UDP.
+- Dette innebærer risiko for:
+  - pakketap
+  - feil rekkefølge
+  - duplikater
+
+- Valg:
+  - Enkeltmeldinger skal ikke være kritiske.
+  - Viktig informasjon sendes flere ganger over tid.
+  - Vi unngår løsninger som krever bekreftelse fra mange eller alle noder.
+
+
+============================================================
+Sharing state between elevators
+============================================================
+
+Do you share the entire state of the current calls, or just the changes as they occur?
+
+- Spørsmålet er hvilken informasjon som deles mellom heisene.
+- Hver heis har sitt eget workspace som viser aktive hall calls fra sitt perspektiv.
+
+- To alternativer:
+
+  Alternativ A: Dele hele tilstanden
+  - Hver heis sender periodisk melding om hvilke aktive kall den kjenner til.
+  - Dersom en heis restarter eller mister data, kan den raskt få korrekt oversikt
+    og oppdatere sitt workspace.
+
+  Alternativ B: Dele bare endringer
+  - Det sendes meldinger om enkelthendelser, for eksempel:
+    - «OPP i 2 er tatt»
+    - «OPP i 2 er ferdig»
+
+  - Utfordringer:
+    - En heis som er offline kan mangle kontekst.
+    - Dersom den kommer tilbake på uheldig tidspunkt:
+      - kan den tro at et kall fortsatt er aktivt
+      - eller tro at et kall aldri har eksistert
+
+
+For either one: What should happen when an elevator re-joins after having been offline?
+
+- Avhenger av valgt alternativ:
+
+  - Alternativ A:
+    - Heisen mottar full state periodisk og oppdaterer workspace automatisk.
+
+  - Alternativ B:
+    - Heisen må eksplisitt resynkroniseres, for eksempel ved:
+      - å be andre heiser sende full state.
+
+
+============================================================
+Topology and networking design
+============================================================
+
+Topology:
+
+Peer-to-peer:
+- Alle heiser er like, ingen sentral sjef.
+- Hver heis tar egne beslutninger.
+- OR-system.
+- Fordel: robust mot feil.
+- Ulempe: må tåle midlertidig uenighet.
+
+Master–slave:
+- Én heis er master og bestemmer alt.
+- Slaver sender informasjon til master.
+- Fordel: enkel modell.
+- Ulempe: master er et enkelt feilpunkt.
+
+
+Master–slave considerations:
+
+- Ett program:
+  - Alle heiser kjører samme program.
+  - Én heis opptrer som master.
+
+- To programmer:
+  - Eget master-program og egne slave-program.
+
+- Master disconnect:
+  - Systemet må detektere dette og enten:
+    - velge ny master, eller
+    - falle tilbake til lokal drift.
+
+- Slave → master:
+  - Dette er en del av systemets logikk, ikke maskinvaren.
+
+
+Peer-to-peer considerations:
+
+- Order assignment:
+  - Alternativ A: Alle heiser bruker samme regel (f.eks. nærmeste heis).
+  - Alternativ B: Heisen som mottar trykket først tar eierskap.
+
+- Samme knapp trykket samtidig:
+  - Hall calls er binære (på / av).
+  - Dobbel registrering er ikke et problem.
+  - Midlertidig dobbelt eierskap kan forekomme, men systemet konvergerer.
+
+- Kun tre maskiner er tilgjengelige.
+  - Ingen ekstern alltid-på server er tillatt.
+
+
+============================================================
+Technical implementation and module boundary
+============================================================
+
+Protocols:
+
+- Vi bruker UDP.
+  - Fordeler: enkel broadcast, støtter dynamisk join/leave.
+  - Ulemper: ingen garanti for levering eller rekkefølge.
+  - Systemet designes for å tåle dette.
+
+- Meldinger inneholder:
+  - SenderID
+  - Meldings-type (state, heartbeat, orderupdate)
+  - Eventuelt timestamp/sekvensnummer
+
+
+Libraries / language features:
+
+- Vi holder oss til Go sitt standardbibliotek.
+- Bruk av net-pakken for UDP sockets.
+- Vi ønsker full kontroll over feil og robusthet.
+- Unngår tunge biblioteker med skjulte antagelser.
+
+
+Reliability and failure handling:
+
+- Robusthet håndteres hovedsakelig på høyere nivå.
+- Løsninger:
+  - Periodisk deling av state.
+  - OR-system.
+  - Kritiske meldinger sendes flere ganger.
+
+- Tapte meldinger:
+  - Forventet.
+  - Ikke nødvendig å detektere enkeltpakketap.
+
+- Tapte noder:
+  - Detekteres via timeout.
+  - Heisen behandles som i failure state.
+  - Andre heiser kan ta over hall calls.
+
+
+Serialization:
+
+- Meldinger representeres som structs.
+- Serialisering kan gjøres med:
+  - JSON (lett å debugge), eller
+  - binært format.
+- Serialisering hører naturlig hjemme i nettverksmodulen.
