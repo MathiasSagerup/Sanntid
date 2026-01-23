@@ -1,0 +1,61 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36" version="29.3.4">
+  <diagram name="Page-1" id="c4acf3e9-155e-7222-9cf6-157b1a14988f">
+    <mxGraphModel dx="1426" dy="701" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" background="none" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="JlIfFYJyW1H3z34z0GOt-7" edge="1" parent="1" source="5d2195bd80daf111-15" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="17acba5748e5396b-20" parent="1" style="swimlane;html=1;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=26;fillColor=none;horizontalStack=0;resizeParent=1;resizeLast=0;collapsible=1;marginBottom=0;swimlaneFillColor=#ffffff;rounded=0;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;fontFamily=Verdana;fontSize=10;align=center;" value="Order" vertex="1">
+          <mxGeometry height="157.5" width="170" x="570" y="143.75" as="geometry" />
+        </mxCell>
+        <mxCell id="17acba5748e5396b-21" parent="17acba5748e5396b-20" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;whiteSpace=wrap;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="- reqFloor: int //if cab call" vertex="1">
+          <mxGeometry height="26" width="170" y="26" as="geometry" />
+        </mxCell>
+        <mxCell id="17acba5748e5396b-24" parent="17acba5748e5396b-20" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;whiteSpace=wrap;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="- startFloor: int&lt;div&gt;- dir: int&lt;/div&gt;&lt;div&gt;- AssignedElevator&lt;/div&gt;" vertex="1">
+          <mxGeometry height="48" width="170" y="52" as="geometry" />
+        </mxCell>
+        <mxCell id="5d2195bd80daf111-9" parent="1" style="verticalAlign=top;align=left;overflow=fill;fontSize=12;fontFamily=Helvetica;html=1;rounded=0;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;i&gt;Communication System&lt;/i&gt;&lt;br&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;-receiveSocket():&lt;br&gt;-sendSocket():&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;-broadcastSocket():&lt;/p&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ recieveMsg():&amp;nbsp;&lt;br&gt;+ sendMsg():&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ broadcastMsg():&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;&lt;br&gt;&lt;/p&gt;" vertex="1">
+          <mxGeometry height="200" width="200" x="280" y="640" as="geometry" />
+        </mxCell>
+        <mxCell id="JlIfFYJyW1H3z34z0GOt-20" edge="1" parent="1" source="5d2195bd80daf111-11" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" target="5d2195bd80daf111-18">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="JlIfFYJyW1H3z34z0GOt-22" edge="1" parent="1" source="5d2195bd80daf111-11" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="5d2195bd80daf111-12">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="JlIfFYJyW1H3z34z0GOt-25" edge="1" parent="1" source="5d2195bd80daf111-11" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="5d2195bd80daf111-9" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="5d2195bd80daf111-11" parent="1" style="verticalAlign=top;align=left;overflow=fill;fontSize=12;fontFamily=Helvetica;html=1;rounded=0;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;i&gt;Elevator FSM&lt;/i&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- Elev1: Elev&lt;br&gt;- Elev2: Elev&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- Elev3 : Elev&amp;nbsp;&lt;/p&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ broadcastElevInfo():&amp;nbsp;&lt;br&gt;+ stateTransition():&amp;nbsp;&lt;/p&gt;" vertex="1">
+          <mxGeometry height="170" width="200" x="280" y="400" as="geometry" />
+        </mxCell>
+        <mxCell id="5d2195bd80daf111-12" parent="1" style="verticalAlign=top;align=left;overflow=fill;fontSize=12;fontFamily=Helvetica;html=1;rounded=0;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;i&gt;Fault Tolerance System&lt;/i&gt;&lt;br&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ field1: Type&lt;br&gt;+ field2: Type&lt;/p&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ method1(Type): Type&lt;br&gt;+ method2(Type, Type): Type&lt;/p&gt;" vertex="1">
+          <mxGeometry height="170" width="190" x="30" y="400" as="geometry" />
+        </mxCell>
+        <mxCell id="5d2195bd80daf111-15" parent="1" style="verticalAlign=top;align=left;overflow=fill;fontSize=12;fontFamily=Helvetica;html=1;rounded=0;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;i&gt;Elevator&lt;/i&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- currentFloor: int&lt;br&gt;- lastFloor: int&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- movingDir: int&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- doorState: int&lt;/p&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ getCurrentFloor(): int&lt;br&gt;+ getLastFloor(): int&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ getMovingDir(): int&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ isDoorOpen(): int&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ setCurrentFloor(int floor):&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+setMovingDir(int dir):&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+openDoor():&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;&lt;br&gt;&lt;/p&gt;" vertex="1">
+          <mxGeometry height="210" width="190" x="590" y="400" as="geometry" />
+        </mxCell>
+        <mxCell id="JlIfFYJyW1H3z34z0GOt-27" edge="1" parent="1" source="5d2195bd80daf111-18" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="17acba5748e5396b-24" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="5d2195bd80daf111-18" parent="1" style="verticalAlign=top;align=left;overflow=fill;fontSize=12;fontFamily=Helvetica;html=1;rounded=0;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;i&gt;Queue System&lt;/i&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- Order: Order&lt;br&gt;- field2: Type&lt;/p&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ getOrder(Type): Order&lt;br&gt;+ removeOrder(int floor):&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+assignElevator(order): Elev&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+reassignOrder(order):Elev&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;&lt;br&gt;&lt;/p&gt;" vertex="1">
+          <mxGeometry height="145" width="200" x="280" y="150" as="geometry" />
+        </mxCell>
+        <mxCell id="JlIfFYJyW1H3z34z0GOt-18" edge="1" parent="1" source="5d2195bd80daf111-11" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=-0.001;entryY=0.404;entryDx=0;entryDy=0;entryPerimeter=0;" target="5d2195bd80daf111-15">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="waKsyehGKIubi_wUJpQf-1" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Each order is visible to each elevator/peer, but it becomes assigned to a specific elevator. Not cleared from order queue until assigned elevator has executed the order. If elevator crashes, if the order is a hall call -&amp;gt; reassign. if cab call, do nothing until elevator has power back or has executed the order (network loss)" vertex="1">
+          <mxGeometry height="270" width="210" x="10" y="20" as="geometry" />
+        </mxCell>
+        <mxCell id="waKsyehGKIubi_wUJpQf-2" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Elevators are alive as long as broadcasted messages are received. In case of network loss between one set of peers, accept the info from the third node. If neither node has received broadcast -&amp;gt; assume node to be dead. Implement using the same procedure as the Cyclic Counter (see Ander Petersen video on distributed systems)" vertex="1">
+          <mxGeometry height="230" width="210" x="20" y="600" as="geometry" />
+        </mxCell>
+        <mxCell id="waKsyehGKIubi_wUJpQf-3" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Procedure for reintegrating an elevator: I think we need toi implement the same method as the cyclic counter from Ander Petersens video on distributed systems. Each elevator must detect that they have not received messages from either nodes (if both network cables are pulled out) -&amp;gt; join network with the &quot;unknown&quot; value. Let itself be updated by broadcasted msg from other nodes.&amp;nbsp;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;What about power loss? Will it be able to detect that it was &quot;dead&quot;? If it loses its internal states then it will join with the states unknown right?I If so, same solution as network loss?&lt;/div&gt;" vertex="1">
+          <mxGeometry height="280" width="250" x="560" y="640" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
