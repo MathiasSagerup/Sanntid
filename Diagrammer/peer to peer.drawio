@@ -1,0 +1,47 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36" version="29.3.4">
+  <diagram name="Page-1" id="hgBTdrE_7r3ys9__UUw2">
+    <mxGraphModel dx="1426" dy="701" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="xW7W_XYuH4v7vVFK7gRH-4" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Elevator 2" vertex="1">
+          <mxGeometry height="80" width="120" x="140" y="480" as="geometry" />
+        </mxCell>
+        <mxCell id="xW7W_XYuH4v7vVFK7gRH-10" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Elevator 3" vertex="1">
+          <mxGeometry height="80" width="120" x="570" y="480" as="geometry" />
+        </mxCell>
+        <mxCell id="xW7W_XYuH4v7vVFK7gRH-12" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Elevator 1" vertex="1">
+          <mxGeometry height="80" width="120" x="354" y="270" as="geometry" />
+        </mxCell>
+        <mxCell id="xW7W_XYuH4v7vVFK7gRH-13" edge="1" parent="1" source="xW7W_XYuH4v7vVFK7gRH-4" style="endArrow=classic;startArrow=classic;html=1;rounded=0;entryX=0.227;entryY=0.93;entryDx=0;entryDy=0;entryPerimeter=0;exitX=1;exitY=0;exitDx=0;exitDy=0;" target="xW7W_XYuH4v7vVFK7gRH-12" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <Array as="points" />
+            <mxPoint x="390" y="450" as="sourcePoint" />
+            <mxPoint x="440" y="400" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="xW7W_XYuH4v7vVFK7gRH-14" edge="1" parent="1" source="xW7W_XYuH4v7vVFK7gRH-4" style="endArrow=classic;startArrow=classic;html=1;rounded=0;exitX=1;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=1;entryDx=0;entryDy=0;" target="xW7W_XYuH4v7vVFK7gRH-10" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="380" y="460" as="sourcePoint" />
+            <mxPoint x="440" y="400" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="xW7W_XYuH4v7vVFK7gRH-15" edge="1" parent="1" source="xW7W_XYuH4v7vVFK7gRH-10" style="endArrow=classic;startArrow=classic;html=1;rounded=0;entryX=1;entryY=1;entryDx=0;entryDy=0;exitX=0;exitY=0;exitDx=0;exitDy=0;" target="xW7W_XYuH4v7vVFK7gRH-12" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="520" y="450" as="sourcePoint" />
+            <mxPoint x="570" y="400" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="f7_QPXtHo602dtLNfX0y-1" parent="1" style="whiteSpace=wrap;html=1;" value="Peer to peer system" vertex="1">
+          <mxGeometry height="60" width="120" x="354" y="420" as="geometry" />
+        </mxCell>
+        <mxCell id="f7_QPXtHo602dtLNfX0y-2" parent="1" style="swimlane;startSize=0;" value="" vertex="1">
+          <mxGeometry height="340" width="750" x="50" y="580" as="geometry" />
+        </mxCell>
+        <mxCell id="f7_QPXtHo602dtLNfX0y-3" parent="f7_QPXtHo602dtLNfX0y-2" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Jeg mener det er lurt å ta utgangspunkt i et peer to peer system, der alle snakker med alle. Siden vi har valgt å bruke go, og Go gjør det enkelt å implementere &quot;sharing memory via commmunciation&quot; gjennom goroutines og message passing, tenker jeg det er naturlig å bruke peer to peer. Da vil hver heis være en server med kontroll over sine egne variabler/tilstander, og nye ordre blir sendt gjennom message passing mellom heisene/nodene.&amp;nbsp;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;Siden hver heis vil bli en egen &quot;selvstendig&quot; modul blir systemet mer robust mot at en heis feiler (nettverk eller strømtap). Dersom en heis mister strømmen kan de 2 andre operere uavhengig av dette, og kan fortsatt kommunisere med hverandre.&amp;nbsp;&lt;/div&gt;&lt;div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;Dette oppsettet gjør at jeg tror det vil være naturlig å bruke periodisk UDP broadcasting for å sende ut tilstanden(e) som hver heis befinner seg i. Dersom en heis mottar en ny mld der det har skjedd en endring fra forrige mld, vil dette være en &quot;trigger&quot; for en tilstandsendring i systemet.&amp;nbsp;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;TCP tror jeg ikke er et lurt valg fordi det skjuler packet loss ved å sende på nytt frem til en mld er mottatt. Informasjonen om at en mld ikke er mottatt virker sentral i dette prosjektet slik at vi vet om en heis eller nettverkstilkobling har feilet. Det virker irrelevant å skulle prøve å sende informasjonen på nytt dersom det skjer packet loss fordi det vil være en ny broadcast rett etter uansett. mister i praksis ikke viktig informasjon.&amp;nbsp;&amp;nbsp;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;&amp;nbsp;&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="320" width="730" x="10" y="10" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
