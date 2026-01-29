@@ -1,6 +1,6 @@
 <mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36" version="29.3.6">
   <diagram id="C5RBs43oDa-KdzZeNtuy" name="Page-1">
-    <mxGraphModel dx="1678" dy="825" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="1426" dy="701" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="WIyWlLk6GJQsqaUBKTNV-0" />
         <mxCell id="WIyWlLk6GJQsqaUBKTNV-1" parent="WIyWlLk6GJQsqaUBKTNV-0" />
@@ -133,13 +133,13 @@
         <mxCell id="wlXcXkAmzBoVZriTr6Ep-60" parent="wlXcXkAmzBoVZriTr6Ep-55" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="updateData()" vertex="1">
           <mxGeometry height="26" width="250" y="112" as="geometry" />
         </mxCell>
-        <mxCell id="kpsOYJ_HLAeWt4leCoWq-18" parent="wlXcXkAmzBoVZriTr6Ep-55" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="HallRequestAssigner(Hallcalls, ElevStates)" vertex="1">
+        <mxCell id="kpsOYJ_HLAeWt4leCoWq-18" parent="wlXcXkAmzBoVZriTr6Ep-55" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="- HallRequestAssigner(Hallcalls, ElevStates)" vertex="1">
           <mxGeometry height="26" width="250" y="138" as="geometry" />
         </mxCell>
         <mxCell id="6q9wpAidB07x8_6_x1qH-13" parent="wlXcXkAmzBoVZriTr6Ep-55" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="SetCallActions()" vertex="1">
           <mxGeometry height="26" width="250" y="164" as="geometry" />
         </mxCell>
-        <mxCell id="6q9wpAidB07x8_6_x1qH-12" parent="wlXcXkAmzBoVZriTr6Ep-55" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="getActiveOrder(floor,dir, state)" vertex="1">
+        <mxCell id="6q9wpAidB07x8_6_x1qH-12" parent="wlXcXkAmzBoVZriTr6Ep-55" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="+ getActiveOrder(floor,dir, state)" vertex="1">
           <mxGeometry height="26" width="250" y="190" as="geometry" />
         </mxCell>
         <mxCell id="wlXcXkAmzBoVZriTr6Ep-75" edge="1" parent="WIyWlLk6GJQsqaUBKTNV-1" source="wlXcXkAmzBoVZriTr6Ep-55" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1.011;entryY=1.088;entryDx=0;entryDy=0;entryPerimeter=0;">
