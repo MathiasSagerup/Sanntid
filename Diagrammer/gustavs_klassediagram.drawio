@@ -1,6 +1,6 @@
 <mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36" version="29.3.6">
   <diagram id="C5RBs43oDa-KdzZeNtuy" name="Page-1">
-    <mxGraphModel dx="1141" dy="561" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="1426" dy="701" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="WIyWlLk6GJQsqaUBKTNV-0" />
         <mxCell id="WIyWlLk6GJQsqaUBKTNV-1" parent="WIyWlLk6GJQsqaUBKTNV-0" />
@@ -205,11 +205,8 @@
         <mxCell id="cH5g3prHWdbPxdJKshFx-7" parent="WIyWlLk6GJQsqaUBKTNV-1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Jeg mener vi burde ha med en timer/counter modul også. Tror den vil brukes for å vite hvem som har rett &quot;worldview&quot;/informasjon når vi broadcaster tilstander.&amp;nbsp;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;Også brukes for doorOpen()?&lt;br&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;/div&gt;" vertex="1">
           <mxGeometry height="160" width="170" y="670" as="geometry" />
         </mxCell>
-        <mxCell id="kpsOYJ_HLAeWt4leCoWq-7" parent="WIyWlLk6GJQsqaUBKTNV-1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="identity = 1" vertex="1">
-          <mxGeometry height="30" width="80" x="1220" y="20" as="geometry" />
-        </mxCell>
         <mxCell id="kpsOYJ_HLAeWt4leCoWq-12" parent="WIyWlLk6GJQsqaUBKTNV-1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="resetWatchdogTimer(ElevID)" vertex="1">
-          <mxGeometry height="30" width="120" x="219" y="680" as="geometry" />
+          <mxGeometry height="30" width="120" x="219" y="740" as="geometry" />
         </mxCell>
         <mxCell id="kpsOYJ_HLAeWt4leCoWq-19" parent="WIyWlLk6GJQsqaUBKTNV-1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="getWhosAlive()" vertex="1">
           <mxGeometry height="30" width="60" x="700" y="480" as="geometry" />
