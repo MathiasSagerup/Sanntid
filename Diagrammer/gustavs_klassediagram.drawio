@@ -77,7 +77,7 @@
           <mxGeometry height="26" width="260" y="192" as="geometry" />
         </mxCell>
         <mxCell id="wlXcXkAmzBoVZriTr6Ep-15" parent="WIyWlLk6GJQsqaUBKTNV-1" style="swimlane;fontStyle=0;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeLast=0;collapsible=1;marginBottom=0;rounded=0;shadow=0;strokeWidth=1;" value="communication" vertex="1">
-          <mxGeometry height="216" width="250" x="80" y="370" as="geometry">
+          <mxGeometry height="242" width="250" x="80" y="370" as="geometry">
             <mxRectangle height="26" width="160" x="130" y="380" as="alternateBounds" />
           </mxGeometry>
         </mxCell>
@@ -87,7 +87,7 @@
         <mxCell id="kpsOYJ_HLAeWt4leCoWq-14" parent="wlXcXkAmzBoVZriTr6Ep-15" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" value="- dataBufferElev2 size1" vertex="1">
           <mxGeometry height="26" width="250" y="52" as="geometry" />
         </mxCell>
-        <mxCell id="nCB9GJgVTrOPO_XMogcW-2" parent="wlXcXkAmzBoVZriTr6Ep-15" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" value="- sendDataBuffer size1" vertex="1">
+        <mxCell id="WKKYobOfkDqQKiR6KUUo-0" parent="wlXcXkAmzBoVZriTr6Ep-15" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" value="- sendDataBuffer size1" vertex="1">
           <mxGeometry height="26" width="250" y="78" as="geometry" />
         </mxCell>
         <mxCell id="WWmxu1jCN9yqY0itFntM-0" parent="wlXcXkAmzBoVZriTr6Ep-15" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" value="- ElevAdressMap:ElevID " vertex="1">
