@@ -8,7 +8,7 @@
           <mxGeometry height="30" width="225" x="727.5" y="360" as="geometry" />
         </mxCell>
         <mxCell id="PtaFzHF1ihqMgs-GCYHy-2" parent="1" style="shadow=1;fillColor=#A2C4C9;strokeColor=none" value="Communication" vertex="1">
-          <mxGeometry height="50" width="105" x="540" y="450" as="geometry" />
+          <mxGeometry height="50" width="105" x="540" y="470" as="geometry" />
         </mxCell>
         <mxCell id="PtaFzHF1ihqMgs-GCYHy-5" edge="1" parent="1" source="PtaFzHF1ihqMgs-GCYHy-6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;dashed=1;endArrow=none;endFill=0;" target="PtaFzHF1ihqMgs-GCYHy-25">
           <mxGeometry relative="1" as="geometry" />
@@ -103,7 +103,7 @@
             <mxPoint x="227.5" y="240" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="PtaFzHF1ihqMgs-GCYHy-97" parent="PtaFzHF1ihqMgs-GCYHy-23" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Note: Det ble kanskje noen rare funksjonsnavn her nå, men synes ikke receiveMessageProtocol er et bra navn. Funksjonsnavnet sier ikke hva den gjør + at slik den var så abstraherer den vekk viktige grener i funksjonalitet. (Se shell and core prinsipp, designing for testability youtube video Anders Petersen). Har derfor delt den opp i flere funksjoner her.&amp;nbsp;" vertex="1">
+        <mxCell id="PtaFzHF1ihqMgs-GCYHy-97" parent="PtaFzHF1ihqMgs-GCYHy-23" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Note: Det ble kanskje noen rare funksjonsnavn her nå, men synes ikke receiveMessageProtocol er et bra navn. Funksjonsnavnet sier ikke hva den gjør + at slik den var så abstraherer den vekk viktige grener i programflyten. (Se shell and core prinsipp, designing for testability youtube video Anders Petersen). Har derfor delt den opp i flere funksjoner her.&amp;nbsp;" vertex="1">
           <mxGeometry height="160" width="300" x="720" y="30" as="geometry" />
         </mxCell>
         <mxCell id="PtaFzHF1ihqMgs-GCYHy-30" edge="1" parent="PtaFzHF1ihqMgs-GCYHy-19" source="PtaFzHF1ihqMgs-GCYHy-25" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;endArrow=none;endFill=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;">
