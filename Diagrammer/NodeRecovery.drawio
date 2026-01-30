@@ -5,7 +5,7 @@
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
         <mxCell id="PtaFzHF1ihqMgs-GCYHy-1" parent="1" style="rounded=1;fontStyle=1;fillColor=#FFD966;strokeColor=none" value="Node rejoins network" vertex="1">
-          <mxGeometry height="30" width="225" x="625" y="270" as="geometry" />
+          <mxGeometry height="30" width="225" x="727.5" y="360" as="geometry" />
         </mxCell>
         <mxCell id="PtaFzHF1ihqMgs-GCYHy-2" parent="1" style="shadow=1;fillColor=#A2C4C9;strokeColor=none" value="Communication" vertex="1">
           <mxGeometry height="50" width="105" x="540" y="450" as="geometry" />
@@ -137,10 +137,10 @@
           </mxGeometry>
         </mxCell>
         <mxCell id="PtaFzHF1ihqMgs-GCYHy-31" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Describe how a node recovers its own state from before node failure" vertex="1">
-          <mxGeometry height="50" width="240" x="617.5" y="220" as="geometry" />
+          <mxGeometry height="50" width="240" x="720" y="310" as="geometry" />
         </mxCell>
         <mxCell id="PtaFzHF1ihqMgs-GCYHy-36" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Spørsmål jeg prøver å besvare her:&amp;nbsp;&lt;div&gt;når en node blir med i nettet igjen, hvordan initialisere til rett tilstand? Jeg har sett for meg her at en del av bufferet med elev data vi mottar fra de 2 andre heisene vil inneholde data om heisen som crashet/mistet nettverkstilkobling etc.&amp;nbsp;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;Siden vi kan anta at kun en heis vil krasje og bli med i nettverket igjen, så vil infoen om heisen som blir med i nettverket igjen være den samme.&amp;nbsp;&amp;nbsp;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;Dersom heis har mistet strøm/krasjet vil all info/tilstander bli oppdatert gjennom mottatt informasjon fra heisene som er i live. Cab calls vil være tom for info --&amp;gt; oppdater cab calls fra andre heiser.&amp;nbsp;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;Dersom heis kun har mistet nettverkstilkobling så vil heisen motta all informasjon fra de andre heisene, men systemet med (&quot;false&quot;, &quot;true&quot; , &quot;completed&quot;) håndterer korrekt sammenfletting av informasjon om hall calls? Vil det samme stemme for cab calls? VI bruker samme system for cab calls også? Jeg vet ikke hvordan vi håndterer denne situasjonen nå som vi har gått vekk fra å bruke cyclic counter for å håndtere informasjon&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;" vertex="1">
-          <mxGeometry height="440" width="240" x="20" y="420" as="geometry" />
+          <mxGeometry height="440" width="240" x="60" y="570" as="geometry" />
         </mxCell>
         <mxCell id="PtaFzHF1ihqMgs-GCYHy-21" parent="1" style="swimlane;startSize=0;" value="" vertex="1">
           <mxGeometry height="180" width="1090" x="370" y="700" as="geometry" />
@@ -167,17 +167,6 @@
         </mxCell>
         <mxCell id="PtaFzHF1ihqMgs-GCYHy-72" parent="PtaFzHF1ihqMgs-GCYHy-21" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="GetData(ElevID)" vertex="1">
           <mxGeometry height="30" width="60" x="457" y="100" as="geometry" />
-        </mxCell>
-        <mxCell id="PtaFzHF1ihqMgs-GCYHy-42" edge="1" parent="1" style="edgeStyle=none;orthogonalLoop=1;jettySize=auto;html=1;rounded=0;" value="">
-          <mxGeometry relative="1" width="100" as="geometry">
-            <Array as="points">
-              <mxPoint x="1363" y="420" />
-              <mxPoint x="1363" y="450" />
-              <mxPoint x="1363" y="480" />
-            </Array>
-            <mxPoint x="1323" y="420" as="sourcePoint" />
-            <mxPoint x="1320" y="480" as="targetPoint" />
-          </mxGeometry>
         </mxCell>
         <mxCell id="PtaFzHF1ihqMgs-GCYHy-68" parent="1" style="shadow=1;fillColor=#A2C4C9;strokeColor=none" value="CallsState" vertex="1">
           <mxGeometry height="50" width="105" x="1000" y="460" as="geometry" />
