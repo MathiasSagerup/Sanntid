@@ -1,6 +1,7 @@
 package main
 
 import "Driver-go/elevio"
+import "elev_algo"
 import "fmt"
 
 func main(){

@@ -14,7 +14,11 @@ func requests_Above(e Elevator) bool {
     for f := e.floor + 1; f < N_FLOORS; f++ {
         for btn := 0; btn < N_BUTTONS; btn++ {
             if e.requests[f][btn] {
-                return true;Elevator requests_clearAtCurrentFloor(Elevator e){
+                return true;
+                
+}
+
+func requests_clearAtCurrentFloor(Elevator e) bool {
         
     e.requests[e.floor][B_Cab] = 0;
     switch(e.dirn){
@@ -39,7 +43,7 @@ func requests_Above(e Elevator) bool {
         break;
     }
     return e;
-}
+
             }
         }
     }
