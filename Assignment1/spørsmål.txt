@@ -1,0 +1,5 @@
+Hvorfor defer conn.close()?
+
+Hvorfor blir tcp koden hengende uten serversetdeadline?
+
+Er udp og tcp delen riktig implemenmter? Hva er forksellen
