@@ -18,7 +18,17 @@ type MotorDirection int
 
 const (
 	MD_Up   MotorDirection = 1
-	MD_Down                = -1
+	MD_Down                = -1bcast_conn_darwin.go
+	
+Bugfix: Print error values
+	
+4 years ago
+bcast_conn_linux.go
+	
+Bugfix: Print error values
+	
+4 years ago
+bcast_conn_windows.go
 	MD_Stop                = 0
 )
 
