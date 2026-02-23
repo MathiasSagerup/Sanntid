@@ -1,3 +1,3 @@
-module sanntid
+module Sanntid
 
 go 1.25.5

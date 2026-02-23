@@ -1,0 +1,29 @@
+Acceptance test: undersøke om systemet er konsistent: 
+ - definer en funkjson som undersøker dette 
+ - Den ligger i state modulen, og skal sjekke. VI ønsker å bevege oss mellom konsistente tilstander, og ikke havne i inkonsistente tilstander.
+ - resultat: definere oppfrsel ved uventede feil, robuist 
+
+
+ eks: 
+
+  type ElevatorState struct {
+    Mode        Mode
+    Floor       int
+    Motor       MotorState
+    DoorOpen    bool
+    CabOrders   [][]bool
+    HallOrders  [][]bool
+  }
+
+ func isValid(s ElevatorState) bool {
+
+    if s.Motor != Stopped && s.DoorOpen {
+        return false
+    }
+
+    if s.Floor < 0 || s.Floor >= NumFloors {
+        return false
+    }
+
+    return true
+}
