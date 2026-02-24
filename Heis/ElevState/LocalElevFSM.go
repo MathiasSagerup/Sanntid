@@ -1,12 +1,12 @@
 package ElevState
 
 import (
-	"fmt"
 	"heis/Driver"
-	"heis/Timer"
-	"internal/testlog"
 	"time"
 )
+
+const N_BUTTONS = 2
+const N_FLOORS = 4
 
 type ElevatorBehaviour int
 
@@ -37,8 +37,8 @@ type Elevator struct {
 	dirn         Driver.MotorDirection
 	HallRequests [N_FLOORS][N_BUTTONS]Order //Oversikt over alle ordre
 	// og om alle heiser vet om dem
-	CabOrders  [N_FLOORS]bool
-	behaviour  ElevatorBehaviour
+	CabOrders   [N_FLOORS]bool
+	behaviour   ElevatorBehaviour
 	obstruction bool
 }
 
@@ -68,7 +68,7 @@ func clearConfirmedOrder(floor int, localElev Elevator) {
 }
 */
 
-func (e *Elevator) ClearConfirmedOrders(floor int) { //for at vi ikke fjerner ordre fra en kopi må vi bruke peker
+func (e *Elevator) ClearConfirmedOrderAtFloor(floor int) { //for at vi ikke fjerner ordre fra en kopi må vi bruke peker
 	for b := 0; b < N_BUTTONS; b++ {
 		if e.HallRequests[floor][b] == Confirmed_Order {
 			e.HallRequests[floor][b] = No_Order
@@ -79,12 +79,12 @@ func (e *Elevator) ClearConfirmedOrders(floor int) { //for at vi ikke fjerner or
 	}
 }
 
-
 // kanaler opprettet fra før
 // bestillinger lagt inn tidligere av HallCallsAssigner
-func elevFSM() Elevator {
+func elevFSM(localElevAddr string, N_FLOORS int) Elevator {
 
 	var localElev Elevator
+	localElevPtr := &Elevator{}
 	Driver.Init(localElevAddr, N_FLOORS)
 
 	//sjekk input på kanaler, hvis noe skjer, gjør dette...
@@ -99,8 +99,9 @@ func elevFSM() Elevator {
 	go Driver.PollStopButton(stopCh)
 	go Driver.PollObstructionSwitch(obstructionCh)
 
-	doorTimer:=time.NewTimer(0)
+	doorTimer := time.NewTimer(0)
 	doorTimer.Stop()
+	doorTimerExpired := false
 
 	for {
 
@@ -127,11 +128,11 @@ func elevFSM() Elevator {
 
 				Driver.SetDoorOpenLamp(true)
 				localElev.behaviour = doorOpen
-				doorTimer.Reset(3*time.Second)
+				doorTimerExpired = false
+				doorTimer.Reset(3 * time.Second)
 
-
-				clearConfirmedOrder(floor, localElev)
-				//åpne dør og lukke dør, trenger timer?
+				localElevPtr.ClearConfirmedOrderAtFloor(floor)
+				//lukkin 
 			}
 
 		//stopBtn Pushed
@@ -154,28 +155,18 @@ func elevFSM() Elevator {
 
 			localElev.obstruction = obstr
 
-			if !obstr && doorTimerExpired 
-
-			if localElev.behaviour == doorOpen && obstr == true { //Hvis dør er åpen og obstruksjonsknapp.
-				localElev.obstructed = true
-
-			} else if localElev.behaviour != doorOpen && obstr == true {
-				localElev.obstructed = false //Hvis døren ikke er åpen fra før skal ikke obstruksjonsknapp gjøre noe
-
-			} else {
-				localElev.obstructed = false
-				//obstruksjonsknapp av
+			if !localElev.obstruction && doorTimerExpired && localElev.behaviour == doorOpen {
+				localElev.behaviour = idle
+				Driver.SetDoorOpenLamp(false)
 			}
-		
-		case <-doorTimer.C: 
-			if localElev.behaviour == doorOpen && !localElev.obstructed {
+
+		case <-doorTimer.C:
+			doorTimerExpired = true
+
+			if localElev.behaviour == doorOpen && !localElev.obstruction {
 				Driver.SetDoorOpenLamp(false)
 				localElev.behaviour = idle
-			} else if localElev.obstructed {
-				doorTimer.Reset(3*time.Second)
 			}
-
-
 		}
 	}
 }
