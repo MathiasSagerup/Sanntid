@@ -37,9 +37,10 @@ type Elevator struct {
 	dirn         Driver.MotorDirection
 	HallRequests [N_FLOORS][N_BUTTONS]Order //Oversikt over alle ordre
 	// og om alle heiser vet om dem
-	CabOrders   [N_FLOORS]bool
-	behaviour   ElevatorBehaviour
-	obstruction bool
+	CabOrders               [N_FLOORS]bool
+	behaviour               ElevatorBehaviour
+	obstruction             bool
+	AbleToServiceHallOrders bool
 }
 
 func confirmedOrdersAtFloor(floor int, localElev Elevator) bool { //Sjekker om det er
@@ -132,7 +133,7 @@ func elevFSM(localElevAddr string, N_FLOORS int) Elevator {
 				doorTimer.Reset(3 * time.Second)
 
 				localElevPtr.ClearConfirmedOrderAtFloor(floor)
-				//lukkin 
+				//lukkin
 			}
 
 		//stopBtn Pushed
