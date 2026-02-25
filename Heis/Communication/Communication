@@ -49,7 +49,25 @@ go func communicationFSM () {
 
 		select{
 
-		case AvailablePeers <- peerUpdateCh: //Endring i antall noder i nettverket
+		case AvailablePeers:= <- peerUpdateCh: //Endring i antall noder i nettverket
+			if AvailablePeers.New != "" {
+				//new node joined network
+				//which elevator was it? Set as alive, 
+				//possibly as readyToTakeOrder
+			} else if len(AvailablePeers.Lost > 1) {
+				//flere noder har dødd, det betyr at det er den lokale
+				//noden som har mistet nettverkstilkobling
+				localElevWorldview.AbleToServiceHallOrders = false
+
+			} else if len(AvailablePeers.Lost == 1){
+				//which node?
+				
+				
+			} else {
+				//happens on the second update after a node joins
+				//or leaves network, everything normal
+			}
+
 
 		case <- time.After(interval) //15*millisekund så broadcaste state
 			broadcastWorldview()
