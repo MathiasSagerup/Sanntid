@@ -7,34 +7,58 @@ import (
 	"Heis/ElevState/LocalElevFSM"
 )
 
-type
+type Worldview struct {
 
-type 
+	localElev Elevator
+	Elev1 Elevator
+	Elev2 Elevator
+
+}
+
+//broadcasts worldview, ElevID indicates which elevator sent info
+// seqNum indicates how many messges elev has sent
+// receiving Elevators can use this to compare if their data is old
+func broadcastWorldview(ElevID ID, worldview Worldview, SendSeqNum int){
+
+}
+
+func updateWorldview(ElevID ID, worldview Worldview, ReceiveSeqNum int) {
+
+}
+
+func isBroadcastMsgOld(){
+
+}
 
 func 
 
 go func communicationFSM () {
 
-	WorldviewElev1:= make(chan Elevator)
+	var WorldviewElev1 Elevator
+	WorldViewElev1Ch:= make(chan Elevator)
+	Elev1AbleToTakeOrders:= make(chan Elevator)
+
+	var WorldviewElev2 Elevator
 	WorldviewElev2:= make(chan Elevator)
+	Elev2AbleToTakeOrders:= make(chan Elevator)
+
 	localElevWorldview:= make(chan Elevator)
-	
+
 
 	for {
 
 		select{
 
-		case: 
+		case AvailablePeers <- peerUpdateCh: //Endring i antall noder i nettverket
 
-		case:
+		case <- time.After(interval) //15*millisekund så broadcaste state
+			broadcastWorldview()
 
-		case: 
+		case WorldviewElev1 <- 
 
-		case: 
+		case WorldviewElev2 <- 
 
-		case: 
-
-		case: 
+		case 
 
 		case: 
 
