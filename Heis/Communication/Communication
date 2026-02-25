@@ -1,0 +1,49 @@
+package heis
+
+import (
+	"fmt"
+	"time"
+	"Heis/Network"
+	"Heis/ElevState/LocalElevFSM"
+)
+
+type
+
+type 
+
+func 
+
+go func communicationFSM () {
+
+	WorldviewElev1:= make(chan Elevator)
+	WorldviewElev2:= make(chan Elevator)
+	localElevWorldview:= make(chan Elevator)
+	
+
+	for {
+
+		select{
+
+		case: 
+
+		case:
+
+		case: 
+
+		case: 
+
+		case: 
+
+		case: 
+
+		case: 
+
+	
+		}
+	}
+
+}
+
+
+
+
