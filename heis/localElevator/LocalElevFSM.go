@@ -1,11 +1,11 @@
-package ElevState
+package localElevator
 
 import (
-	"heis/Driver"
+	Driver "heis/driver"
 	"time"
 )
 
-const N_BUTTONS = 2
+const N_BUTTONS = 3
 const N_FLOORS = 4
 
 type ElevatorBehaviour int
@@ -22,8 +22,7 @@ type DirnBehaviourPair struct {
 	behaviour ElevatorBehaviour
 }
 
-type Order int //Go har ikke Enums som en del av språket, men dette
-//emulerer / har samme funksjon
+type Order int
 
 const (
 	No_Order          = 0
@@ -33,63 +32,35 @@ const (
 
 // elevator struct, hvilken informasjon trenger ElevFSM?
 type Elevator struct {
-	floor        int
-	dirn         Driver.MotorDirection
-	HallRequests [N_FLOORS][N_BUTTONS]Order //Oversikt over alle ordre
-	// og om alle heiser vet om dem
-	CabOrders               [N_FLOORS]bool
+	floor                   int
+	dirn                    Driver.MotorDirection
+	requests                [N_FLOORS][N_BUTTONS]bool
 	behaviour               ElevatorBehaviour
 	obstruction             bool
-	AbleToServiceHallOrders bool
+	ableToServiceHallOrders bool
+	dirnBehaviourPair       DirnBehaviourPair
 }
 
-func confirmedOrdersAtFloor(floor int, localElev Elevator) bool { //Sjekker om det er
-	// en bekreftet ordre på etasjen
+func chooseDirection() Driver.MotorDirection {
 
-	for b := 0; b <= N_BUTTONS; b++ {
-		if localElev.HallRequests[floor][b] == Confirmed_Order {
-			return true
-		}
-	}
-	return false
 }
 
-/*
-func clearConfirmedOrder(floor int, localElev Elevator) {
+func shouldStop() bool {
 
-	for b := 0; b < N_BUTTONS; b++ {
-		if localElev.HallRequests[floor][b] == Confirmed_Order {
-			localElev.HallRequests[floor][b] = No_Order
-		}
-	}
-
-	if localElev.CabOrders[floor] {
-		localElev.CabOrders[floor] = false
-	}
-}
-*/
-
-func (e *Elevator) ClearConfirmedOrderAtFloor(floor int) { //for at vi ikke fjerner ordre fra en kopi må vi bruke peker
-	for b := 0; b < N_BUTTONS; b++ {
-		if e.HallRequests[floor][b] == Confirmed_Order {
-			e.HallRequests[floor][b] = No_Order
-		}
-	}
-	if e.CabOrders[floor] {
-		e.CabOrders[floor] = false
-	}
 }
 
-// kanaler opprettet fra før
+func clearRequestsAtFloor() {
+
+}
+
 // bestillinger lagt inn tidligere av HallCallsAssigner
+// hvor skal fsm_onInitBetweenFloors?
 func elevFSM(localElevAddr string, N_FLOORS int) Elevator {
 
 	var localElev Elevator
 	localElevPtr := &Elevator{}
 	Driver.Init(localElevAddr, N_FLOORS)
 
-	//sjekk input på kanaler, hvis noe skjer, gjør dette...
-	//Hva er det egentlig som vil komme via kanaler og hva kommer
 	buttonCh := make(chan Driver.ButtonEvent)
 	floorCh := make(chan int)
 	stopCh := make(chan bool)
@@ -101,39 +72,36 @@ func elevFSM(localElevAddr string, N_FLOORS int) Elevator {
 	go Driver.PollObstructionSwitch(obstructionCh)
 
 	doorTimer := time.NewTimer(0)
-	doorTimer.Stop()
-	doorTimerExpired := false
+	<-doorTimer.C //drain initial tick
 
 	for {
-
 		select {
 
-		//buttonPushed
 		case btn := <-buttonCh:
-			//får ikke signal fra pollbutton med mindre knappen var av og knappen ikke var på før.
-			if btn.Button != Driver.BT_Cab { //hvis det er en hall call
-				localElev.HallRequests[btn.Floor][btn.Button] = Unconfirmed_Order
 
-			} else {
-				localElev.CabOrders[btn.Floor] = true
-			}
+			if btn.Button == Driver.BT_Cab {
+				localElev.requests[btn.Floor][btn.Button] = true
+			} //implementer fsm_onRequestButtonPress
 
 		//newFloorReached
-		case floor := <-floorCh:
+		case floor := <-floorCh: //implementert fsm_onFloorArrival, all good
 
 			localElev.floor = floor
 			Driver.SetFloorIndicator(floor)
 
-			if confirmedOrdersAtFloor(floor, localElev) {
-				Driver.SetMotorDirection(Driver.MD_Stop)
+			switch localElev.behaviour {
 
-				Driver.SetDoorOpenLamp(true)
-				localElev.behaviour = doorOpen
-				doorTimerExpired = false
-				doorTimer.Reset(3 * time.Second)
+			case moving:
+				if requests_shouldStop(localElev) {
 
-				localElevPtr.ClearConfirmedOrderAtFloor(floor)
-				//lukkin
+					Driver.SetMotorDirection(Driver.MD_Stop)
+
+					//door behaviour
+					Driver.SetDoorOpenLamp(true)
+					localElev.behaviour = doorOpen
+					localElev = requests_clearAtCurrentFloor(localElev)
+					timer.resetDoorTimer(doorTimer)
+				}
 			}
 
 		//stopBtn Pushed
@@ -152,17 +120,15 @@ func elevFSM(localElevAddr string, N_FLOORS int) Elevator {
 			}
 
 		//obstruction button
-		case obstr := <-obstructionCh:
+		case obstr := <-obstructionCh: //sender når det er endring i obstr knapp
 
 			localElev.obstruction = obstr
 
-			if !localElev.obstruction && doorTimerExpired && localElev.behaviour == doorOpen {
-				localElev.behaviour = idle
-				Driver.SetDoorOpenLamp(false)
+			if localElev.behaviour == doorOpen {
+				timer.resetDoorTimer(doorTimer)
 			}
 
-		case <-doorTimer.C:
-			doorTimerExpired = true
+		case <-doorTimer.C: //implementer fsm_onDoorTimeout
 
 			if localElev.behaviour == doorOpen && !localElev.obstruction {
 				Driver.SetDoorOpenLamp(false)
