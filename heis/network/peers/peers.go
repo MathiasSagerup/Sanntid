@@ -1,8 +1,8 @@
 package peers
 
 import (
-	"Network-go/network/conn"
 	"fmt"
+	"heis/network/conn"
 	"net"
 	"sort"
 	"time"
@@ -10,17 +10,16 @@ import (
 
 type PeerUpdate struct {
 	Peers []string //aktive noder akkurat nå
-	New   string //en node som akkurat dukket opp
-	Lost  []string //noder som har dødd 
+	New   string   //en node som akkurat dukket opp
+	Lost  []string //noder som har dødd
 }
 
 const interval = 15 * time.Millisecond //hyppighet periodisk boradcast
 const timeout = 500 * time.Millisecond //tidskrav boradcast
 
+//oppg: peers.Transmitter sende ut ID periodisk
 
-//oppg: peers.Transmitter sende ut ID periodisk 
-
-func Transmitter(port int, id string, transmitEnable <-chan bool) { //kanal med bool verdier leses i denne funksjonen 
+func Transmitter(port int, id string, transmitEnable <-chan bool) { //kanal med bool verdier leses i denne funksjonen
 
 	conn := conn.DialBroadcastUDP(port)
 	addr, _ := net.ResolveUDPAddr("udp4", fmt.Sprintf("255.255.255.255:%d", port))
@@ -90,6 +89,3 @@ func Receiver(port int, peerUpdateCh chan<- PeerUpdate) {
 		}
 	}
 }
-
-
-

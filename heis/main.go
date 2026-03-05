@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"time"
-	"localElevFSM"
+	"localElevator"
 )
 
 
@@ -13,11 +13,18 @@ func main() {
 	floorCh := make(chan int)
 	stopCh := make(chan bool)
 	obstructionCh := make(chan bool)
+	assignedHallCallsCh := make(chan [N_FLOORS][N_BUTTONS]bool, 1)
+	localStateCh        := make(chan Elevator, 1)
 
-	go Driver.PollButtons(buttonCh)
+	driver.Init(localElevAddr, N_FLOORS)
+
+	//følgende funksjoner må være egne goroutines, hvis ikke vil de blokkere programmet
+	go Driver.PollButtons(buttonCh) 
 	go Driver.PollFloorSensor(floorCh)
 	go Driver.PollStopButton(stopCh)
 	go Driver.PollObstructionSwitch(obstructionCh)
+
+	
 
 	fmt.Println("Hello, world!")
 
@@ -25,6 +32,10 @@ func main() {
 	timer := time.NewTimer(100 * time.Millisecond)
 
 	for {
+
+		//hallCallsAssigner
+		//så localElevFSM
+
 		select {
 		case message <- rx_channel:
 			// motta melding og oppdater worlview

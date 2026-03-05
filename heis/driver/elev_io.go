@@ -1,4 +1,4 @@
-package Driver
+package driver
 
 import (
 	"fmt"
@@ -9,7 +9,7 @@ import (
 
 const _pollRate = 20 * time.Millisecond //Sjekker sensorer hvert 20 millisekund
 
-var _initialized bool = false 
+var _initialized bool = false
 var _numFloors int = 4
 var _mtx sync.Mutex //Mutex for synkronisering av heis driver
 var _conn net.Conn
@@ -17,17 +17,17 @@ var _conn net.Conn
 type MotorDirection int
 
 const (
-	MD_Up   			= 1
-	MD_Down             = -1
-	MD_Stop             = 0
+	MD_Up   = 1
+	MD_Down = -1
+	MD_Stop = 0
 )
 
 type ButtonType int
 
 const (
-	BT_HallUp    		   = 0
-	BT_HallDown            = 1
-	BT_Cab                 = 2
+	BT_HallUp   = 0
+	BT_HallDown = 1
+	BT_Cab      = 2
 )
 
 type ButtonEvent struct {
@@ -41,7 +41,7 @@ func Init(addr string, numFloors int) {
 		return
 	}
 	_numFloors = numFloors
-	_mtx = sync.Mutex{} //sørger for at kun 1 goroutine kan prøve å initialisere heisen om gangen. 
+	_mtx = sync.Mutex{} //sørger for at kun 1 goroutine kan prøve å initialisere heisen om gangen.
 	var err error
 	_conn, err = net.Dial("tcp", addr) //Bruker tcp for å  kommunisere med lokale heisens hardware
 	if err != nil {
@@ -84,7 +84,7 @@ func PollButtons(receiver chan<- ButtonEvent) {
 			}
 		}
 	}
-} //funksjon som sjekker om knapper blir trykket på. 
+} //funksjon som sjekker om knapper blir trykket på.
 
 func PollFloorSensor(receiver chan<- int) {
 	prev := -1
@@ -96,7 +96,7 @@ func PollFloorSensor(receiver chan<- int) {
 		}
 		prev = v
 	}
-} //sjekker hvilken etasje heisen er i. 
+} //sjekker hvilken etasje heisen er i.
 
 func PollStopButton(receiver chan<- bool) {
 	prev := false
@@ -108,7 +108,7 @@ func PollStopButton(receiver chan<- bool) {
 		}
 		prev = v
 	}
-} //sjekker stop knapp. 
+} //sjekker stop knapp.
 
 func PollObstructionSwitch(receiver chan<- bool) {
 	prev := false
@@ -120,7 +120,7 @@ func PollObstructionSwitch(receiver chan<- bool) {
 		}
 		prev = v
 	}
-}//sjekker obstruksjonsknapp
+} //sjekker obstruksjonsknapp
 
 func GetButton(button ButtonType, floor int) bool {
 	a := read([4]byte{6, byte(button), byte(floor), 0})
@@ -188,4 +188,17 @@ func toBool(a byte) bool {
 		b = true
 	}
 	return b
+}
+
+func (d MotorDirection) String() string {
+	switch d {
+	case MD_Up:
+		return "up"
+	case MD_Down:
+		return "down"
+	case MD_Stop:
+		return "stop"
+	default:
+		return "UNDEFINED"
+	}
 }

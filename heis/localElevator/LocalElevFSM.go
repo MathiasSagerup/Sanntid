@@ -1,7 +1,9 @@
 package localElevator
 
 import (
-	Driver "heis/driver"
+	"fmt"
+	"heis/driver"
+	"heis/timer"
 	"time"
 )
 
@@ -17,8 +19,8 @@ const (
 	stopped  = 3
 )
 
-type DirnBehaviourPair struct {
-	dirn      int
+type dirnBehaviourPair struct {
+	dirn      driver.MotorDirection
 	behaviour ElevatorBehaviour
 }
 
@@ -30,110 +32,199 @@ const (
 	Confirmed_Order   = 2
 )
 
-// elevator struct, hvilken informasjon trenger ElevFSM?
 type Elevator struct {
 	floor                   int
-	dirn                    Driver.MotorDirection
+	dirn                    driver.MotorDirection
 	requests                [N_FLOORS][N_BUTTONS]bool
 	behaviour               ElevatorBehaviour
 	obstruction             bool
 	ableToServiceHallOrders bool
-	dirnBehaviourPair       DirnBehaviourPair
+	dirnBehaviourPair       dirnBehaviourPair
 }
 
-func chooseDirection() Driver.MotorDirection {
-
+// å kjøre denne vil få heisen til å kjøre ned til en etasje, da vil localElevFSM
+// overta styring.
+func intializeLocalElev(localElev Elevator) Elevator {
+	driver.SetMotorDirection(driver.MD_Down)
+	localElev.dirn = driver.MD_Down
+	localElev.behaviour = moving
+	setAllLights(localElev)
+	return localElev
 }
 
-func shouldStop() bool {
-
+func setAllLights(localElev Elevator) { //turn all request lights off
+	for floor := 0; floor < N_FLOORS; floor++ {
+		for btn := 0; btn < N_BUTTONS; btn++ {
+			driver.SetButtonLamp(driver.ButtonType(btn), floor, localElev.requests[floor][btn])
+		}
+	}
 }
 
-func clearRequestsAtFloor() {
+func combineHallCallsAndCabCalls(newHallCalls hallCalls, localElev Elevator) Elevator {
 
+	for floor := 0; floor < N_FLOORS; floor++ {
+		for btn := 0; btn < N_BUTTONS-1; btn++ {
+			localElev.requests[floor][btn] = newHallCalls[floor][btn]
+		}
+	}
+	return localElev
 }
 
-// bestillinger lagt inn tidligere av HallCallsAssigner
 // hvor skal fsm_onInitBetweenFloors?
-func elevFSM(localElevAddr string, N_FLOORS int) Elevator {
-
-	var localElev Elevator
-	localElevPtr := &Elevator{}
-	Driver.Init(localElevAddr, N_FLOORS)
-
-	buttonCh := make(chan Driver.ButtonEvent)
-	floorCh := make(chan int)
-	stopCh := make(chan bool)
-	obstructionCh := make(chan bool)
-
-	go Driver.PollButtons(buttonCh)
-	go Driver.PollFloorSensor(floorCh)
-	go Driver.PollStopButton(stopCh)
-	go Driver.PollObstructionSwitch(obstructionCh)
+func localElevFSM(buttonCh <-chan driver.ButtonEvent, floorCh <-chan int,
+	stopCh <-chan bool, obstructionCh <-chan bool,
+	assignedHallCallsCh <-chan [N_FLOORS][N_BUTTONS]bool, localStateCh chan<- Elevator) {
 
 	doorTimer := time.NewTimer(0)
 	<-doorTimer.C //drain initial tick
+
+	localElev := intializeLocalElev(Elevator{})
 
 	for {
 		select {
 
 		case btn := <-buttonCh:
 
-			if btn.Button == Driver.BT_Cab {
+			if btn.Button == driver.BT_Cab {
+
 				localElev.requests[btn.Floor][btn.Button] = true
-			} //implementer fsm_onRequestButtonPress
+
+				switch localElev.behaviour {
+
+				case doorOpen:
+					if requests_shouldClearImmediately(localElev, btn.Floor, btn.Button) {
+						timer.ResetDoorTimer(doorTimer)
+					}
+
+				case moving:
+
+				case idle:
+					localElev.dirnBehaviourPair = requests_chooseDirection(localElev)
+					localElev.dirn = localElev.dirnBehaviourPair.dirn
+					localElev.behaviour = localElev.dirnBehaviourPair.behaviour
+
+					switch localElev.dirnBehaviourPair.behaviour {
+					case doorOpen:
+						driver.SetDoorOpenLamp(true)
+						timer.ResetDoorTimer(doorTimer)
+						localElev = requests_clearAtCurrentFloor(localElev)
+
+					case moving:
+						driver.SetMotorDirection(localElev.dirn)
+
+					case idle:
+					}
+				}
+
+			}
+			localStateCh <- localElev
+
+		case hallCalls := <-assignedHallCallsCh: //implementer fsm_onReqBtnPress for hallcalls
+
+			localElev = combineHallCallsAndCabCalls(hallCalls, localElev)
+
+			switch localElev.behaviour {
+
+			case doorOpen:
+				if requests_shouldClearImmediately(localElev, localElev.floor, driver.BT_HallDown) ||
+					requests_shouldClearImmediately(localElev, localElev.floor, driver.BT_HallUp) {
+					timer.ResetDoorTimer(doorTimer)
+				}
+
+			case moving:
+
+			case idle:
+				localElev.dirnBehaviourPair = requests_chooseDirection(localElev)
+				localElev.dirn = localElev.dirnBehaviourPair.dirn
+				localElev.behaviour = localElev.dirnBehaviourPair.behaviour
+
+				switch localElev.dirnBehaviourPair.behaviour {
+				case doorOpen:
+					driver.SetDoorOpenLamp(true)
+					timer.ResetDoorTimer(doorTimer)
+					localElev = requests_clearAtCurrentFloor(localElev)
+
+				case moving:
+					driver.SetMotorDirection(localElev.dirn)
+
+				case idle:
+				}
+			}
+			localStateCh <- localElev
 
 		//newFloorReached
 		case floor := <-floorCh: //implementert fsm_onFloorArrival, all good
 
 			localElev.floor = floor
-			Driver.SetFloorIndicator(floor)
+			driver.SetFloorIndicator(floor)
 
 			switch localElev.behaviour {
 
 			case moving:
 				if requests_shouldStop(localElev) {
 
-					Driver.SetMotorDirection(Driver.MD_Stop)
+					driver.SetMotorDirection(driver.MD_Stop)
 
 					//door behaviour
-					Driver.SetDoorOpenLamp(true)
+					driver.SetDoorOpenLamp(true)
 					localElev.behaviour = doorOpen
 					localElev = requests_clearAtCurrentFloor(localElev)
-					timer.resetDoorTimer(doorTimer)
+					timer.ResetDoorTimer(doorTimer)
 				}
 			}
+			localStateCh <- localElev
 
-		//stopBtn Pushed
-		case stop := <-stopCh:
+		/*
+			case stop := <-stopCh:
 
-			if stop { //stoppknapp aktiv
-				Driver.SetStopLamp(stop)
-				Driver.SetMotorDirection(Driver.MD_Stop)
-				localElev.behaviour = stopped
-				localElev.dirn = Driver.MD_Stop
-			}
+				if stop { //stoppknapp aktiv
+					driver.SetStopLamp(stop)
+					driver.SetMotorDirection(driver.MD_Stop)
+					localElev.behaviour = idle
+					localElev.dirn = driver.MD_Stop
+				}
 
-			if !stop && localElev.behaviour == stopped {
-				Driver.SetStopLamp(stop)
-				localElev.behaviour = idle //klar til å ta imot ordre igjen
-			}
+				if stop == false && localElev.behaviour == idle {
+					driver.SetStopLamp(stop)
+					localElev.behaviour = idle //klar til å ta imot ordre igjen
+				}
+		*/
 
-		//obstruction button
 		case obstr := <-obstructionCh: //sender når det er endring i obstr knapp
 
 			localElev.obstruction = obstr
 
 			if localElev.behaviour == doorOpen {
-				timer.resetDoorTimer(doorTimer)
+				timer.ResetDoorTimer(doorTimer)
+			}
+			localStateCh <- localElev
+
+		case <-doorTimer.C:
+			switch localElev.behaviour {
+
+			case doorOpen:
+				localElev.dirnBehaviourPair = requests_chooseDirection(localElev)
+				localElev.dirn = localElev.dirnBehaviourPair.dirn
+				localElev.behaviour = localElev.dirnBehaviourPair.behaviour
+
+				switch localElev.behaviour {
+				case doorOpen:
+					driver.SetDoorOpenLamp(true)
+					timer.ResetDoorTimer(doorTimer)
+					localElev = requests_clearAtCurrentFloor(localElev)
+					setAllLights(localElev)
+
+				case moving:
+
+				case idle:
+					driver.SetDoorOpenLamp(false)
+					driver.SetMotorDirection(localElev.dirn)
+				}
 			}
 
-		case <-doorTimer.C: //implementer fsm_onDoorTimeout
+			localStateCh <- localElev
 
-			if localElev.behaviour == doorOpen && !localElev.obstruction {
-				Driver.SetDoorOpenLamp(false)
-				localElev.behaviour = idle
-			}
+			fmt.Println("\n New state: \n")
 		}
 	}
 }

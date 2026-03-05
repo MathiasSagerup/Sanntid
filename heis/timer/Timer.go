@@ -1,4 +1,4 @@
-package Timer
+package timer
 
 import (
 	"time"
@@ -41,7 +41,7 @@ func doorTimer(timesUp chan<- struct{}, startTimer <-chan struct{}, done <-chan 
 	}
 }
 
-func resetDoorTimer(t *time.Timer) {
+func ResetDoorTimer(t *time.Timer) {
 	if !t.Stop() {
 		select {
 		case <-t.C:

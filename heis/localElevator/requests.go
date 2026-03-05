@@ -2,7 +2,7 @@ package localElevator
 
 import (
 	"fmt"
-	Driver "heis/driver"
+	"heis/driver"
 )
 
 //modulen håndterer bestillinger for lokale heisen
@@ -38,74 +38,74 @@ func requests_here(e Elevator) bool {
 	return false
 }
 
-func requests_chooseDirection(e Elevator) DirnBehaviourPair {
+func requests_chooseDirection(e Elevator) dirnBehaviourPair {
 	switch e.dirn {
 
-	case Driver.MD_Up:
+	case driver.MD_Up:
 		if requests_above(e) {
-			return DirnBehaviourPair{Driver.MD_Up, moving}
+			return dirnBehaviourPair{driver.MD_Up, moving}
 		}
 
 		if requests_here(e) {
-			return DirnBehaviourPair{Driver.MD_Down, doorOpen}
+			return dirnBehaviourPair{driver.MD_Down, doorOpen}
 		}
 
 		if requests_below(e) {
-			return DirnBehaviourPair{Driver.MD_Down, moving}
+			return dirnBehaviourPair{driver.MD_Down, moving}
 		}
 
-		return DirnBehaviourPair{Driver.MD_Stop, idle}
+		return dirnBehaviourPair{driver.MD_Stop, idle}
 
-	case Driver.MD_Down:
+	case driver.MD_Down:
 		if requests_below(e) {
-			return DirnBehaviourPair{Driver.MD_Down, moving}
+			return dirnBehaviourPair{driver.MD_Down, moving}
 		}
 
 		if requests_here(e) {
-			return DirnBehaviourPair{Driver.MD_Up, doorOpen}
+			return dirnBehaviourPair{driver.MD_Up, doorOpen}
 		}
 
 		if requests_above(e) {
-			return DirnBehaviourPair{Driver.MD_Up, moving}
+			return dirnBehaviourPair{driver.MD_Up, moving}
 		}
-		return DirnBehaviourPair{Driver.MD_Stop, idle}
+		return dirnBehaviourPair{driver.MD_Stop, idle}
 
-	case Driver.MD_Stop:
+	case driver.MD_Stop:
 		if requests_here(e) {
-			return DirnBehaviourPair{Driver.MD_Stop, doorOpen}
+			return dirnBehaviourPair{driver.MD_Stop, doorOpen}
 		}
 
 		if requests_above(e) {
-			return DirnBehaviourPair{Driver.MD_Up, moving}
+			return dirnBehaviourPair{driver.MD_Up, moving}
 		}
 
 		if requests_below(e) {
-			return DirnBehaviourPair{Driver.MD_Down, moving}
+			return dirnBehaviourPair{driver.MD_Down, moving}
 		}
 
-		return DirnBehaviourPair{Driver.MD_Stop, idle}
+		return dirnBehaviourPair{driver.MD_Stop, idle}
 
 	default:
-		return DirnBehaviourPair{Driver.MD_Stop, idle}
+		return dirnBehaviourPair{driver.MD_Stop, idle}
 	}
 }
 
 func requests_shouldStop(e Elevator) bool {
 	switch e.dirn {
 
-	case Driver.MD_Down:
-		if e.requests[e.floor][Driver.BT_HallDown] || e.requests[e.floor][Driver.BT_Cab] || !requests_above(e) {
+	case driver.MD_Down:
+		if e.requests[e.floor][driver.BT_HallDown] || e.requests[e.floor][driver.BT_Cab] || !requests_above(e) {
 			return true
 		}
 		return false
 
-	case Driver.MD_Up:
-		if e.requests[e.floor][Driver.BT_HallUp] || e.requests[e.floor][Driver.BT_Cab] || !requests_above(e) {
+	case driver.MD_Up:
+		if e.requests[e.floor][driver.BT_HallUp] || e.requests[e.floor][driver.BT_Cab] || !requests_above(e) {
 			return true
 		}
 		return false
 
-	case Driver.MD_Stop:
+	case driver.MD_Stop:
 		return true
 
 	default:
@@ -114,20 +114,20 @@ func requests_shouldStop(e Elevator) bool {
 	}
 }
 
-func requests_shouldClearImmdeiately(e Elevator, btnFloor int, btnType Driver.ButtonType) bool {
+func requests_shouldClearImmediately(e Elevator, btnFloor int, btnType driver.ButtonType) bool {
 
 	if e.floor == btnFloor {
 
-		if e.dirn == Driver.MD_Up && btnType == Driver.BT_HallUp {
+		if e.dirn == driver.MD_Up && btnType == driver.BT_HallUp {
 			return true
 
-		} else if e.dirn == Driver.MD_Down && btnType == Driver.BT_HallDown {
+		} else if e.dirn == driver.MD_Down && btnType == driver.BT_HallDown {
 			return true
 
-		} else if e.dirn == Driver.MD_Stop {
+		} else if e.dirn == driver.MD_Stop {
 			return true
 
-		} else if e.dirn == Driver.MD_Stop {
+		} else if e.dirn == driver.MD_Stop {
 			return true
 
 		} else {
@@ -142,29 +142,29 @@ func requests_shouldClearImmdeiately(e Elevator, btnFloor int, btnType Driver.Bu
 
 func requests_clearAtCurrentFloor(e Elevator) Elevator {
 
-	e.requests[e.floor][Driver.BT_Cab] = false
+	e.requests[e.floor][driver.BT_Cab] = false
 
 	switch e.dirn {
 
-	case Driver.MD_Up:
-		if !requests_above(e) && !e.requests[e.floor][Driver.BT_HallUp] {
-			e.requests[e.floor][Driver.BT_HallDown] = false
+	case driver.MD_Up:
+		if !requests_above(e) && !e.requests[e.floor][driver.BT_HallUp] {
+			e.requests[e.floor][driver.BT_HallDown] = false
 		}
 
-		e.requests[e.floor][Driver.BT_HallUp] = false
+		e.requests[e.floor][driver.BT_HallUp] = false
 		break
 
-	case Driver.MD_Down:
-		if !requests_below(e) && !e.requests[e.floor][Driver.BT_HallDown] {
-			e.requests[e.floor][Driver.BT_HallUp] = false
+	case driver.MD_Down:
+		if !requests_below(e) && !e.requests[e.floor][driver.BT_HallDown] {
+			e.requests[e.floor][driver.BT_HallUp] = false
 		}
 
-		e.requests[e.floor][Driver.BT_HallDown] = false
+		e.requests[e.floor][driver.BT_HallDown] = false
 		break
 
-	case Driver.MD_Stop:
-		e.requests[e.floor][Driver.BT_HallDown] = false
-		e.requests[e.floor][Driver.BT_HallUp] = false
+	case driver.MD_Stop:
+		e.requests[e.floor][driver.BT_HallDown] = false
+		e.requests[e.floor][driver.BT_HallUp] = false
 		break
 
 	default:
