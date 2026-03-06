@@ -38,7 +38,7 @@ type Elevator struct {
 	requests                [N_FLOORS][N_BUTTONS]bool
 	behaviour               ElevatorBehaviour
 	obstruction             bool
-	ableToServiceHallOrders bool
+	ableToServiceRequests bool
 	dirnBehaviourPair       dirnBehaviourPair
 }
 
@@ -49,6 +49,8 @@ func intializeLocalElev(localElev Elevator) Elevator {
 	localElev.dirn = driver.MD_Down
 	localElev.behaviour = moving
 	setAllLights(localElev)
+
+	//opprett nødvendige kanaler til localELevFSM
 	return localElev
 }
 
@@ -70,7 +72,14 @@ func combineHallCallsAndCabCalls(newHallCalls hallCalls, localElev Elevator) Ele
 	return localElev
 }
 
-// hvor skal fsm_onInitBetweenFloors?
+// Husk å tømme kanaler før de oppdateres. 
+
+//TODO: Read from driver, oppdatere tilstander, så funksjonskall til hallCallsAssigner
+// så switch case logikk på tilstandsendringer heisoppførsel) 
+
+//TODO Endre logikken slik at det ikke er event basert. 
+//
+
 func localElevFSM(buttonCh <-chan driver.ButtonEvent, floorCh <-chan int,
 	stopCh <-chan bool, obstructionCh <-chan bool,
 	assignedHallCallsCh <-chan [N_FLOORS][N_BUTTONS]bool, localStateCh chan<- Elevator) {
@@ -81,6 +90,16 @@ func localElevFSM(buttonCh <-chan driver.ButtonEvent, floorCh <-chan int,
 	localElev := intializeLocalElev(Elevator{})
 
 	for {
+		sele
+			case btn
+
+
+		}
+	}
+
+
+	for {
+
 		select {
 
 		case btn := <-buttonCh:
@@ -119,8 +138,9 @@ func localElevFSM(buttonCh <-chan driver.ButtonEvent, floorCh <-chan int,
 			}
 			localStateCh <- localElev
 
-		case hallCalls := <-assignedHallCallsCh: //implementer fsm_onReqBtnPress for hallcalls
+		case assignedHallCalls:= <-hallCallAssigner.assignedHallCallsCh: //implementer fsm_onReqBtnPress for hallcalls
 
+			
 			localElev = combineHallCallsAndCabCalls(hallCalls, localElev)
 
 			switch localElev.behaviour {
