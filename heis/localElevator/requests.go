@@ -7,7 +7,7 @@ import (
 
 //modulen håndterer bestillinger for lokale heisen
 
-func requests_above(e Elevator) bool {
+func requestsAbove(e localElevator) bool {
 	for f := e.floor + 1; f < N_FLOORS; f++ {
 		for btn := 0; btn < N_BUTTONS; btn++ {
 			if e.requests[f][btn] {
@@ -18,7 +18,7 @@ func requests_above(e Elevator) bool {
 	return false
 }
 
-func requests_below(e Elevator) bool {
+func requestsBelow(e localElevator) bool {
 	for f := 0; f < e.floor; f++ {
 		for btn := 0; btn < N_BUTTONS; btn++ {
 			if e.requests[f][btn] {
@@ -29,7 +29,7 @@ func requests_below(e Elevator) bool {
 	return false
 }
 
-func requests_here(e Elevator) bool {
+func requestsHere(e localElevator) bool {
 	for btn := 0; btn < N_BUTTONS; btn++ {
 		if e.requests[e.floor][btn] {
 			return true
@@ -38,48 +38,48 @@ func requests_here(e Elevator) bool {
 	return false
 }
 
-func requests_chooseDirection(e Elevator) dirnBehaviourPair {
+func requestsChooseDirection(e localElevator) dirnBehaviourPair {
 	switch e.dirn {
 
 	case driver.MD_Up:
-		if requests_above(e) {
+		if requestsAbove(e) {
 			return dirnBehaviourPair{driver.MD_Up, moving}
 		}
 
-		if requests_here(e) {
+		if requestsHere(e) {
 			return dirnBehaviourPair{driver.MD_Down, doorOpen}
 		}
 
-		if requests_below(e) {
+		if requestsBelow(e) {
 			return dirnBehaviourPair{driver.MD_Down, moving}
 		}
 
 		return dirnBehaviourPair{driver.MD_Stop, idle}
 
 	case driver.MD_Down:
-		if requests_below(e) {
+		if requestsBelow(e) {
 			return dirnBehaviourPair{driver.MD_Down, moving}
 		}
 
-		if requests_here(e) {
+		if requestsHere(e) {
 			return dirnBehaviourPair{driver.MD_Up, doorOpen}
 		}
 
-		if requests_above(e) {
+		if requestsAbove(e) {
 			return dirnBehaviourPair{driver.MD_Up, moving}
 		}
 		return dirnBehaviourPair{driver.MD_Stop, idle}
 
 	case driver.MD_Stop:
-		if requests_here(e) {
+		if requestsHere(e) {
 			return dirnBehaviourPair{driver.MD_Stop, doorOpen}
 		}
 
-		if requests_above(e) {
+		if requestsAbove(e) {
 			return dirnBehaviourPair{driver.MD_Up, moving}
 		}
 
-		if requests_below(e) {
+		if requestsBelow(e) {
 			return dirnBehaviourPair{driver.MD_Down, moving}
 		}
 
@@ -90,17 +90,17 @@ func requests_chooseDirection(e Elevator) dirnBehaviourPair {
 	}
 }
 
-func requests_shouldStop(e Elevator) bool {
+func requestsShouldStop(e localElevator) bool {
 	switch e.dirn {
 
 	case driver.MD_Down:
-		if e.requests[e.floor][driver.BT_HallDown] || e.requests[e.floor][driver.BT_Cab] || !requests_above(e) {
+		if e.requests[e.floor][driver.BT_HallDown] || e.requests[e.floor][driver.BT_Cab] || !requestsAbove(e) {
 			return true
 		}
 		return false
 
 	case driver.MD_Up:
-		if e.requests[e.floor][driver.BT_HallUp] || e.requests[e.floor][driver.BT_Cab] || !requests_above(e) {
+		if e.requests[e.floor][driver.BT_HallUp] || e.requests[e.floor][driver.BT_Cab] || !requestsAbove(e) {
 			return true
 		}
 		return false
@@ -114,7 +114,7 @@ func requests_shouldStop(e Elevator) bool {
 	}
 }
 
-func requests_shouldClearImmediately(e Elevator, btnFloor int, btnType driver.ButtonType) bool {
+func requestsShouldClearImmediately(e localElevator, btnFloor int, btnType driver.ButtonType) bool {
 
 	if e.floor == btnFloor {
 
@@ -140,14 +140,14 @@ func requests_shouldClearImmediately(e Elevator, btnFloor int, btnType driver.Bu
 
 }
 
-func requests_clearAtCurrentFloor(e Elevator) Elevator {
+func requestsClearAtCurrentFloor(e *localElevator) {
 
 	e.requests[e.floor][driver.BT_Cab] = false
 
 	switch e.dirn {
 
 	case driver.MD_Up:
-		if !requests_above(e) && !e.requests[e.floor][driver.BT_HallUp] {
+		if !requestsAbove(*e) && !e.requests[e.floor][driver.BT_HallUp] {
 			e.requests[e.floor][driver.BT_HallDown] = false
 		}
 
@@ -155,7 +155,7 @@ func requests_clearAtCurrentFloor(e Elevator) Elevator {
 		break
 
 	case driver.MD_Down:
-		if !requests_below(e) && !e.requests[e.floor][driver.BT_HallDown] {
+		if !requestsBelow(*e) && !e.requests[e.floor][driver.BT_HallDown] {
 			e.requests[e.floor][driver.BT_HallUp] = false
 		}
 
@@ -170,5 +170,4 @@ func requests_clearAtCurrentFloor(e Elevator) Elevator {
 	default:
 		fmt.Println("requests_clearAtCurrentFloor reached an unconsistent MotorDir state")
 	}
-	return e
 }

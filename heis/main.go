@@ -16,6 +16,7 @@ func main() {
 	assignedHallCallsCh := make(chan [N_FLOORS][N_BUTTONS]bool, 1)
 	localStateCh        := make(chan Elevator, 1)
 
+
 	driver.Init(localElevAddr, N_FLOORS)
 
 	//følgende funksjoner må være egne goroutines, hvis ikke vil de blokkere programmet
@@ -24,7 +25,9 @@ func main() {
 	go Driver.PollStopButton(stopCh)
 	go Driver.PollObstructionSwitch(obstructionCh)
 
-	
+	go localElevatorFSM()
+	go hallCallsAssigner(kane)
+	go communication()
 
 	fmt.Println("Hello, world!")
 

@@ -4,7 +4,7 @@ import (
 	"time"
 )
 
-func waitThreeSecondsAsync() <-chan bool {
+func WaitThreeSecondsAsync() <-chan bool {
 	result := make(chan bool, 1)
 
 	go func() {
@@ -15,12 +15,12 @@ func waitThreeSecondsAsync() <-chan bool {
 	return result
 } //Asynkron, kan gjøre andre ting
 
-func waitThreeSeconds() bool {
+func WaitThreeSeconds() bool {
 	time.Sleep(3 * time.Second)
 	return true
 } //Sleep blokkerer, kan ikke gjøre andre ting samtidig.
 
-func doorTimer(timesUp chan<- struct{}, startTimer <-chan struct{}, done <-chan struct{}) {
+func DoorTimer(timesUp chan<- struct{}, startTimer <-chan struct{}, done <-chan struct{}) {
 	for {
 		select {
 		case _, ok := <-startTimer:
