@@ -18,7 +18,7 @@ func (eb ElevatorBehaviour) String() string {
 	}
 }
 
-func (e Elevator) Print() {
+func (e localElevator) Print() {
 	fmt.Println("  +--------------------+")
 	fmt.Printf(
 		"  |floor = %-2d          |\n"+

@@ -8,6 +8,7 @@ import (
 
 const N_BUTTONS = 3
 const N_FLOORS = 4
+const doorOpenDuration = 3 * time.Second
 
 type ElevatorBehaviour int
 
@@ -40,12 +41,13 @@ type localElevator struct {
 	//dependencies
 	driver        *driver                            // pointer to a Driver struct instance
 	communication *communication                     //tilsvarende
-	assigner      *hallcallassigner.HallCallAssigner //tilsvarende. Hvilken lages først?? Hierarki problem
+	assigner      *hallcallassigner.HallCallAssigner //tilsvarende
 
 	//input channels from driver:
 	floorSensorChan chan int
 	obstructionChan chan bool
 	buttonChan      chan driver.ButtonEvent
+	doorTimeoutChan chan bool
 
 	//internal states
 	floor                 int
@@ -59,7 +61,6 @@ type localElevator struct {
 
 	//Internal request channels (one per public method)
 	elevatorStateRequestChan chan elevatorStateRequest
-	doorTimeoutChan          chan bool
 }
 
 type elevatorStateRequest struct {
@@ -87,6 +88,7 @@ func NewLocalElev(d *driver.Driver, c *communication.Communication, h *hallcalla
 	go d.PollObstructionSwitch(l.obstructionChan)
 	go d.PollButtons(l.buttonChan)
 
+	//initialiser heis, kjør ned til nærmeste etasje
 	if d.GetFloor() == -1 {
 		d.SetMotorDirection(driver.MD_Down)
 		l.dirn = driver.MD_Down
@@ -94,36 +96,48 @@ func NewLocalElev(d *driver.Driver, c *communication.Communication, h *hallcalla
 		<-l.floorSensorChan
 	}
 
+	//sett til idle etter nådd nærmeste etasje
 	d.SetMotorDirection(driver.MD_Stop)
 	l.dirn = driver.MD_Stop
 	l.behaviour = idle
 	l.floor = d.GetFloor()
 	l.setAllLights()
 
+	//opprett oppdateringsloop
 	go l.run()
 	return l
 }
 
 func (l *localElevator) run() {
+
 	for {
+
 		select {
 		case req := <-l.elevatorStateRequestChan:
 			req.responseChan <- *l //derefererer så vi sender kopi
 
 		case newFloor := <-l.floorSensorChan:
 			l.floor = newFloor
+			l.fsmOnFloorArrival(l.floor)
 
 		case newBtn := <-l.buttonChan:
 			if newBtn.Button == driver.BT_Cab {
 				l.requests[newBtn.Floor][newBtn.Button] = true
+				l.fsmOnRequestButtonPress(newBtn.Floor, newBtn.Button)
 			}
 
 		case obstr := <-l.obstructionChan:
 			l.obstruction = obstr
 
-		case newHallCalls := <-l.assigner.AssignedHallCallsChan:
-			l.hallCalls = newHallCalls
+		case newHallCalls := <-l.assigner.GetAssignedHallCalls(*l):
 			l.combineHallCallsAndCabCalls(newHallCalls)
+
+		case <-l.doorTimeoutChan:
+			if !l.obstruction {
+				l.fsmOnDoorTimeout()
+			} else {
+				l.startDoorTimer()
+			}
 		}
 	}
 }
@@ -154,14 +168,6 @@ func (l *localElevator) combineHallCallsAndCabCalls(newHallCalls hallCalls) {
 		}
 	}
 }
-
-// Husk å tømme kanaler før de oppdateres.
-
-//TODO: Read from driver, oppdatere tilstander, så funksjonskall til hallCallsAssigner
-// så switch case logikk på tilstandsendringer heisoppførsel)
-
-//TODO Endre logikken slik at det ikke er event basert.
-//
 
 // logikk for tilstandsendring i etasje
 func (l *localElevator) fsmOnFloorArrival(newFloor int) {
