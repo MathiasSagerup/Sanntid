@@ -12,7 +12,6 @@ func main() {
 
 	var id string
 	serverAddr:="localhost:15657"
-	
 
 	fmt.Printf("Starting elevator %s connecting to %s\n", id, serverAddr)
 
