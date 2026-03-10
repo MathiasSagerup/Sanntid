@@ -49,7 +49,6 @@ type HallCallRequest struct {
 }
 
 type localElevator struct {
-
 	
 	//input channels from driver:
 	floorSensorChan chan int
@@ -69,11 +68,7 @@ type localElevator struct {
 	cabRequests           [N_FLOORS]bool 
 
 	//Internal request channels (one per public method)
-	elevatorStateRequestChan chan elevatorStateRequest
-}
-
-type elevatorStateRequest struct {
-	responseChan chan localElevator
+	elevStateToWorldview chan ElevState
 }
 
 // å kjøre denne vil få heisen til å kjøre ned til en etasje, da vil localElevFSM
@@ -92,6 +87,7 @@ func NewLocalElev(floorSensorChan chan int,
     floorSensorChan:  floorSensorChan,  
     obstructionChan:  obstructionChan,
     buttonChan:       buttonChan,
+	elevStateToWorldview: elevStateToWorldview,
 }
 
 	//initialiser heis, kjør ned til nærmeste etasje
@@ -108,6 +104,7 @@ func NewLocalElev(floorSensorChan chan int,
 	l.behaviour = idle
 	l.floor = driver.GetFloor()
 	l.setAllLights()
+	l.sendElevState()
 
 	//opprett oppdateringsloop
 	go l.run(floorSensorChan,
@@ -129,21 +126,27 @@ func (l *localElevator) run(floorSensorChan chan int,
 
 	for {
 		select {
-		case req := <-l.elevatorStateRequestChan:
-			req.responseChan <- *l //derefererer så vi sender kopi
 
 		case newFloor := <-floorSensorChan:
 			l.floor = newFloor
 			l.fsmOnFloorArrival(l.floor)
+			l.sendElevState()
 
 		case newBtn := <-buttonChan:
 			if newBtn.Button == driver.BT_Cab {
 				l.requests[newBtn.Floor][newBtn.Button] = true
 				l.fsmOnRequestButtonPress(newBtn.Floor, newBtn.Button)
+				l.sendElevState()
 			}
 
 		case obstr := <-obstructionChan:
 			l.obstruction = obstr
+
+			if l.obstruction == true {
+			l.ableToServiceRequests = false
+			} else {
+				l.ableToServiceRequests = true
+			}
 
 		case newHallCalls := <-assignerToLocalElev:
 			l.combineHallCallsAndCabCalls(newHallCalls)
@@ -154,19 +157,28 @@ func (l *localElevator) run(floorSensorChan chan int,
 			} else {
 				l.startDoorTimer()
 			}
+
 		}
 	}
 }
 
-// Lag en get funksjon, returner elevator struct minus obstruction og hallCalls
-// TODO: ikke send over obstruction og hallCalls
-func (l *localElevator) GetLocalElevator() localElevator {
-	respChan := make(chan localElevator)
-	l.elevatorStateRequestChan <- elevatorStateRequest{
-		responseChan: respChan,
-	}
-	return <-respChan
+func (l *localElevator) sendElevState() {
+    state := ElevState{
+        floor:                 l.floor,
+        dirn:                  l.dirn,
+        cabRequests:           l.cabRequests,
+        behaviour:             l.behaviour,
+        obstruction:           l.obstruction,
+        ableToServiceRequests: l.ableToServiceRequests,
+    }
+    select {
+    case l.elevStateToWorldview <- state:
+        // Sent successfully
+    default:
+        // No receiver ready; skip to avoid blocking
+    }
 }
+
 
 func (l *localElevator) setAllLights() {
 	for floor := 0; floor < N_FLOORS; floor++ {
