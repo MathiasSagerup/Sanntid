@@ -21,9 +21,50 @@ type HRAElevState struct {
 
 type HRAInput struct {
 	HallRequests [][2]bool                     `json:"hallRequests"`
-	States       map[string]HRAElevState `json:"states"`
+	States       map[string]HRAElevState       `json:"states"`
 }
 
+type HRAOutput struct {
+	HallRequests [][2]bool 
+}
+
+type HallCallAssigner struct {
+
+	//inptu channel from worldview
+	HRAInputChan chan HRAInput
+
+	//output channel to localElevator
+	HRAOutputChan chan HRAOutput
+	
+	//internalStates
+	input HRAInput
+	ouutput HRAOutput
+}
+
+func newHallCallAssigner (HRAInputChan chan HRAInput, HallRequestsToLocalElevator chan HRAOutput) *HallCallAssigner {
+	
+	h:= &HallCallAssigner{
+		HRAInputChan: HRAInputChan,
+		HRAOutputChan: HallRequestsToLocalElevator,
+	}
+	
+	go h.run(HRAInputChan,HallRequestsToLocalElevator)
+	return h
+}
+
+
+func (h *HallCallAssigner) run(HRAInputChan chan HRAInput, HallRequestToLocalElevator chan HRAOutput) {
+
+	for {
+		select{
+
+		case input := <-HRAInputChan:
+			Assign 
+
+		}
+	}
+
+}
 // Assign calls the hall_request_assigner binary and returns assigned hall requests per elevator.
 // Returns map[elevatorID] -> [floor][2]bool (up, down per floor)
 

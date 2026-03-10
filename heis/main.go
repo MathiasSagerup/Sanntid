@@ -4,6 +4,7 @@ import (
 	"heis/localElevator"
 	"heis/driver"
 	"heis/config"
+	"heis/hallCallsAssigner"
 	"fmt"
 )
 
