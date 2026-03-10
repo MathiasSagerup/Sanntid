@@ -7,6 +7,7 @@ import (
 	"fmt"
 )
 
+
 func main() {
 
 	var id string
@@ -26,14 +27,11 @@ func main() {
 	//localElevator kanaler
 	elevStateToWorldview := make(chan localElevator.ElevState)
 	assignerToLocalElev := make(chan localElevator.AssignedHallCalls)
-		
 
 	go driver.PollButtons(buttonChan)
 	go driver.PollFloorSensor(floorSensorChan)
 	go driver.PollObstructionSwitch(obstructionChan)
 	go driver.PollStopButton(stopBtnChan)
-
-	driver.Init(serverAddr,config.N_Floors)
 
 	l:= localElevator.NewLocalElev(floorSensorChan,
 		obstructionChan,
@@ -43,5 +41,7 @@ func main() {
 		assignerToLocalElev)
 
 	l.Print()
-
-	}
+	
+	select{}
+}
+	

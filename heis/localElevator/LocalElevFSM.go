@@ -88,8 +88,11 @@ func NewLocalElev(floorSensorChan chan int,
     assignerToLocalElev chan AssignedHallCalls) *localElevator {
 
 	l := &localElevator{
-		doorTimeoutChan:          make(chan bool, 1),
-	}
+    doorTimeoutChan:  make(chan bool, 1),
+    floorSensorChan:  floorSensorChan,  
+    obstructionChan:  obstructionChan,
+    buttonChan:       buttonChan,
+}
 
 	//initialiser heis, kjør ned til nærmeste etasje
 	if driver.GetFloor() == -1 {
@@ -112,7 +115,7 @@ func NewLocalElev(floorSensorChan chan int,
     stopBtnChan,
     buttonChan,
     elevStateToWorldview,
-    assignerToLocalElev)
+    assignerToLocalElev,l.doorTimeoutChan)
 	return l
 }
 
@@ -121,31 +124,31 @@ func (l *localElevator) run(floorSensorChan chan int,
     stopBtnChan chan bool,
     buttonChan chan driver.ButtonEvent,
     elevStateToWorldview chan ElevState,
-    assignerToLocalElev chan AssignedHallCalls) {
+    assignerToLocalElev chan AssignedHallCalls,
+	doorTimeOut chan bool) {
 
 	for {
-
 		select {
 		case req := <-l.elevatorStateRequestChan:
 			req.responseChan <- *l //derefererer så vi sender kopi
 
-		case newFloor := <-l.floorSensorChan:
+		case newFloor := <-floorSensorChan:
 			l.floor = newFloor
 			l.fsmOnFloorArrival(l.floor)
 
-		case newBtn := <-l.buttonChan:
+		case newBtn := <-buttonChan:
 			if newBtn.Button == driver.BT_Cab {
 				l.requests[newBtn.Floor][newBtn.Button] = true
 				l.fsmOnRequestButtonPress(newBtn.Floor, newBtn.Button)
 			}
 
-		case obstr := <-l.obstructionChan:
+		case obstr := <-obstructionChan:
 			l.obstruction = obstr
 
-		case newHallCalls := <- assignerToLocalElev:
+		case newHallCalls := <-assignerToLocalElev:
 			l.combineHallCallsAndCabCalls(newHallCalls)
 
-		case <-l.doorTimeoutChan:
+		case <- l.doorTimeoutChan:
 			if !l.obstruction {
 				l.fsmOnDoorTimeout()
 			} else {
