@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-func TestSingleElevator(e *Elevator) {
+func TestSingleElevator(e *localElevator) {
 
 	fmt.Println("========== STARTING SINGLE ELEVATOR TEST ==========")
 

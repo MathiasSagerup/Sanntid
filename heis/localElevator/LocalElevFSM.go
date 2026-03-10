@@ -1,7 +1,6 @@
 package localElevator
 
 import (
-	"heis/communication"
 	"heis/driver"
 	"time"
 )
@@ -36,13 +35,22 @@ type AssignedHallCalls struct {
 	hallCalls [N_FLOORS][N_BUTTONS - 1]bool
 }
 
+type ElevState struct {
+	floor                 int
+	dirn                  driver.MotorDirection
+	cabRequests           [N_FLOORS]bool 
+	behaviour             ElevatorBehaviour
+	obstruction           bool
+	ableToServiceRequests bool
+}
+
+type HallCallRequest struct {
+	receiveHallCalls chan <- AssignedHallCalls
+}
+
 type localElevator struct {
 
-	//dependencies
-	driver        *driver                            // pointer to a Driver struct instance
-	communication *communication                     //tilsvarende
-	assigner      *hallcallassigner.HallCallAssigner //tilsvarende
-
+	
 	//input channels from driver:
 	floorSensorChan chan int
 	obstructionChan chan bool
@@ -58,6 +66,7 @@ type localElevator struct {
 	ableToServiceRequests bool
 	dirnBehaviourPair     dirnBehaviourPair
 	hallCalls             AssignedHallCalls
+	cabRequests           [N_FLOORS]bool 
 
 	//Internal request channels (one per public method)
 	elevatorStateRequestChan chan elevatorStateRequest
@@ -71,44 +80,48 @@ type elevatorStateRequest struct {
 // overta styring.
 
 // -------------param--*package --- instans av package ---
-func NewLocalElev(d *driver.Driver, c *communication.Communication, h *hallcallassigner.HallCallAssigner) *localElevator {
+func NewLocalElev(floorSensorChan chan int,
+    obstructionChan chan bool,
+    stopBtnChan chan bool,
+    buttonChan chan driver.ButtonEvent,
+    elevStateToWorldview chan ElevState,
+    assignerToLocalElev chan AssignedHallCalls) *localElevator {
 
 	l := &localElevator{
-		driver:                   d,
-		communication:            c,
-		assigner:                 h,
-		floorSensorChan:          make(chan int),
-		obstructionChan:          make(chan bool),
-		buttonChan:               make(chan driver.ButtonEvent),
-		elevatorStateRequestChan: make(chan elevatorStateRequest),
 		doorTimeoutChan:          make(chan bool, 1),
 	}
 
-	go d.PollFloorSensor(l.floorSensorChan)
-	go d.PollObstructionSwitch(l.obstructionChan)
-	go d.PollButtons(l.buttonChan)
-
 	//initialiser heis, kjør ned til nærmeste etasje
-	if d.GetFloor() == -1 {
-		d.SetMotorDirection(driver.MD_Down)
+	if driver.GetFloor() == -1 {
+		driver.SetMotorDirection(driver.MD_Down)
 		l.dirn = driver.MD_Down
 		l.behaviour = moving
 		<-l.floorSensorChan
 	}
 
 	//sett til idle etter nådd nærmeste etasje
-	d.SetMotorDirection(driver.MD_Stop)
+	driver.SetMotorDirection(driver.MD_Stop)
 	l.dirn = driver.MD_Stop
 	l.behaviour = idle
-	l.floor = d.GetFloor()
+	l.floor = driver.GetFloor()
 	l.setAllLights()
 
 	//opprett oppdateringsloop
-	go l.run()
+	go l.run(floorSensorChan,
+    obstructionChan,
+    stopBtnChan,
+    buttonChan,
+    elevStateToWorldview,
+    assignerToLocalElev)
 	return l
 }
 
-func (l *localElevator) run() {
+func (l *localElevator) run(floorSensorChan chan int,
+    obstructionChan chan bool,
+    stopBtnChan chan bool,
+    buttonChan chan driver.ButtonEvent,
+    elevStateToWorldview chan ElevState,
+    assignerToLocalElev chan AssignedHallCalls) {
 
 	for {
 
@@ -129,7 +142,7 @@ func (l *localElevator) run() {
 		case obstr := <-l.obstructionChan:
 			l.obstruction = obstr
 
-		case newHallCalls := <-l.assigner.GetAssignedHallCalls(*l):
+		case newHallCalls := <- assignerToLocalElev:
 			l.combineHallCallsAndCabCalls(newHallCalls)
 
 		case <-l.doorTimeoutChan:
@@ -155,16 +168,16 @@ func (l *localElevator) GetLocalElevator() localElevator {
 func (l *localElevator) setAllLights() {
 	for floor := 0; floor < N_FLOORS; floor++ {
 		for btn := 0; btn < N_BUTTONS; btn++ {
-			l.driver.SetButtonLamp(driver.ButtonType(btn), floor, l.requests[floor][btn])
+			driver.SetButtonLamp(driver.ButtonType(btn), floor, l.requests[floor][btn])
 		}
 	}
 }
 
-func (l *localElevator) combineHallCallsAndCabCalls(newHallCalls hallCalls) {
+func (l *localElevator) combineHallCallsAndCabCalls(newHallCalls AssignedHallCalls) {
 
 	for floor := 0; floor < N_FLOORS; floor++ {
 		for btn := 0; btn < N_BUTTONS-1; btn++ {
-			l.requests[floor][btn] = newHallCalls[floor][btn]
+			l.requests[floor][btn] = newHallCalls.hallCalls[floor][btn]
 		}
 	}
 }
@@ -172,13 +185,13 @@ func (l *localElevator) combineHallCallsAndCabCalls(newHallCalls hallCalls) {
 // logikk for tilstandsendring i etasje
 func (l *localElevator) fsmOnFloorArrival(newFloor int) {
 	l.floor = newFloor
-	l.driver.SetFloorIndicator(l.floor)
+	driver.SetFloorIndicator(l.floor)
 
 	switch l.behaviour {
 	case moving:
 		if requestsShouldStop(*l) {
-			l.driver.SetMotorDirection(driver.MD_Stop)
-			l.driver.SetDoorOpenLamp(true)
+			driver.SetMotorDirection(driver.MD_Stop)
+			driver.SetDoorOpenLamp(true)
 			requestsClearAtCurrentFloor(l)
 			l.startDoorTimer()
 			l.setAllLights()
@@ -208,11 +221,11 @@ func (l *localElevator) fsmOnRequestButtonPress(btnFloor int, btnType driver.But
 
 		switch pair.behaviour {
 		case doorOpen:
-			l.driver.SetDoorOpenLamp(true)
+			driver.SetDoorOpenLamp(true)
 			l.startDoorTimer()
 			requestsClearAtCurrentFloor(l)
 		case moving:
-			l.driver.SetMotorDirection(l.dirn)
+			driver.SetMotorDirection(l.dirn)
 		case idle:
 			// nothing to do
 		}
@@ -233,8 +246,8 @@ func (l *localElevator) fsmOnDoorTimeout() {
 			requestsClearAtCurrentFloor(l)
 			l.setAllLights()
 		case moving, idle:
-			l.driver.SetDoorOpenLamp(false)
-			l.driver.SetMotorDirection(l.dirn)
+			driver.SetDoorOpenLamp(false)
+			driver.SetMotorDirection(l.dirn)
 		}
 	}
 }

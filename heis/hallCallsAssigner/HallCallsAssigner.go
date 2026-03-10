@@ -1,5 +1,6 @@
 package hallCallsAssigner
 
+/*
 func (h *HallCallAssigner) GetAssignedHallCalls(state ElevatorState) AssignedHallCalls {
 	respChan := make(chan AssignedHallCalls)
 	h.assignedHallCallRequestChan <- assignedHallCallRequest{
@@ -8,3 +9,4 @@ func (h *HallCallAssigner) GetAssignedHallCalls(state ElevatorState) AssignedHal
 	}
 	return <-respChan
 }
+*/

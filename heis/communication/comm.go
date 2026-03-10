@@ -1,211 +1,187 @@
 package communication
 
-import "time"
-import "heis/model"
-
-
-type ElevatorState struct {
-	ID string
-	Floor int
-	Dir int
-	Behavior int
-}
-
-type HallCalls struct {
-	Up map[int] bool
-	Down map[int] bool
-}
-
-type Worldview struct {
-	MyID string
-	Elevators map[string]ElevatorState
-	Halls HallCalls
-}
-
-type Message struct {
-	FromID string
-	Elevators map[string]ElevatorState
-	Halls HallCalls
-}
-
-
-func NewWorldView(myID string) *Worldview {
-	//return updated wordl wiev
-}
-
-func Encode(data []bytes)(Messager, error){ //tar inn rå data og gir ut type Message og en error 
-	//return message 
-}
-
-func OrHalls(ver1 HallCalls, ver2 HallCalls) HallCalls {
-	//merge hall calls  ved ulike versjoner med OR
-}
-
-func UpdateFromPeer(msg Message) pointerToWorld{
-	//opdater worldView fra mer infor
-}
-
-func BuildOutgoingMessafe(informationnbeeded) Message{
-	//decode til network
-}
-
-
-
-
-
-
-
-
-
-
-
-task CommunicationTask(
-	myID, 
-	inNet: chan bytes //fra nettet 
-	outNet: chan bytes //til nett for broadcast
-	inlocal: chan LocalState //ny lokal state fra localElevator
-	outWold: chan WorldSNap //snapcshot av world 
-	period: Duration 
+import (
+	"time"
+	"heis/network/bcast"
 )
 
-func CommunicationTask() {
 
-	var worldview Worldview //variabel for worldview settes som struktur 
+//DATATYPER SOM IKKE EIES AV COMMUNICATION - MÅ HENTES ANDRE STEDER SENERE
 
-	wordview := NewWorldView() //lager tomt objekt av type worldView
-	world.elevators[myID] := DefaultLocalState() //start tilstand 
-	ticker := NewTicker(Period); // trigger broadcast
+const N_FLOORS = 4
+type HallMatrix [N_FLOORS][2]bool
 
+type Direction int
+const (
+	DirStop Direction = iota
+	DirUp
+	DirDown
+)
+
+type Behaviour int
+const (
+	BehIdle Behaviour = iota
+	BehMoving
+	BehDoorOpen
+)
+
+type LocalState struct {
+	Floor            int
+	Dir              Direction
+	Behaviour         Behaviour
+	CabRequests       [N_FLOORS]bool
+	AbleToServiceHall bool
+}
+
+type NetMsg struct {
+	FromID          string
+	Local           LocalState
+	Hall            HallMatrix
+	BackupPeerState map[string]LocalState
+}
+
+//DATATYPER SOM EIES AV COMMUNICATION 
+
+type PeerUpdate struct {
+	ID    string
+	Local LocalState
+	Hall  HallMatrix
+}
+
+//data som trengs for å tolke hvem som er tilgjengelig av andre peers enn den selc
+type PeerStatus struct {
+	ID                string
+	AbleToServiceHall bool
+	SeenAt            time.Time
+}
+
+
+
+//definere ikke vei kanaler går, siden vi skal kunne bruke funksjoenr for å sende til og i communication bruke smame kanal for receive
+type Communication struct {
+	myID 				string
+	port 				int
+	bcastPeriod			time.Duration //hyppighet for bcfast
+
+	//communcation har eierskap på. Lar retning være åpen for å la andre moduler nå verdier som sendes på.
+	
+	peerUpdateCh 		chan PeerUpdate //output opdateringer til peers på nett
+	peerStatusCh 		chan PeerStatus //output status til faulhandler
+	transmitToNetCh 	chan NetMsg //write only 
+	receiveFromNetCh 	chan NetMsg //read only 
+
+	//Communcation sine input channels (read only) og ouput (write only) som den ikke har eierksp på 
+	//her definerer man om communication skal lese eller skrive fra channelse
+
+	localStateCh		<-chan LocalState //read local state
+	hallStateCh 		<-chan HallMatrix //read only
+}
+
+//for å bruke communcation må du si hvilken heis du er, og porten som communkikasjonsmodulen skal kommunisere med nette tpå 
+
+func InitializeCommunicationModule( 
+	//send inn parametre fra main, siden main kobler oss ti landre modulers eierskap 
+	id 					string, 
+	port 				int,
+	localStateCh 		<-chan LocalState,
+	hallStateCh 		<-chan HallMatrix,
+	) *Communication {
+
+	//opprette instans med kanaler uten retning. Vi definerer i loop om vi skriver/leser fra kanlaer, og deifnere i funksjoner hvordan andre kanaler kan hente ut data vi finner
+	c := &Communication{
+		myID:         		id,
+		port:         		port,
+		//Hent ut det vi trenger fra andre cahnnels: 
+		localStateCh: 		localStateCh,
+		hallStateCh:  		hallStateCh,
+		bcastPeriod:       	1 * time.Second,
+		//opprett cahnnels for private eierskap 
+		peerUpdateCh: 		make(chan PeerUpdate, 16),
+		peerStatusCh: 		make(chan PeerStatus, 16),
+		transmitToNetCh:	make(chan NetMsg,16), //communction eier nettverks channesl 
+		receiveFromNetCh:	make(chan NetMsg,16),
+
+	}
+	
+	//Det er kun communication som må vite noe om network 
+	go bcast.Transmitter(port, c.transmitToNetCh)// bcast.Transmitter leser fra c.transmitToNetCh, og bcaster på port 
+	go bcast.Receiver(port, c.receiveFromNetCh) //bcast.Receiver lytter på port og legger på c.receiveFromNetCh
+	go c.loop()
+
+	return c
+}
+
+
+//loop tilhører instand
+
+func (c *Communication) loop(){
+
+	bcastTicker := time.NewTicker(c.bcastPeriod) //ovjejt bcastTicker inneholder struct med en kanal C
+	defer bcastTicker.Stop()
+
+	//oppretter outMsg og LastPeerMsg
+
+	outMsg := NetMsg{FromID: c.myID} //melding ut er fra ID 
+	lastPeerMsg := make(map[string]NetMsg) //map av nøkkelpar ID til NetMsg
+
+	//vi leser fra og setter data på kanaler. 
 	for {
 		select {
-		case msg <- inNet:
-			
-			msg, ok := Decode(data) //dekoder data fra channel og sjekkr gyldighet 
-			of not ok: 
-				//ignorere 
+		case localStateUpd := <-c.localStateCh:
+			outMsg.Local = localStateUpd
 
-			if ok: 
+		case hallUpd := <-c.hallStateCh:
+			outMsg.Hall = hallUpd
 
-				//merge state
-				peerID := msg.FromID//check peer id from message
-				if peerID is not my ID 
-					peerState := msg.elevators[peerID] //overskriv siste state fra peerID
-					world.updatePeer(msg) //oppdater  med peer info
+		case msg := <-c.receiveFromNetCh:
+			//Ikke gå videre ved ygilige IDer
+			if msg.FromID == "" || msg.FromID == c.myID {
+				continue
+			}
 
-				//merge hall calls
-				world.halls = OrHallCalls(world.halls, msg.Halls)
-
-		case msg <- inLocal:
-				localState = msg
-				peerState := msg.elevators[myID] //overskriv siste state fra peerID
-
-		case ev <- inHallEvent:
-				world.halls = ApplyHallCallEvent(world.halls, ev) //legg til knappetrykk 
-
-		case <- tickerBroadcast
-				
-				//construct message
-				outMsg := Message{
-					FromID: myID, 
-					Elevators: CopyElevatorMap(world.elevators), //kopi av data for å hindre global data 
-					Halls: CopyHalls(world.halls), //kopi 
+			//status sendes hver gang melding kommer inn, som heartbeat
+			c.peerStatusCh <- PeerStatus{
+				ID:                msg.FromID,
+				AbleToServiceHall: msg.Local.AbleToServiceHall,
+				SeenAt:            time.Now(),
+			}
+			//Ved ny info om peer fra nettet, send PeerUpdate på peerUpdateCh
+			if !SameAsPrevious(lastPeerMsg, msg) {
+				c.peerUpdateCh <- PeerUpdate{
+					ID:    msg.FromID,
+					Local: msg.Local,
+					Hall:  msg.Hall,
 				}
-				//encode and send 
-				bytes, ok := Encode(outMsg)
+				lastPeerMsg[msg.FromID] = msg
+			}
 
-				if ok: 
-					outNet <- bytes //send hvis ok 
-
+		case <- bcastTicker.C: //utløses hver bcastPeriode
+			c.transmitToNetCh <- outMsg
 		}
 	}
-}
-
-
-func NewWorlView(myId) (model.)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-///---------------------------------------------------------------
-
-// broadcasts worldview, ElevID indicates which elevator sent info
-// seqNum indicates how many messges elev has sent
-// receiving Elevators can use this to compare if their data is old
-func broadcastWorldview(ElevID ID, worldview Worldview, SendSeqNum int) {
 
 }
 
-func updateWorldview(msg message) ([]bytes, error) {
-
-	var msg message
-
+func SameAsPrevious(last map[string]NetMsg, msg NetMsg) bool {
+	prev, ok := last[msg.FromID]
+	if !ok {
+		return false
+	}
+	return prev.Local == msg.Local && prev.Hall == msg.Hall
 }
 
-func isBroadcastMsgOld() {
 
+//funksjoner tilhører Communication typen brukes for å returrnere kanaler som tilhører
+//funksjoner lar andre moduler skrive til communcation og lese fra kanaler ut fra communication 
+//da gir vil kun tilgang til den kanalene som skal brukes, ikke alle kanaler
+
+
+//peer eier PeerUpdate og PeerStatus
+
+func (c *Communication) PeerUpdates() <-chan PeerUpdate {
+	return c.peerUpdateCh
 }
 
-// func
-
-// go func communicationFSM () {
-
-// 	var WorldviewElev1 Elevator
-// 	WorldViewElev1Ch:= make(chan Elevator)
-// 	Elev1AbleToTakeOrders:= make(chan Elevator)
-
-// 	var WorldviewElev2 Elevator
-// 	WorldviewElev2:= make(chan Elevator)
-// 	Elev2AbleToTakeOrders:= make(chan Elevator)
-
-// 	localElevWorldview:= make(chan Elevator)
-
-// 	for {
-
-// 		select{
-
-// 		case AvailablePeers:= <- peerUpdateCh: //Endring i antall noder i nettverket
-// 			if AvailablePeers.New != "" {
-// 				//new node joined network
-// 				//which elevator was it? Set as alive,
-// 				//possibly as readyToTakeOrder
-// 			} else if len(AvailablePeers.Lost > 1) {
-// 				//flere noder har dødd, det betyr at det er den lokale
-// 				//noden som har mistet nettverkstilkobling
-// 				localElevWorldview.AbleToServiceHallOrders = false
-
-// 			} else if len(AvailablePeers.Lost == 1){
-// 				//which node?
-
-// 			} else {
-// 				//happens on the second update after a node joins
-// 				//or leaves network, everything normal
-// 			}
-
-// 		case <- time.After(interval) //15*millisekund så broadcaste state
-// 			broadcastWorldview()
-
-// 		case WorldviewElev1 <-
-
-// 		case WorldviewElev2 <-
-
-// 		case
-
-// 		case:
-
-// 		}
-// 	}
-
-// }
+func (c *Communication) PeerStatuses() <-chan PeerStatus {
+	return c.peerStatusCh
+}
