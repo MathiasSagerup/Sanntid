@@ -111,7 +111,6 @@ func NewLocalElev(floorSensorChan chan int,
     obstructionChan,
     stopBtnChan,
     buttonChan,
-    elevStateToWorldview,
     assignerToLocalElev,l.doorTimeoutChan)
 	return l
 }
@@ -120,7 +119,6 @@ func (l *localElevator) run(floorSensorChan chan int,
     obstructionChan chan bool,
     stopBtnChan chan bool,
     buttonChan chan driver.ButtonEvent,
-    elevStateToWorldview chan ElevState,
     assignerToLocalElev chan AssignedHallCalls,
 	doorTimeOut chan bool) {
 
