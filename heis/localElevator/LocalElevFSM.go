@@ -1,6 +1,7 @@
 package localElevator
 
 import (
+	"heis/config"
 	"heis/driver"
 	"time"
 )
@@ -131,6 +132,7 @@ func (l *localElevator) run(floorSensorChan chan int,
 				l.fsmOnRequestButtonPress(newBtn.Floor, newBtn.Button)
 				l.sendElevState()
 			}
+			//HallButton handled by worldview
 
 		case obstr := <-obstructionChan:
 			l.obstruction = obstr
@@ -142,9 +144,9 @@ func (l *localElevator) run(floorSensorChan chan int,
 			}
 
 		case newHallCalls := <-assignerToLocalElev:
-			l.combineHallCallsAndCabCalls(newHallCalls)
 			//dersom heis er idle, og mottar newHallCalls, skjer ingenting per nå
 			//TODO: Bruk logikk fra fsmOnRequestButtonPress der heis er idle
+			l.fsmOnReceivedHallCalls(newHallCalls)
 
 		case <-l.doorTimeoutChan:
 			if !l.obstruction {
@@ -188,6 +190,42 @@ func (l *localElevator) combineHallCallsAndCabCalls(newHallCalls [N_FLOORS][2]bo
 		for btn := 0; btn < N_BUTTONS-1; btn++ {
 			l.requests[floor][btn] = newHallCalls[floor][btn]
 		}
+	}
+}
+
+func (l *localElevator) fsmOnReceivedHallCalls(newHallCalls [config.N_FLOORS][2]bool) {
+	l.combineHallCallsAndCabCalls(newHallCalls)
+
+	switch l.behaviour {
+
+	case doorOpen:
+		if requestsShouldClearImmediately(*l, l.floor, driver.BT_HallUp) {
+			l.startDoorTimer()
+		} else if requestsShouldClearImmediately(*l, l.floor, driver.BT_HallDown) {
+			l.startDoorTimer()
+		} else {
+			//do nothing
+		}
+
+	case moving:
+		//do nothing, handled by fsmOnFloorArrival
+
+	case idle:
+		pair := requestsChooseDirection(*l)
+		l.dirn = pair.dirn
+		l.behaviour = pair.behaviour
+
+		switch pair.behaviour {
+		case doorOpen:
+			driver.SetDoorOpenLamp(true)
+			l.startDoorTimer()
+			requestsClearAtCurrentFloor(l)
+		case moving:
+			driver.SetMotorDirection(l.dirn)
+		case idle:
+			// nothing to do
+		}
+
 	}
 }
 
