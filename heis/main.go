@@ -8,6 +8,7 @@ import (
 	"heis/hallCallsAssigner"
 	"heis/localElevator"
 	"heis/network/localip"
+	"heis/worldview"
 	"os"
 )
 
@@ -37,7 +38,7 @@ func main() {
 	stopBtnChan := make(chan bool)
 	buttonChan := make(chan driver.ButtonEvent)
 
-	//localElevator til Worlview
+	//localElevator til Worldview
 	elevStateToWorldview := make(chan localElevator.ElevState)
 
 	//HallCallAssigner til localELevator
@@ -46,10 +47,9 @@ func main() {
 	//input kanal til hallCallsAssigner:
 	worldviewToHallCallAssigner := make(chan hallCallsAssigner.HRAInput)
 
-	//localElevator til communication:
-	worldviewToCommuncation := make(chan<- localElevator.ElevState)
-
-	//
+	//worldview til communication:
+	worldviewToCommuncation := make(chan worldview.ElevState)
+	worldviewHallRequestsToCommuncation := make(chan [config.N_FLOORS][2]worldview.OrderState)
 
 	go driver.PollButtons(buttonChan)
 	go driver.PollFloorSensor(floorSensorChan)
@@ -65,7 +65,7 @@ func main() {
 
 	l.Print()
 
-	c := communication.NewCommunicationModule(id, config.BroadcastPort, worldviewToCommuncation)
+	c := communication.NewCommunicationModule(id, config.BroadcastPort, worldviewToCommuncation, worldviewHallRequestsToCommuncation)
 
 	//input: InputChan chan HRAInput, OutputChan chan [config.N_Floors][2]bool, ID string
 	h := hallCallsAssigner.NewHallCallAssigner(worldviewToHallCallAssigner, assignerToLocalElev, id)
