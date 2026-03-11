@@ -51,23 +51,14 @@ func NewHallCallAssigner(InputChan chan HRAInput, OutputChan chan [config.N_FLOO
 }
 
 func (h *HallCallAssigner) run(InputChan chan HRAInput, OutputChan chan [config.N_FLOORS][2]bool, ID string) {
-
-	for {
-		select {
-		case input := <-InputChan:
-			AssignedHallCalls, err := assign(input)
-			if err != nil {
-				fmt.Errorf("assigner: unmarshal: %v", err)
-			}
-			OutputChan <- AssignedHallCalls[ID]
-		}
+	for input := range InputChan { //siden det per nå er kun et case i en select case for loop bruker vi for range loop isteden.
+		AssignedHallCalls, _ := assign(input)
+		OutputChan <- AssignedHallCalls[ID]
 	}
-
 }
 
 // Assign calls the hall_request_assigner binary and returns assigned hall requests per elevator.
 // Returns map[elevatorID] -> [floor][2]bool (up, down per floor)
-
 func assign(Input HRAInput) (map[string][config.N_FLOORS][2]bool, error) {
 	executable := config.HallCallAssignerExec
 	if runtime.GOOS == "windows" {

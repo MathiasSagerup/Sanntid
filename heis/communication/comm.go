@@ -16,8 +16,9 @@ type NetMsg struct {
 	BackupPeerState map[string]worldview.ElevState
 }
 
-//DATATYPER SOM EIES AV COMMUNICATION
+//DATATYPER SOM EIES AV COMMUNICATION (network/peers)
 
+// SKIFT NAVN, SAMME NAVN SOM PeerUpdate i network/peers
 type PeerUpdate struct {
 	ID    string
 	Local worldview.ElevState
@@ -25,6 +26,12 @@ type PeerUpdate struct {
 }
 
 // data som trengs for å tolke hvem som er tilgjengelig av andre peers enn den selv
+
+//Hele denne structen er unødvendig
+// (AbleToServiceRequests ligger i tilstanden som broadcastes)
+// (PeerUpdates i network/peers inneholder tapte noder og nye noder, bruk denne!)
+//ID er en del av melding som mottas/sendes
+
 type PeerStatus struct {
 	ID                    string
 	AbleToServiceRequests bool
@@ -35,30 +42,26 @@ type PeerStatus struct {
 type Communication struct {
 	myID        string
 	port        int
-	bcastPeriod time.Duration //hyppighet for bcfast
+	bcastPeriod time.Duration
 
 	//communcation har eierskap på. Lar retning være åpen for å la andre moduler nå verdier som sendes på.
 
-	peerUpdateCh     chan PeerUpdate //output opdateringer til peers på nett
+	peerUpdateCh chan PeerUpdate //output opdateringer til peers på nett
+	// (ENDRE NAVN!Samme navn som kanalen som oppdaterer hvilke peers er på nettet i network/peers )
+
 	peerStatusCh     chan PeerStatus //output status til faulhandler
 	transmitToNetCh  chan NetMsg     //write only
 	receiveFromNetCh chan NetMsg     //read only
 
-	//Communcation sine input channels (read only) og ouput (write only) som den ikke har eierksp på
-	//her definerer man om communication skal lese eller skrive fra channelse
-
-	localStateCh <-chan worldview.ElevState                      //read local state
-	hallStateCh  <-chan [config.N_FLOORS][2]worldview.OrderState //read only
+	localWorldviewCh <-chan worldview.ElevState                      //read local state
+	hallStateCh      <-chan [config.N_FLOORS][2]worldview.OrderState //read only
 }
 
-//for å bruke communcation må du si hvilken heis du er, og porten som communkikasjonsmodulen skal kommunisere med nette tpå
-
 func NewCommunicationModule(
-	//send inn parametre fra main, siden main kobler oss ti landre modulers eierskap
 	id string,
 	port int,
 	localStateCh <-chan worldview.ElevState,
-	hallStateCh <-chan [config.N_FLOORS][2]worldview.OrderState,
+	hallStateCh <-chan [config.N_FLOORS][2]worldview.OrderState, //Hvorfor denne? Endring i HallState er en del av
 
 ) *Communication {
 
@@ -67,9 +70,9 @@ func NewCommunicationModule(
 		myID: id,
 		port: port,
 		//Hent ut det vi trenger fra andre cahnnels:
-		localStateCh: localStateCh,
-		hallStateCh:  hallStateCh,
-		bcastPeriod:  1 * time.Second,
+		localWorldviewCh: localStateCh,
+		hallStateCh:      hallStateCh,
+		bcastPeriod:      1 * time.Second,
 		//opprett cahnnels for private eierskap
 		peerUpdateCh:     make(chan PeerUpdate, 16),
 		peerStatusCh:     make(chan PeerStatus, 16),
@@ -100,7 +103,7 @@ func (c *Communication) run() {
 	//vi leser fra og setter data på kanaler.
 	for {
 		select {
-		case localStateUpd := <-c.localStateCh:
+		case localStateUpd := <-c.localWorldviewCh:
 			outMsg.Local = localStateUpd
 
 		case hallUpd := <-c.hallStateCh:

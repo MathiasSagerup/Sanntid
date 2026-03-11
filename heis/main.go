@@ -65,10 +65,10 @@ func main() {
 
 	l.Print()
 
-	c := communication.NewCommunicationModule(id, config.BroadcastPort, worldviewToCommuncation, worldviewHallRequestsToCommuncation)
+	communication.NewCommunicationModule(id, config.BroadcastPort, worldviewToCommuncation, worldviewHallRequestsToCommuncation)
 
 	//input: InputChan chan HRAInput, OutputChan chan [config.N_Floors][2]bool, ID string
-	h := hallCallsAssigner.NewHallCallAssigner(worldviewToHallCallAssigner, assignerToLocalElev, id)
+	hallCallsAssigner.NewHallCallAssigner(worldviewToHallCallAssigner, assignerToLocalElev, id)
 
 	select {}
 }
