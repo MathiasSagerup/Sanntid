@@ -8,31 +8,26 @@ import (
 	"strconv"
 )
 
-const N_FLOORS = 4
-const N_ELEVATORS = 3
-
 type elevatorID int
 
 type ElevState struct {
 	Floor                 int
 	Dirn                  driver.MotorDirection
 	Behaviour             localElevator.ElevatorBehaviour
-	CabRequests           [N_FLOORS]bool
+	CabRequests           [config.N_FLOORS]bool
 	Obstruction           bool
 	AbleToServiceRequests bool
-	HallCalls             HallCallStates
+	HallCalls             [config.N_FLOORS][2]OrderState
 }
 
-type HallCallActivation int //ville endret til OrderState eller OrderType som navn.
+type OrderState int //ville endret til OrderState eller OrderType som navn.
 
 const (
-	NoOrder HallCallActivation = iota
+	NoOrder OrderState = iota
 	Unconfirmed
 	Confirmed
 	Completed
 )
-
-type HallCallStates [N_FLOORS][2]HallCallActivation
 
 // World View Decider module ------------------------------------------------------------------------------------------
 
@@ -118,15 +113,15 @@ func (w *WorldViewDecider) recieveOtherElevMessage(incomingElevState ElevState, 
 	}
 }
 
-func (w *WorldViewDecider) compareIncomingHallCalls(incomingHallCalls HallCallStates) {
-	for floor := 0; floor < N_FLOORS; floor++ {
+func (w *WorldViewDecider) compareIncomingHallCalls(incomingHallCalls [config.N_FLOORS][2]OrderState) {
+	for floor := 0; floor < config.N_FLOORS; floor++ {
 		for direction := 0; direction < 2; direction++ {
 			w.compareSingleIncomingHallCall(incomingHallCalls[floor][direction], floor, direction)
 		}
 	}
 }
 
-func (w *WorldViewDecider) compareSingleIncomingHallCall(incomingHallCallActivation HallCallActivation, floor int, direction int) {
+func (w *WorldViewDecider) compareSingleIncomingHallCall(incomingHallCallActivation OrderState, floor int, direction int) {
 	switch w.thisElevState.HallCalls[floor][direction] {
 	case NoOrder:
 		switch incomingHallCallActivation {
@@ -194,7 +189,7 @@ func (w *WorldViewDecider) getOtherElevsAliveCount() int {
 func (w *WorldViewDecider) sendUpdatedInformationToHallCallAssigner() hallCallsAssigner.HRAInput {
 	var hallRequests [config.N_FLOORS][2]bool
 
-	for floor := 0; floor < N_FLOORS; floor++ {
+	for floor := 0; floor < config.N_FLOORS; floor++ {
 		for dir := 0; dir < 2; dir++ {
 			if w.thisElevState.HallCalls[floor][dir] == Confirmed {
 				hallRequests[floor][dir] = true
@@ -206,8 +201,8 @@ func (w *WorldViewDecider) sendUpdatedInformationToHallCallAssigner() hallCallsA
 	allElevs := append([]ElevState{w.thisElevState}, w.otherElevStates...)
 
 	for i, elev := range allElevs {
-		cabReqs := make([]bool, N_FLOORS)
-		for f := 0; f < N_FLOORS; f++ {
+		cabReqs := make([]bool, config.N_FLOORS)
+		for f := 0; f < config.N_FLOORS; f++ {
 			cabReqs[f] = elev.CabRequests[f]
 		}
 

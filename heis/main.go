@@ -47,7 +47,7 @@ func main() {
 	worldviewToHallCallAssigner := make(chan hallCallsAssigner.HRAInput)
 
 	//localElevator til communication:
-	localElevToCommuncation := make(chan<- localElevator.ElevState)
+	worldviewToCommuncation := make(chan<- localElevator.ElevState)
 
 	//
 
@@ -65,7 +65,7 @@ func main() {
 
 	l.Print()
 
-	c := communication.NewCommunicationModule(id, config.BroadcastPort, localElevToCommuncation)
+	c := communication.NewCommunicationModule(id, config.BroadcastPort, worldviewToCommuncation)
 
 	//input: InputChan chan HRAInput, OutputChan chan [config.N_Floors][2]bool, ID string
 	h := hallCallsAssigner.NewHallCallAssigner(worldviewToHallCallAssigner, assignerToLocalElev, id)
