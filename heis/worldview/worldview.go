@@ -1,181 +1,193 @@
 package worldview
 
-import (
-	"heis/types"
+const N_FLOORS = 4
+const N_ELEVATORS = 3
+
+type elevatorID int
+
+type Direction int
+
+const (
+	DirStop Direction = iota
+	DirUp
+	DirDown
 )
 
-// ---- Internal request/update types ----
+type Behaviour int
 
-type worldviewRequest struct {
-	responseChan chan types.Worldview
+const (
+	BehIdle Behaviour = iota
+	BehMoving
+	BehDoorOpen
+)
+
+type ElevState struct {
+	Floor               int
+	Dir                 Direction
+	Behaviour           Behaviour
+	CabRequests         [N_FLOORS]bool
+	AbleToServiceOrders bool
+	HallCalls           HallCallStates
 }
 
-type elevatorStateUpdate struct {
-	id    string
-	state types.ElevatorStateMsg
+type HallCallActivation int
+
+const (
+	NoOrder HallCallActivation = iota
+	Unconfirmed
+	Confirmed
+	Completed
+)
+
+type HallCallStates [N_FLOORS][2]HallCallActivation
+
+// World View Decider module ------------------------------------------------------------------------------------------
+
+type WorldViewDecider struct {
+	thisElevState   ElevState
+	otherElevStates []ElevState //Index corresponds to ElevID
+
+	messageFromLocalElevChannel  <-chan ElevState
+	messageFromOtherElevChannels []<-chan ElevState //Index in array corresponds to ElevID
+
 }
 
-type hallRequestUpdate struct {
-	hallRequests [][2]bool
-}
+func InitializeWorldViewModule(
+	messageFromOtherElevChannels []<-chan ElevState,
+	initialLocalElevState ElevState,
+	initialOtherElevStates []ElevState,
+) *WorldViewDecider {
 
-type peerUpdate struct {
-	update types.PeerUpdate
-}
+	//Assert correct length of array to a contsistent amount of elevators
 
-type hallRequestSet struct {
-	floor  int
-	btn    int
-	active bool
-}
-
-// ---- Struct ----
-
-type Worldview struct {
-	// Internal state
-	elevatorStates map[string]types.ElevatorStateMsg
-	hallRequests   [][2]bool
-	peers          []string
-
-	// Outbound notification channel - worldview pushes here when peers are lost
-	PeerLostChan chan string
-
-	// Outbound notification channel - worldview pushes here when a new peer joins
-	PeerJoinedChan chan string
-
-	// Internal request/update channels
-	worldviewRequestChan    chan worldviewRequest
-	elevatorStateUpdateChan chan elevatorStateUpdate
-	hallRequestUpdateChan   chan hallRequestUpdate
-	peerUpdateChan          chan peerUpdate
-	hallRequestSetChan      chan hallRequestSet
-}
-
-// ---- Constructor ----
-
-func NewWorldview() *Worldview {
-	w := &Worldview{
-		elevatorStates:          make(map[string]types.ElevatorStateMsg),
-		hallRequests:            make([][2]bool, types.N_FLOORS),
-		peers:                   make([]string, 0),
-		PeerLostChan:            make(chan string, 10),
-		PeerJoinedChan:          make(chan string, 10),
-		worldviewRequestChan:    make(chan worldviewRequest),
-		elevatorStateUpdateChan: make(chan elevatorStateUpdate),
-		hallRequestUpdateChan:   make(chan hallRequestUpdate),
-		peerUpdateChan:          make(chan peerUpdate),
-		hallRequestSetChan:      make(chan hallRequestSet),
+	w := &WorldViewDecider{
+		messageFromOtherElevChannels: messageFromOtherElevChannels,
+		thisElevState:                initialLocalElevState,
+		otherElevStates:              initialOtherElevStates,
 	}
-	go w.run()
+
+	go w.loop()
+
 	return w
 }
 
-// ---- Internal run loop ----
-
-func (w *Worldview) run() {
+func (w *WorldViewDecider) loop() {
+	var hallCallsHasChanged bool
+	var elevatorStateHasChanged bool
 	for {
+		hallCallsHasChanged = false
+		elevatorStateHasChanged = false
+
+		//Check for message from the local elevator
 		select {
-
-		// Someone requesting the full worldview
-		case req := <-w.worldviewRequestChan:
-			req.responseChan <- w.copyWorldview()
-
-		// New elevator state received from network
-		case update := <-w.elevatorStateUpdateChan:
-			w.elevatorStates[update.id] = update.state
-
-		// New hall requests received from network
-		case update := <-w.hallRequestUpdateChan:
-			w.hallRequests = update.hallRequests
-
-		// Single hall request button set (e.g. from local button press)
-		case update := <-w.hallRequestSetChan:
-			w.hallRequests[update.floor][update.btn] = update.active
-
-		// Peer update from communication module
-		case update := <-w.peerUpdateChan:
-			w.peers = update.update.Peers
-
-			// Notify about new peer
-			if update.update.New != "" {
-				select {
-				case w.PeerJoinedChan <- update.update.New:
-				default:
-				}
+		case newElevState := <-w.messageFromLocalElevChannel:
+			if newElevState != w.thisElevState {
+				w.thisElevState = newElevState
+				elevatorStateHasChanged = true
 			}
+		default:
+		}
 
-			// Notify about lost peers and remove their state
-			for _, lostID := range update.update.Lost {
-				delete(w.elevatorStates, lostID)
-				select {
-				case w.PeerLostChan <- lostID:
-				default:
+		//Check for message from all other elevators
+		for elevID := 0; elevID <= len(w.messageFromOtherElevChannels); elevID++ {
+			select {
+			case newElevState := <-w.messageFromOtherElevChannels[elevID]:
+				if newElevState != w.otherElevStates[elevID] {
+					w.otherElevStates[elevID] = newElevState
+					elevatorStateHasChanged = true
+					w.compareWithAndUpdateLocalHallcalls(newElevState.HallCalls, elevatorID(elevID), hallCallsHasChanged)
 				}
+			default:
 			}
+		}
+
+		if elevatorStateHasChanged || hallCallsHasChanged {
+			w.sendUpdatedInformationToHallCallAssigner()
 		}
 	}
 }
 
-// ---- Helper: returns a deep copy of worldview state ----
-
-func (w *Worldview) copyWorldview() types.Worldview {
-	// Deep copy elevator states
-	statesCopy := make(map[string]types.ElevatorStateMsg, len(w.elevatorStates))
-	for id, state := range w.elevatorStates {
-		statesCopy[id] = state
-	}
-
-	// Deep copy hall requests
-	hallCopy := make([][2]bool, len(w.hallRequests))
-	copy(hallCopy, w.hallRequests)
-
-	// Deep copy peers
-	peersCopy := make([]string, len(w.peers))
-	copy(peersCopy, w.peers)
-
-	return types.Worldview{
-		ElevatorStates: statesCopy,
-		HallRequests:   hallCopy,
-		Peers:          peersCopy,
+func (w *WorldViewDecider) recieveOtherElevMessage(incomingElevState ElevState, senderElevID elevatorID, hallCallsHasChanged bool) {
+	if incomingElevState.HallCalls != w.thisElevState.HallCalls {
+		w.otherElevStates[senderElevID] = incomingElevState
+		w.compareIncomingHallCalls(incomingElevState.HallCalls)
+		hallCallsHasChanged = true
 	}
 }
 
-// ---- Public methods ----
-
-// Called by HallCallAssigner to get full current worldview
-func (w *Worldview) GetWorldview() types.Worldview {
-	respChan := make(chan types.Worldview)
-	w.worldviewRequestChan <- worldviewRequest{
-		responseChan: respChan,
-	}
-	return <-respChan
-}
-
-// Called by Communication when a new elevator state arrives from network
-func (w *Worldview) UpdateElevatorState(id string, state types.ElevatorStateMsg) {
-	w.elevatorStateUpdateChan <- elevatorStateUpdate{
-		id:    id,
-		state: state,
+func (w *WorldViewDecider) compareIncomingHallCalls(incomingHallCalls HallCallStates) {
+	for floor := 0; floor < N_FLOORS; floor++ {
+		for direction := 0; direction < 2; direction++ {
+			w.compareSingleIncomingHallCall(incomingHallCalls[floor][direction], floor, direction)
+		}
 	}
 }
 
-// Called by Communication when hall requests are received from network
-func (w *Worldview) UpdateHallRequests(hallRequests [][2]bool) {
-	w.hallRequestUpdateChan <- hallRequestUpdate{
-		hallRequests: hallRequests,
+func (w *WorldViewDecider) compareSingleIncomingHallCall(incomingHallCallActivation HallCallActivation, floor int, direction int) {
+	switch w.thisElevState.HallCalls[floor][direction] {
+	case NoOrder:
+		switch incomingHallCallActivation {
+		case Unconfirmed:
+			w.thisElevState.HallCalls[floor][direction] = Unconfirmed
+		case Confirmed:
+			w.thisElevState.HallCalls[floor][direction] = Confirmed
+		default:
+		}
+
+	case Unconfirmed:
+		switch incomingHallCallActivation {
+		case Unconfirmed:
+			//If we recieve unconfirmed we must check if all elevators agree on unconfirmed and change to confirmed
+			unconfirmedCounter := 0
+			for elevID := 0; elevID < len(w.otherElevStates); elevID++ {
+				if (w.otherElevStates[elevID].AbleToServiceOrders) && (w.otherElevStates[elevID].HallCalls[floor][direction] == Unconfirmed) {
+					unconfirmedCounter++
+				}
+			}
+			if unconfirmedCounter == w.getOtherElevsAliveCount() {
+				w.thisElevState.HallCalls[floor][direction] = Confirmed
+			}
+		case Confirmed:
+			w.thisElevState.HallCalls[floor][direction] = Confirmed
+		default:
+		}
+
+	case Confirmed:
+		switch incomingHallCallActivation {
+		case Completed:
+			w.thisElevState.HallCalls[floor][direction] = Completed
+		default:
+		}
+	case Completed:
+		switch incomingHallCallActivation {
+		case Completed:
+			//If we recieve completed we must check if all elevators agree on completed and if so, change to NoOrder
+			completedCounter := 0
+			for elevID := 0; elevID < len(w.otherElevStates); elevID++ {
+				if (w.otherElevStates[elevID].AbleToServiceOrders) && (w.otherElevStates[elevID].HallCalls[floor][direction] == Completed) {
+					completedCounter++
+				}
+			}
+			if completedCounter == w.getOtherElevsAliveCount() {
+				w.thisElevState.HallCalls[floor][direction] = NoOrder
+
+			}
+		case NoOrder:
+			w.thisElevState.HallCalls[floor][direction] = NoOrder
+		}
 	}
 }
 
-// Called by LocalElevator when a hall button is pressed locally
-func (w *Worldview) SetHallRequest(floor int, btn int, active bool) {
-	w.hallRequestSetChan <- hallRequestSet{
-		floor:  floor,
-		btn:    btn,
-		active: active,
+func (w *WorldViewDecider) getOtherElevsAliveCount() int {
+	counter := 0
+	for elevID := 0; elevID < len(w.otherElevStates); elevID++ {
+		if w.otherElevStates[elevID].AbleToServiceOrders {
+			counter++
+		}
 	}
+	return counter
 }
 
-// Called by Communication when peer list changes
-func (w *Worldview) UpdatePeers(update types.PeerUpdate) {
-	w.peerUpdateChan <- peerUpdate{update: update}
+func (w *WorldViewDecider) sendUpdatedInformationToHallCallAssigner() {
+	//Implement
 }
