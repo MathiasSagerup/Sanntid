@@ -1,9 +1,11 @@
 package worldview
 
 import (
+	"heis/config"
 	"heis/driver"
 	"heis/hallCallsAssigner"
 	"heis/localElevator"
+	"strconv"
 )
 
 const N_FLOORS = 4
@@ -96,14 +98,14 @@ func (w *WorldViewDecider) loop() {
 				if newElevState != w.otherElevStates[elevID] {
 					w.otherElevStates[elevID] = newElevState
 					elevatorStateHasChanged = true
-					w.UpdateLocalHallcalls(newElevState.HallCalls, elevatorID(elevID), hallCallsHasChanged)
+					w.compareIncomingHallCalls(newElevState.HallCalls)
 				}
 			default:
 			}
 		}
 
 		if elevatorStateHasChanged || hallCallsHasChanged {
-			worldiewToHallCallAssignerChan <- w.sendUpdatedInformationToHallCallAssigner()
+			w.hallCallAssignerChan <- w.sendUpdatedInformationToHallCallAssigner()
 		}
 	}
 }
@@ -189,6 +191,36 @@ func (w *WorldViewDecider) getOtherElevsAliveCount() int {
 	return counter
 }
 
-func (w *WorldViewDecider) sendUpdatedInformationToHallCallAssigner() {
-	//Implement
+func (w *WorldViewDecider) sendUpdatedInformationToHallCallAssigner() hallCallsAssigner.HRAInput {
+	var hallRequests [config.N_FLOORS][2]bool
+
+	for floor := 0; floor < N_FLOORS; floor++ {
+		for dir := 0; dir < 2; dir++ {
+			if w.thisElevState.HallCalls[floor][dir] == Confirmed {
+				hallRequests[floor][dir] = true
+			}
+		}
+	}
+
+	states := make(map[string]hallCallsAssigner.HRAElevState)
+	allElevs := append([]ElevState{w.thisElevState}, w.otherElevStates...)
+
+	for i, elev := range allElevs {
+		cabReqs := make([]bool, N_FLOORS)
+		for f := 0; f < N_FLOORS; f++ {
+			cabReqs[f] = elev.CabRequests[f]
+		}
+
+		states[strconv.Itoa(i)] = hallCallsAssigner.HRAElevState{
+			Behaviour:   elev.Behaviour.String(),
+			Floor:       elev.Floor,
+			Direction:   elev.Dirn.String(),
+			CabRequests: cabReqs,
+		}
+	}
+
+	return hallCallsAssigner.HRAInput{
+		HallRequests: hallRequests,
+		States:       states,
+	}
 }
