@@ -23,21 +23,13 @@ type dirnBehaviourPair struct {
 	behaviour ElevatorBehaviour
 }
 
-type Order int
-
-const (
-	No_Order          = 0
-	Unconfirmed_Order = 1
-	Confirmed_Order   = 2
-)
-
 type ElevState struct {
-	floor                 int
-	dirn                  driver.MotorDirection
-	cabRequests           [N_FLOORS]bool
-	behaviour             ElevatorBehaviour
-	obstruction           bool
-	ableToServiceRequests bool
+	Floor                 int
+	Dirn                  driver.MotorDirection
+	Behaviour             ElevatorBehaviour
+	CabRequests           [N_FLOORS]bool
+	Obstruction           bool
+	AbleToServiceRequests bool
 }
 
 type HallCallRequest struct {
@@ -161,12 +153,12 @@ func (l *localElevator) run(floorSensorChan chan int,
 
 func (l *localElevator) sendElevState() {
 	state := ElevState{
-		floor:                 l.floor,
-		dirn:                  l.dirn,
-		cabRequests:           l.cabRequests,
-		behaviour:             l.behaviour,
-		obstruction:           l.obstruction,
-		ableToServiceRequests: l.ableToServiceRequests,
+		Floor:                 l.floor,
+		Dirn:                  l.dirn,
+		CabRequests:           l.cabRequests,
+		Behaviour:             l.behaviour,
+		Obstruction:           l.obstruction,
+		AbleToServiceRequests: l.ableToServiceRequests,
 	}
 	select {
 	case l.elevStateToWorldview <- state:

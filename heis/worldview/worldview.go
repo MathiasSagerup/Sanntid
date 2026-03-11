@@ -1,36 +1,27 @@
 package worldview
 
+import (
+	"heis/driver"
+	"heis/hallCallsAssigner"
+	"heis/localElevator"
+)
+
 const N_FLOORS = 4
 const N_ELEVATORS = 3
 
 type elevatorID int
 
-type Direction int
-
-const (
-	DirStop Direction = iota
-	DirUp
-	DirDown
-)
-
-type Behaviour int
-
-const (
-	BehIdle Behaviour = iota
-	BehMoving
-	BehDoorOpen
-)
-
 type ElevState struct {
-	Floor               int
-	Dir                 Direction
-	Behaviour           Behaviour
-	CabRequests         [N_FLOORS]bool
-	AbleToServiceOrders bool
-	HallCalls           HallCallStates
+	Floor                 int
+	Dirn                  driver.MotorDirection
+	Behaviour             localElevator.ElevatorBehaviour
+	CabRequests           [N_FLOORS]bool
+	Obstruction           bool
+	AbleToServiceRequests bool
+	HallCalls             HallCallStates
 }
 
-type HallCallActivation int
+type HallCallActivation int //ville endret til OrderState eller OrderType som navn.
 
 const (
 	NoOrder HallCallActivation = iota
@@ -50,10 +41,19 @@ type WorldViewDecider struct {
 	messageFromLocalElevChannel  <-chan ElevState
 	messageFromOtherElevChannels []<-chan ElevState //Index in array corresponds to ElevID
 
+	//channel to HCA
+	hallCallAssignerChan chan hallCallsAssigner.HRAInput
+
+	//LES !!
+
+	//ID av heiser ved bruk av indeksering, potensielt problematisk mtp at heiser vil da endre IDen sin ila. programmets levetid når heiser
+	//mister nett og blir med tilbake. Blir kaos i sjekkingen under if newWorldView == oldWorldView.
+	// Tror det er bedre å bruke IDen som blir sent med broadcast meldingene.
 }
 
-func InitializeWorldViewModule(
+func NewWorldViewModule(
 	messageFromOtherElevChannels []<-chan ElevState,
+	hallCallAssignerChan chan hallCallsAssigner.HRAInput,
 	initialLocalElevState ElevState,
 	initialOtherElevStates []ElevState,
 ) *WorldViewDecider {
@@ -62,6 +62,7 @@ func InitializeWorldViewModule(
 
 	w := &WorldViewDecider{
 		messageFromOtherElevChannels: messageFromOtherElevChannels,
+		hallCallAssignerChan:         hallCallAssignerChan,
 		thisElevState:                initialLocalElevState,
 		otherElevStates:              initialOtherElevStates,
 	}
@@ -95,14 +96,14 @@ func (w *WorldViewDecider) loop() {
 				if newElevState != w.otherElevStates[elevID] {
 					w.otherElevStates[elevID] = newElevState
 					elevatorStateHasChanged = true
-					w.compareWithAndUpdateLocalHallcalls(newElevState.HallCalls, elevatorID(elevID), hallCallsHasChanged)
+					w.UpdateLocalHallcalls(newElevState.HallCalls, elevatorID(elevID), hallCallsHasChanged)
 				}
 			default:
 			}
 		}
 
 		if elevatorStateHasChanged || hallCallsHasChanged {
-			w.sendUpdatedInformationToHallCallAssigner()
+			worldiewToHallCallAssignerChan <- w.sendUpdatedInformationToHallCallAssigner()
 		}
 	}
 }
@@ -140,7 +141,7 @@ func (w *WorldViewDecider) compareSingleIncomingHallCall(incomingHallCallActivat
 			//If we recieve unconfirmed we must check if all elevators agree on unconfirmed and change to confirmed
 			unconfirmedCounter := 0
 			for elevID := 0; elevID < len(w.otherElevStates); elevID++ {
-				if (w.otherElevStates[elevID].AbleToServiceOrders) && (w.otherElevStates[elevID].HallCalls[floor][direction] == Unconfirmed) {
+				if (w.otherElevStates[elevID].AbleToServiceRequests) && (w.otherElevStates[elevID].HallCalls[floor][direction] == Unconfirmed) {
 					unconfirmedCounter++
 				}
 			}
@@ -164,7 +165,7 @@ func (w *WorldViewDecider) compareSingleIncomingHallCall(incomingHallCallActivat
 			//If we recieve completed we must check if all elevators agree on completed and if so, change to NoOrder
 			completedCounter := 0
 			for elevID := 0; elevID < len(w.otherElevStates); elevID++ {
-				if (w.otherElevStates[elevID].AbleToServiceOrders) && (w.otherElevStates[elevID].HallCalls[floor][direction] == Completed) {
+				if (w.otherElevStates[elevID].AbleToServiceRequests) && (w.otherElevStates[elevID].HallCalls[floor][direction] == Completed) {
 					completedCounter++
 				}
 			}
@@ -181,7 +182,7 @@ func (w *WorldViewDecider) compareSingleIncomingHallCall(incomingHallCallActivat
 func (w *WorldViewDecider) getOtherElevsAliveCount() int {
 	counter := 0
 	for elevID := 0; elevID < len(w.otherElevStates); elevID++ {
-		if w.otherElevStates[elevID].AbleToServiceOrders {
+		if w.otherElevStates[elevID].AbleToServiceRequests {
 			counter++
 		}
 	}

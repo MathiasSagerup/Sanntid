@@ -7,4 +7,5 @@ const (
 	DoorOpenDuration = 3.0 // seconds
 
 	HallCallAssignerExec = "hall_request_assigner"
+	BroadcastPort        = 20006
 )

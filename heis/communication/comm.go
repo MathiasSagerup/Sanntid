@@ -1,6 +1,7 @@
 package communication
 
 import (
+	"heis/localElevator"
 	"heis/network/bcast"
 	"time"
 )
@@ -28,16 +29,16 @@ const (
 )
 
 type LocalState struct {
-	Floor             int
-	Dir               Direction
-	Behaviour         Behaviour
-	CabRequests       [N_FLOORS]bool
-	AbleToServiceHall bool
+	Floor                 int
+	Dir                   Direction
+	Behaviour             Behaviour
+	CabRequests           [N_FLOORS]bool
+	AbleToServiceRequests bool
 }
 
 type NetMsg struct {
 	FromID          string
-	Local           LocalState
+	Local           localElevator.ElevState
 	Hall            HallMatrix
 	BackupPeerState map[string]LocalState
 }
@@ -46,15 +47,15 @@ type NetMsg struct {
 
 type PeerUpdate struct {
 	ID    string
-	Local LocalState
+	Local localElevator.ElevState
 	Hall  HallMatrix
 }
 
 // data som trengs for å tolke hvem som er tilgjengelig av andre peers enn den selc
 type PeerStatus struct {
-	ID                string
-	AbleToServiceHall bool
-	SeenAt            time.Time
+	ID                    string
+	AbleToServiceRequests bool
+	SeenAt                time.Time
 }
 
 // definere ikke vei kanaler går, siden vi skal kunne bruke funksjoenr for å sende til og i communication bruke smame kanal for receive
@@ -73,18 +74,19 @@ type Communication struct {
 	//Communcation sine input channels (read only) og ouput (write only) som den ikke har eierksp på
 	//her definerer man om communication skal lese eller skrive fra channelse
 
-	localStateCh <-chan LocalState //read local state
-	hallStateCh  <-chan HallMatrix //read only
+	localStateCh <-chan localElevator.ElevState //read local state
+	hallStateCh  <-chan HallMatrix              //read only
 }
 
 //for å bruke communcation må du si hvilken heis du er, og porten som communkikasjonsmodulen skal kommunisere med nette tpå
 
-func InitializeCommunicationModule(
+func NewCommunicationModule(
 	//send inn parametre fra main, siden main kobler oss ti landre modulers eierskap
 	id string,
 	port int,
-	localStateCh <-chan LocalState,
+	localStateCh <-chan localElevator.ElevState,
 	hallStateCh <-chan HallMatrix,
+
 ) *Communication {
 
 	//opprette instans med kanaler uten retning. Vi definerer i loop om vi skriver/leser fra kanlaer, og deifnere i funksjoner hvordan andre kanaler kan hente ut data vi finner
@@ -139,9 +141,9 @@ func (c *Communication) loop() {
 
 			//status sendes hver gang melding kommer inn, som heartbeat
 			c.peerStatusCh <- PeerStatus{
-				ID:                msg.FromID,
-				AbleToServiceHall: msg.Local.AbleToServiceHall,
-				SeenAt:            time.Now(),
+				ID:                    msg.FromID,
+				AbleToServiceRequests: msg.Local.AbleToServiceRequests,
+				SeenAt:                time.Now(),
 			}
 			//Ved ny info om peer fra nettet, send PeerUpdate på peerUpdateCh
 			if !SameAsPrevious(lastPeerMsg, msg) {
