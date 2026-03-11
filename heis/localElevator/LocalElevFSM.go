@@ -30,26 +30,21 @@ const (
 	Confirmed_Order   = 2
 )
 
-type AssignedHallCalls struct {
-	//not including cab calls
-	hallCalls [N_FLOORS][N_BUTTONS - 1]bool
-}
-
 type ElevState struct {
 	floor                 int
 	dirn                  driver.MotorDirection
-	cabRequests           [N_FLOORS]bool 
+	cabRequests           [N_FLOORS]bool
 	behaviour             ElevatorBehaviour
 	obstruction           bool
 	ableToServiceRequests bool
 }
 
 type HallCallRequest struct {
-	receiveHallCalls chan <- AssignedHallCalls
+	receiveHallCalls chan<- [N_FLOORS][2]bool
 }
 
 type localElevator struct {
-	
+
 	//input channels from driver:
 	floorSensorChan chan int
 	obstructionChan chan bool
@@ -64,8 +59,8 @@ type localElevator struct {
 	obstruction           bool
 	ableToServiceRequests bool
 	dirnBehaviourPair     dirnBehaviourPair
-	hallCalls             AssignedHallCalls
-	cabRequests           [N_FLOORS]bool 
+	hallCalls             [N_FLOORS][2]bool
+	cabRequests           [N_FLOORS]bool
 
 	//Internal request channels (one per public method)
 	elevStateToWorldview chan ElevState
@@ -76,19 +71,19 @@ type localElevator struct {
 
 // -------------param--*package --- instans av package ---
 func NewLocalElev(floorSensorChan chan int,
-    obstructionChan chan bool,
-    stopBtnChan chan bool,
-    buttonChan chan driver.ButtonEvent,
-    elevStateToWorldview chan ElevState,
-    assignerToLocalElev chan AssignedHallCalls) *localElevator {
+	obstructionChan chan bool,
+	stopBtnChan chan bool,
+	buttonChan chan driver.ButtonEvent,
+	elevStateToWorldview chan ElevState,
+	assignerToLocalElev chan [N_FLOORS][2]bool) *localElevator {
 
 	l := &localElevator{
-    doorTimeoutChan:  make(chan bool, 1),
-    floorSensorChan:  floorSensorChan,  
-    obstructionChan:  obstructionChan,
-    buttonChan:       buttonChan,
-	elevStateToWorldview: elevStateToWorldview,
-}
+		doorTimeoutChan:      make(chan bool, 1),
+		floorSensorChan:      floorSensorChan,
+		obstructionChan:      obstructionChan,
+		buttonChan:           buttonChan,
+		elevStateToWorldview: elevStateToWorldview,
+	}
 
 	//initialiser heis, kjør ned til nærmeste etasje
 	if driver.GetFloor() == -1 {
@@ -108,18 +103,18 @@ func NewLocalElev(floorSensorChan chan int,
 
 	//opprett oppdateringsloop
 	go l.run(floorSensorChan,
-    obstructionChan,
-    stopBtnChan,
-    buttonChan,
-    assignerToLocalElev,l.doorTimeoutChan)
+		obstructionChan,
+		stopBtnChan,
+		buttonChan,
+		assignerToLocalElev, l.doorTimeoutChan)
 	return l
 }
 
 func (l *localElevator) run(floorSensorChan chan int,
-    obstructionChan chan bool,
-    stopBtnChan chan bool,
-    buttonChan chan driver.ButtonEvent,
-    assignerToLocalElev chan AssignedHallCalls,
+	obstructionChan chan bool,
+	stopBtnChan chan bool,
+	buttonChan chan driver.ButtonEvent,
+	assignerToLocalElev chan [N_FLOORS][2]bool,
 	doorTimeOut chan bool) {
 
 	for {
@@ -141,15 +136,17 @@ func (l *localElevator) run(floorSensorChan chan int,
 			l.obstruction = obstr
 
 			if l.obstruction == true {
-			l.ableToServiceRequests = false
+				l.ableToServiceRequests = false
 			} else {
 				l.ableToServiceRequests = true
 			}
 
 		case newHallCalls := <-assignerToLocalElev:
 			l.combineHallCallsAndCabCalls(newHallCalls)
+			//dersom heis er idle, og mottar newHallCalls, skjer ingenting per nå
+			//TODO: Bruk logikk fra fsmOnRequestButtonPress der heis er idle
 
-		case <- l.doorTimeoutChan:
+		case <-l.doorTimeoutChan:
 			if !l.obstruction {
 				l.fsmOnDoorTimeout()
 			} else {
@@ -161,22 +158,21 @@ func (l *localElevator) run(floorSensorChan chan int,
 }
 
 func (l *localElevator) sendElevState() {
-    state := ElevState{
-        floor:                 l.floor,
-        dirn:                  l.dirn,
-        cabRequests:           l.cabRequests,
-        behaviour:             l.behaviour,
-        obstruction:           l.obstruction,
-        ableToServiceRequests: l.ableToServiceRequests,
-    }
-    select {
-    case l.elevStateToWorldview <- state:
-        // Sent successfully
-    default:
-        // No receiver ready; skip to avoid blocking
-    }
+	state := ElevState{
+		floor:                 l.floor,
+		dirn:                  l.dirn,
+		cabRequests:           l.cabRequests,
+		behaviour:             l.behaviour,
+		obstruction:           l.obstruction,
+		ableToServiceRequests: l.ableToServiceRequests,
+	}
+	select {
+	case l.elevStateToWorldview <- state:
+		// Sent successfully
+	default:
+		// No receiver ready; skip to avoid blocking
+	}
 }
-
 
 func (l *localElevator) setAllLights() {
 	for floor := 0; floor < N_FLOORS; floor++ {
@@ -186,11 +182,11 @@ func (l *localElevator) setAllLights() {
 	}
 }
 
-func (l *localElevator) combineHallCallsAndCabCalls(newHallCalls AssignedHallCalls) {
+func (l *localElevator) combineHallCallsAndCabCalls(newHallCalls [N_FLOORS][2]bool) {
 
 	for floor := 0; floor < N_FLOORS; floor++ {
 		for btn := 0; btn < N_BUTTONS-1; btn++ {
-			l.requests[floor][btn] = newHallCalls.hallCalls[floor][btn]
+			l.requests[floor][btn] = newHallCalls[floor][btn]
 		}
 	}
 }

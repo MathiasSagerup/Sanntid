@@ -24,18 +24,23 @@ func TestSingleElevatorHRA() {
 	}
 
 	// Hall requests: up at floor 1, up+down at floor 2, down at floor 3
-	var hallRequests [config.N_Floors][2]bool
+	var hallRequests [config.N_FLOORS][2]bool
 	hallRequests[1][0] = true // floor 1 up
 	hallRequests[2][0] = true // floor 2 up
 	hallRequests[2][1] = true // floor 2 down
 	hallRequests[3][1] = true // floor 3 down
 
+	input := HRAInput{
+		HallRequests: hallRequests,
+		States:       states,
+	}
+
 	fmt.Printf("Input hall requests:\n")
-	for f := 0; f < config.N_Floors; f++ {
+	for f := 0; f < config.N_FLOORS; f++ {
 		fmt.Printf("  floor %d: up=%v down=%v\n", f, hallRequests[f][0], hallRequests[f][1])
 	}
 
-	result, err := Assign(hallRequests, states)
+	result, err := assign(input)
 	if err != nil {
 		fmt.Printf("❌ FAIL: Assign() returned error: %v\n", err)
 		return
@@ -49,7 +54,7 @@ func TestSingleElevatorHRA() {
 
 	fmt.Printf("Assigned hall calls for %q:\n", elevID)
 	allCorrect := true
-	for f := 0; f < config.N_Floors; f++ {
+	for f := 0; f < config.N_FLOORS; f++ {
 		fmt.Printf("  floor %d: up=%v down=%v\n", f, assigned[f][0], assigned[f][1])
 		if assigned[f] != hallRequests[f] {
 			allCorrect = false

@@ -20,12 +20,8 @@ type HRAElevState struct {
 }
 
 type HRAInput struct {
-	HallRequests [config.N_Floors][2]bool `json:"hallRequests"`
+	HallRequests [config.N_FLOORS][2]bool `json:"hallRequests"`
 	States       map[string]HRAElevState  `json:"states"`
-}
-
-type HRAOutput struct {
-	HallRequests [config.N_Floors][2]bool
 }
 
 type HallCallAssigner struct {
@@ -34,15 +30,15 @@ type HallCallAssigner struct {
 	HRAInputChan chan HRAInput
 
 	//output channel to localElevator
-	HRAOutputChan chan HRAOutput
+	HRAOutputChan chan [config.N_FLOORS][2]bool
 
 	//internalStates
 	input       HRAInput
-	output      HRAOutput
+	output      [config.N_FLOORS][2]bool
 	localElevID string
 }
 
-func newHallCallAssigner(InputChan chan HRAInput, OutputChan chan HRAOutput, ID string) *HallCallAssigner {
+func NewHallCallAssigner(InputChan chan HRAInput, OutputChan chan [config.N_FLOORS][2]bool, ID string) *HallCallAssigner {
 
 	h := &HallCallAssigner{
 		HRAInputChan:  InputChan,
@@ -54,7 +50,7 @@ func newHallCallAssigner(InputChan chan HRAInput, OutputChan chan HRAOutput, ID 
 	return h
 }
 
-func (h *HallCallAssigner) run(InputChan chan HRAInput, OutputChan chan HRAOutput, ID string) {
+func (h *HallCallAssigner) run(InputChan chan HRAInput, OutputChan chan [config.N_FLOORS][2]bool, ID string) {
 
 	for {
 		select {
@@ -72,7 +68,7 @@ func (h *HallCallAssigner) run(InputChan chan HRAInput, OutputChan chan HRAOutpu
 // Assign calls the hall_request_assigner binary and returns assigned hall requests per elevator.
 // Returns map[elevatorID] -> [floor][2]bool (up, down per floor)
 
-func assign(Input HRAInput) (map[string][config.N_Floors][2]bool, error) {
+func assign(Input HRAInput) (map[string][config.N_FLOORS][2]bool, error) {
 	executable := config.HallCallAssignerExec
 	if runtime.GOOS == "windows" {
 		executable += ".exe"
@@ -88,7 +84,7 @@ func assign(Input HRAInput) (map[string][config.N_Floors][2]bool, error) {
 		return nil, fmt.Errorf("assigner: exec: %v\noutput: %s", err, string(out))
 	}
 
-	var assignedHallRequests map[string][config.N_Floors][2]bool
+	var assignedHallRequests map[string][config.N_FLOORS][2]bool
 	if err := json.Unmarshal(out, &assignedHallRequests); err != nil {
 		return nil, fmt.Errorf("assigner: unmarshal: %v", err)
 	}
