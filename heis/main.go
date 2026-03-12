@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"heis/communication"
 	"heis/config"
@@ -16,6 +17,9 @@ func main() {
 
 	//uses the local ip address + an id given on the command line to
 	//create localID
+	serverAddr := flag.String("server", "localhost:15657", "Elevator server address")
+	flag.Parse()
+
 	var id string
 	if id == "" {
 		localIP, err := localip.LocalIP()
@@ -26,11 +30,9 @@ func main() {
 		id = fmt.Sprintf("peer-%s-%d", localIP, os.Getpid())
 	}
 
-	serverAddr := "localhost:15657"
+	fmt.Printf("Starting elevator %s connecting to %s\n", id, *serverAddr)
 
-	fmt.Printf("Starting elevator %s connecting to %s\n", id, serverAddr)
-
-	driver.Init(serverAddr, config.N_FLOORS)
+	driver.Init(*serverAddr, config.N_FLOORS)
 
 	//sensor channels
 	floorSensorChan := make(chan int)
@@ -68,14 +70,21 @@ func main() {
 	l.Print()
 
 	worldview.NewWorldViewModule(
-		[]<-chan worldview.ElevState{}, // channels from other elevators (via communication)
+		[]<-chan worldview.ElevState{}, // channels from other elevators
 		worldviewToHallCallAssigner,
 		worldviewButtonChan,
-		worldview.ElevState{},   // initial local elevator state
-		[]worldview.ElevState{}, // initial other elevator states
+		worldview.ElevState{},  
+		[]worldview.ElevState{}, 
 	)
 
-	communication.NewCommunicationModule(id, config.BroadcastPort, worldviewToCommuncation, worldviewHallRequestsToCommuncation)
+	c:=communication.NewCommunicationModule(id, config.BroadcastPort, worldviewToCommuncation, worldviewHallRequestsToCommuncation)
+
+
+	go func() {
+		for update := range c.GetPeerUpdateChannel() {
+			fmt.Printf("Peer update from %s: floor=%d\n", update.ID, update.Local.Floor)
+		}
+	}()
 
 	//input: InputChan chan HRAInput, OutputChan chan [config.N_Floors][2]bool, ID string
 	hallCallsAssigner.NewHallCallAssigner(worldviewToHallCallAssigner, assignerToLocalElev, id)

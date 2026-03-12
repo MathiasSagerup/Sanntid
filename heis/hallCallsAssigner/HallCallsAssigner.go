@@ -52,6 +52,7 @@ func NewHallCallAssigner(InputChan chan HRAInput, OutputChan chan [config.N_FLOO
 
 func (h *HallCallAssigner) run(InputChan chan HRAInput, OutputChan chan [config.N_FLOORS][2]bool, ID string) {
 	for input := range InputChan { //siden det per nå er kun et case i en select case for loop bruker vi for range loop isteden.
+		fmt.Println(("received info from worldview"))
 		AssignedHallCalls, _ := assign(input)
 		OutputChan <- AssignedHallCalls[ID]
 	}

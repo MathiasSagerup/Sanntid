@@ -6,6 +6,7 @@ import (
 	"heis/hallCallsAssigner"
 	"heis/localElevator"
 	"strconv"
+	"fmt"
 )
 
 type elevatorID int
@@ -85,14 +86,22 @@ func (w *WorldViewDecider) loop() {
 			if newElevState != w.thisElevState {
 				w.thisElevState = newElevState
 				elevatorStateHasChanged = true
+				fmt.Println("received new localELevState")
 			}
 
+		//TODO: Sjekk om den logikken er korrekt. 
 		case hallButtonPressed := <-w.hallCallButtonChan:
 			if hallButtonPressed.Button != driver.BT_Cab {
-				w.compareSingleIncomingHallCall(w.thisElevState.HallCalls[hallButtonPressed.Floor][hallButtonPressed.Button],
-					hallButtonPressed.Floor, hallButtonPressed.Button)
+				fmt.Println("received hallCallButtn press")
+				if w.thisElevState.HallCalls[hallButtonPressed.Floor][hallButtonPressed.Button] == NoOrder {
+            		w.compareSingleIncomingHallCall(Unconfirmed,
+                	hallButtonPressed.Floor, hallButtonPressed.Button)
+            		hallCallsHasChanged = true
+        			}
+					fmt.Println("processed hallbtnpress")
+					fmt.Println(w.thisElevState.HallCalls)
 			}
-			
+			//TODO? check if the orderState has changed. if yes set hallCallsHasChanged variable to true
 
 
 		default:
@@ -112,6 +121,7 @@ func (w *WorldViewDecider) loop() {
 		}
 
 		if elevatorStateHasChanged || hallCallsHasChanged {
+			fmt.Println("sending updated info to HallCallAssigner")
 			w.hallCallAssignerChan <- w.sendUpdatedInformationToHallCallAssigner()
 		}
 	}

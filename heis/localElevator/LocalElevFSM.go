@@ -4,6 +4,7 @@ import (
 	"heis/config"
 	"heis/driver"
 	"time"
+	"fmt"
 )
 
 const N_BUTTONS = 3
@@ -99,7 +100,8 @@ func NewLocalElev(floorSensorChan chan int,
 		obstructionChan,
 		stopBtnChan,
 		buttonChan,
-		assignerToLocalElev, l.doorTimeoutChan)
+		assignerToLocalElev, 
+		l.doorTimeoutChan)
 	return l
 }
 
@@ -138,6 +140,8 @@ func (l *localElevator) run(floorSensorChan chan int,
 		case newHallCalls := <-assignerToLocalElev:
 			//dersom heis er idle, og mottar newHallCalls, skjer ingenting per nå
 			//TODO: Bruk logikk fra fsmOnRequestButtonPress der heis er idle
+			fmt.Println("received order from HallCallAssigner")
+			fmt.Println(newHallCalls)
 			l.fsmOnReceivedHallCalls(newHallCalls)
 
 		case <-l.doorTimeoutChan:
