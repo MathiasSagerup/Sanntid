@@ -37,6 +37,7 @@ func main() {
 	obstructionChan := make(chan bool)
 	stopBtnChan := make(chan bool)
 	buttonChan := make(chan driver.ButtonEvent)
+	worldviewButtonChan := make(chan driver.ButtonEvent)
 
 	//localElevator til Worldview
 	elevStateToWorldview := make(chan localElevator.ElevState)
@@ -52,6 +53,7 @@ func main() {
 	worldviewHallRequestsToCommuncation := make(chan [config.N_FLOORS][2]worldview.OrderState)
 
 	go driver.PollButtons(buttonChan)
+	go driver.PollButtons(worldviewButtonChan)
 	go driver.PollFloorSensor(floorSensorChan)
 	go driver.PollObstructionSwitch(obstructionChan)
 	go driver.PollStopButton(stopBtnChan)
@@ -64,6 +66,14 @@ func main() {
 		assignerToLocalElev)
 
 	l.Print()
+
+	worldview.NewWorldViewModule(
+		[]<-chan worldview.ElevState{}, // channels from other elevators (via communication)
+		worldviewToHallCallAssigner,
+		worldviewButtonChan,
+		worldview.ElevState{},   // initial local elevator state
+		[]worldview.ElevState{}, // initial other elevator states
+	)
 
 	communication.NewCommunicationModule(id, config.BroadcastPort, worldviewToCommuncation, worldviewHallRequestsToCommuncation)
 

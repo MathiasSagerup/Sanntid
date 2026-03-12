@@ -20,7 +20,7 @@ type ElevState struct {
 	HallCalls             [config.N_FLOORS][2]OrderState
 }
 
-type OrderState int //ville endret til OrderState eller OrderType som navn.
+type OrderState int
 
 const (
 	NoOrder OrderState = iota
@@ -37,6 +37,7 @@ type WorldViewDecider struct {
 
 	messageFromLocalElevChannel  <-chan ElevState
 	messageFromOtherElevChannels []<-chan ElevState //Index in array corresponds to ElevID
+	hallCallButtonChan <-chan driver.ButtonEvent
 
 	//channel to HCA
 	hallCallAssignerChan chan hallCallsAssigner.HRAInput
@@ -51,6 +52,7 @@ type WorldViewDecider struct {
 func NewWorldViewModule(
 	messageFromOtherElevChannels []<-chan ElevState,
 	hallCallAssignerChan chan hallCallsAssigner.HRAInput,
+	driverToWorldviewChan <-chan driver.ButtonEvent,
 	initialLocalElevState ElevState,
 	initialOtherElevStates []ElevState,
 ) *WorldViewDecider {
@@ -60,6 +62,7 @@ func NewWorldViewModule(
 	w := &WorldViewDecider{
 		messageFromOtherElevChannels: messageFromOtherElevChannels,
 		hallCallAssignerChan:         hallCallAssignerChan,
+		hallCallButtonChan:           driverToWorldviewChan,
 		thisElevState:                initialLocalElevState,
 		otherElevStates:              initialOtherElevStates,
 	}
@@ -83,11 +86,20 @@ func (w *WorldViewDecider) loop() {
 				w.thisElevState = newElevState
 				elevatorStateHasChanged = true
 			}
+
+		case hallButtonPressed := <-w.hallCallButtonChan:
+			if hallButtonPressed.Button != driver.BT_Cab {
+				w.compareSingleIncomingHallCall(w.thisElevState.HallCalls[hallButtonPressed.Floor][hallButtonPressed.Button],
+					hallButtonPressed.Floor, hallButtonPressed.Button)
+			}
+			
+
+
 		default:
 		}
 
 		//Check for message from all other elevators
-		for elevID := 0; elevID <= len(w.messageFromOtherElevChannels); elevID++ {
+		for elevID := 0; elevID < len(w.messageFromOtherElevChannels); elevID++ {
 			select {
 			case newElevState := <-w.messageFromOtherElevChannels[elevID]:
 				if newElevState != w.otherElevStates[elevID] {
@@ -115,20 +127,20 @@ func (w *WorldViewDecider) recieveOtherElevMessage(incomingElevState ElevState, 
 
 func (w *WorldViewDecider) compareIncomingHallCalls(incomingHallCalls [config.N_FLOORS][2]OrderState) {
 	for floor := 0; floor < config.N_FLOORS; floor++ {
-		for direction := 0; direction < 2; direction++ {
-			w.compareSingleIncomingHallCall(incomingHallCalls[floor][direction], floor, direction)
+		for btnType := 0; btnType < 2; btnType++ {
+			w.compareSingleIncomingHallCall(incomingHallCalls[floor][btnType], floor, driver.ButtonType(btnType))
 		}
 	}
 }
 
-func (w *WorldViewDecider) compareSingleIncomingHallCall(incomingHallCallActivation OrderState, floor int, direction int) {
-	switch w.thisElevState.HallCalls[floor][direction] {
+func (w *WorldViewDecider) compareSingleIncomingHallCall(incomingHallCallActivation OrderState, floor int, hallBtn driver.ButtonType) {
+	switch w.thisElevState.HallCalls[floor][hallBtn] {
 	case NoOrder:
 		switch incomingHallCallActivation {
 		case Unconfirmed:
-			w.thisElevState.HallCalls[floor][direction] = Unconfirmed
+			w.thisElevState.HallCalls[floor][hallBtn] = Unconfirmed
 		case Confirmed:
-			w.thisElevState.HallCalls[floor][direction] = Confirmed
+			w.thisElevState.HallCalls[floor][hallBtn] = Confirmed
 		default:
 		}
 
@@ -138,22 +150,22 @@ func (w *WorldViewDecider) compareSingleIncomingHallCall(incomingHallCallActivat
 			//If we recieve unconfirmed we must check if all elevators agree on unconfirmed and change to confirmed
 			unconfirmedCounter := 0
 			for elevID := 0; elevID < len(w.otherElevStates); elevID++ {
-				if (w.otherElevStates[elevID].AbleToServiceRequests) && (w.otherElevStates[elevID].HallCalls[floor][direction] == Unconfirmed) {
+				if (w.otherElevStates[elevID].AbleToServiceRequests) && (w.otherElevStates[elevID].HallCalls[floor][hallBtn] == Unconfirmed) {
 					unconfirmedCounter++
 				}
 			}
 			if unconfirmedCounter == w.getOtherElevsAliveCount() {
-				w.thisElevState.HallCalls[floor][direction] = Confirmed
+				w.thisElevState.HallCalls[floor][hallBtn] = Confirmed
 			}
 		case Confirmed:
-			w.thisElevState.HallCalls[floor][direction] = Confirmed
+			w.thisElevState.HallCalls[floor][hallBtn] = Confirmed
 		default:
 		}
 
 	case Confirmed:
 		switch incomingHallCallActivation {
 		case Completed:
-			w.thisElevState.HallCalls[floor][direction] = Completed
+			w.thisElevState.HallCalls[floor][hallBtn] = Completed
 		default:
 		}
 	case Completed:
@@ -162,16 +174,16 @@ func (w *WorldViewDecider) compareSingleIncomingHallCall(incomingHallCallActivat
 			//If we recieve completed we must check if all elevators agree on completed and if so, change to NoOrder
 			completedCounter := 0
 			for elevID := 0; elevID < len(w.otherElevStates); elevID++ {
-				if (w.otherElevStates[elevID].AbleToServiceRequests) && (w.otherElevStates[elevID].HallCalls[floor][direction] == Completed) {
+				if (w.otherElevStates[elevID].AbleToServiceRequests) && (w.otherElevStates[elevID].HallCalls[floor][hallBtn] == Completed) {
 					completedCounter++
 				}
 			}
 			if completedCounter == w.getOtherElevsAliveCount() {
-				w.thisElevState.HallCalls[floor][direction] = NoOrder
+				w.thisElevState.HallCalls[floor][hallBtn] = NoOrder
 
 			}
 		case NoOrder:
-			w.thisElevState.HallCalls[floor][direction] = NoOrder
+			w.thisElevState.HallCalls[floor][hallBtn] = NoOrder
 		}
 	}
 }
