@@ -9,4 +9,5 @@ const (
 
 	HallCallAssignerExec = "hall_request_assigner"
 	BroadcastPort        = 20002
+	PeersPort            = 20001
 )

@@ -3,6 +3,7 @@ package communication
 import (
 	"heis/config"
 	"heis/network/bcast"
+	"heis/network/peers"
 	"heis/worldview"
 	"time"
 )
@@ -59,7 +60,8 @@ type Communication struct {
 	// maps broadcast peer ID to index in peerStateChs
 	peerIDIndex map[string]int
 	// one channel per other elevator, forwarded to worldview
-	peerStateChs []chan worldview.ElevState
+	peerStateChs    []chan worldview.ElevState
+	peerDiscoveryCh chan peers.PeerUpdate
 }
 
 func NewCommunicationModule(
@@ -69,6 +71,9 @@ func NewCommunicationModule(
 	hallStateCh <-chan [config.N_FLOORS][2]worldview.OrderState,
 	peerStateChs []chan worldview.ElevState,
 ) *Communication {
+
+	peerDiscoveryCh := make(chan peers.PeerUpdate, 16)
+	transmitEnable := make(chan bool)
 
 	c := &Communication{
 		myID:             id,
@@ -82,11 +87,13 @@ func NewCommunicationModule(
 		receiveFromNetCh: make(chan NetMsg, 16),
 		peerIDIndex:      make(map[string]int),
 		peerStateChs:     peerStateChs,
+		peerDiscoveryCh:  peerDiscoveryCh,
 	}
 
-	//Det er kun communication som må vite noe om network
-	go bcast.Transmitter(port, c.transmitToNetCh) // bcast.Transmitter leser fra c.transmitToNetCh, og bcaster på port
-	go bcast.Receiver(port, c.receiveFromNetCh)   //bcast.Receiver lytter på port og legger på c.receiveFromNetCh
+	go bcast.Transmitter(port, c.transmitToNetCh)
+	go bcast.Receiver(port, c.receiveFromNetCh)
+	go peers.Transmitter(config.PeersPort, id, transmitEnable)
+	go peers.Receiver(config.PeersPort, peerDiscoveryCh)
 	go c.run()
 
 	return c
@@ -142,6 +149,13 @@ func (c *Communication) run() {
 				lastPeerMsg[msg.FromID] = msg
 			}
 
+		case peerUpdate := <-c.peerDiscoveryCh:
+			if peerUpdate.New != "" {
+				// index is kept permanently so the same elevator
+				// gets the same index if it reconnects
+				c.getPeerIndex(peerUpdate.New)
+			}
+
 		case <-bcastTicker.C: //utløses hver bcastPeriode
 			c.transmitToNetCh <- outMsg
 		}
@@ -170,14 +184,6 @@ func isSameAsPrevious(last map[string]NetMsg, msg NetMsg) bool {
 	}
 	return prev.Local == msg.Local && prev.HallRequests == msg.HallRequests
 }
-
-//funksjoner tilhører Communication typen brukes for å returrnere kanaler som tilhører
-//funksjoner lar andre moduler skrive til communcation og lese fra kanaler ut fra communication
-//da gir vil kun tilgang til den kanalene som skal brukes, ikke alle kanaler
-
-//peer eier PeerUpdate og PeerStatus'//VURDER Å SENDE PEKER TILBAKE ISTENEF RDETTE?
-
-//GetPeerUpdateChannel
 
 func (c *Communication) GetPeerUpdateChannel() <-chan PeerUpdate {
 	return c.peerUpdateCh
