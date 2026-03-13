@@ -15,13 +15,20 @@ import (
 
 func main() {
 
+	//for å kjøre på samme pc:
+	// ./SimElevatorServer --port 15657 og go run . --server localhost:15657 --id elevator-1
+	// ./SimElevatorServer --port 15658 og go run . --server localhost:15658 --id elevator-2
+
 	//uses the local ip address + an id given on the command line to
 	//create localID
 	serverAddr := flag.String("server", "localhost:15657", "Elevator server address")
+	idFlag := flag.String("id", "", "Elevator ID (optional)")
 	flag.Parse()
 
 	var id string
-	if id == "" {
+	if *idFlag != "" {
+		id = *idFlag
+	} else {
 		localIP, err := localip.LocalIP()
 		if err != nil {
 			fmt.Println(err)
@@ -73,12 +80,11 @@ func main() {
 		[]<-chan worldview.ElevState{}, // channels from other elevators
 		worldviewToHallCallAssigner,
 		worldviewButtonChan,
-		worldview.ElevState{},  
-		[]worldview.ElevState{}, 
+		worldview.ElevState{},
+		[]worldview.ElevState{},
 	)
 
-	c:=communication.NewCommunicationModule(id, config.BroadcastPort, worldviewToCommuncation, worldviewHallRequestsToCommuncation)
-
+	c := communication.NewCommunicationModule(id, config.BroadcastPort, worldviewToCommuncation, worldviewHallRequestsToCommuncation)
 
 	go func() {
 		for update := range c.GetPeerUpdateChannel() {
