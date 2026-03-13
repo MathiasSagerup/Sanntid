@@ -90,6 +90,7 @@ func main() {
 		worldviewButtonChan,
 		worldviewToCommuncation,
 		elevStateToWorldview,
+		id,
 		worldview.ElevState{},
 		make([]worldview.ElevState, config.N_ELEVATORS-1),
 	)

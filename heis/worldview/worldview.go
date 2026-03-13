@@ -46,6 +46,8 @@ type WorldViewDecider struct {
 	//channel to communication module
 	toCommCh chan<- ElevState
 
+	localID string
+
 	//ID av heiser ved bruk av indeksering, potensielt problematisk mtp at heiser vil da endre IDen sin ila. programmets levetid når heiser
 	//mister nett og blir med tilbake. Blir kaos i sjekkingen under if newWorldView == oldWorldView.
 	// Tror det er bedre å bruke IDen som blir sent med broadcast meldingene.
@@ -57,11 +59,10 @@ func NewWorldViewModule(
 	driverToWorldviewChan <-chan driver.ButtonEvent,
 	toCommCh chan<- ElevState,
 	localElevCh <-chan localElevator.ElevState,
+	localID string,
 	initialLocalElevState ElevState,
 	initialOtherElevStates []ElevState,
 ) *WorldViewDecider {
-
-	//Assert correct length of array to a contsistent amount of elevators
 
 	w := &WorldViewDecider{
 		messageFromOtherElevChannels: messageFromOtherElevChannels,
@@ -69,6 +70,7 @@ func NewWorldViewModule(
 		hallCallButtonChan:           driverToWorldviewChan,
 		toCommCh:                     toCommCh,
 		messageFromLocalElevChannel:  localElevCh,
+		localID:                      localID,
 		thisElevState:                initialLocalElevState,
 		otherElevStates:              initialOtherElevStates,
 	}
@@ -239,15 +241,26 @@ func (w *WorldViewDecider) sendUpdatedInformationToHallCallAssigner() hallCallsA
 	}
 
 	states := make(map[string]hallCallsAssigner.HRAElevState)
-	allElevs := append([]ElevState{w.thisElevState}, w.otherElevStates...)
 
-	for i, elev := range allElevs {
+	// local elevator uses its string ID so the HCA can look it up by ID
+	localCabReqs := make([]bool, config.N_FLOORS)
+	for f := 0; f < config.N_FLOORS; f++ {
+		localCabReqs[f] = w.thisElevState.CabRequests[f]
+	}
+	states[w.localID] = hallCallsAssigner.HRAElevState{
+		Behaviour:   w.thisElevState.Behaviour.String(),
+		Floor:       w.thisElevState.Floor,
+		Direction:   w.thisElevState.Dirn.String(),
+		CabRequests: localCabReqs,
+	}
+
+	// other elevators use numeric keys (HCA doesn't need to look them up by name)
+	for i, elev := range w.otherElevStates {
 		cabReqs := make([]bool, config.N_FLOORS)
 		for f := 0; f < config.N_FLOORS; f++ {
 			cabReqs[f] = elev.CabRequests[f]
 		}
-
-		states[strconv.Itoa(i)] = hallCallsAssigner.HRAElevState{
+		states["peer-"+strconv.Itoa(i)] = hallCallsAssigner.HRAElevState{
 			Behaviour:   elev.Behaviour.String(),
 			Floor:       elev.Floor,
 			Direction:   elev.Dirn.String(),
