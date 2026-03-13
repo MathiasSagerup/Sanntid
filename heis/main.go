@@ -61,6 +61,14 @@ func main() {
 	worldviewToCommuncation := make(chan worldview.ElevState)
 	worldviewHallRequestsToCommuncation := make(chan [config.N_FLOORS][2]worldview.OrderState)
 
+	// peer state channels: communication writes, worldview reads (one per other elevator)
+	peerStateChs := make([]chan worldview.ElevState, config.N_ELEVATORS-1)
+	peerReadChs := make([]<-chan worldview.ElevState, config.N_ELEVATORS-1)
+	for i := range peerStateChs {
+		peerStateChs[i] = make(chan worldview.ElevState, 1)
+		peerReadChs[i] = peerStateChs[i]
+	}
+
 	go driver.PollButtons(buttonChan)
 	go driver.PollButtons(worldviewButtonChan)
 	go driver.PollFloorSensor(floorSensorChan)
@@ -77,16 +85,16 @@ func main() {
 	l.Print()
 
 	worldview.NewWorldViewModule(
-		[]<-chan worldview.ElevState{},
+		peerReadChs,
 		worldviewToHallCallAssigner,
 		worldviewButtonChan,
 		worldviewToCommuncation,
 		elevStateToWorldview,
 		worldview.ElevState{},
-		[]worldview.ElevState{},
+		make([]worldview.ElevState, config.N_ELEVATORS-1),
 	)
 
-	c := communication.NewCommunicationModule(id, config.BroadcastPort, worldviewToCommuncation, worldviewHallRequestsToCommuncation)
+	c := communication.NewCommunicationModule(id, config.BroadcastPort, worldviewToCommuncation, worldviewHallRequestsToCommuncation, peerStateChs)
 
 	go func() {
 		for update := range c.GetPeerUpdateChannel() {

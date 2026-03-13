@@ -55,29 +55,33 @@ type Communication struct {
 
 	localWorldviewCh <-chan worldview.ElevState                      //read local state
 	hallStateCh      <-chan [config.N_FLOORS][2]worldview.OrderState //read only
+
+	// maps broadcast peer ID to index in peerStateChs
+	peerIDIndex map[string]int
+	// one channel per other elevator, forwarded to worldview
+	peerStateChs []chan worldview.ElevState
 }
 
 func NewCommunicationModule(
 	id string,
 	port int,
 	localStateCh <-chan worldview.ElevState,
-	hallStateCh <-chan [config.N_FLOORS][2]worldview.OrderState, //Hvorfor denne? Endring i HallState er en del av
-
+	hallStateCh <-chan [config.N_FLOORS][2]worldview.OrderState,
+	peerStateChs []chan worldview.ElevState,
 ) *Communication {
 
-	//opprette instans med kanaler uten retning. Vi definerer i loop om vi skriver/leser fra kanlaer, og deifnere i funksjoner hvordan andre kanaler kan hente ut data vi finner
 	c := &Communication{
-		myID: id,
-		port: port,
-		//Hent ut det vi trenger fra andre cahnnels:
+		myID:             id,
+		port:             port,
 		localWorldviewCh: localStateCh,
 		hallStateCh:      hallStateCh,
 		bcastPeriod:      1 * time.Second,
-		//opprett cahnnels for private eierskap
 		peerUpdateCh:     make(chan PeerUpdate, 16),
 		peerStatusCh:     make(chan PeerStatus, 16),
-		transmitToNetCh:  make(chan NetMsg, 16), //communction eier nettverks channesl
+		transmitToNetCh:  make(chan NetMsg, 16),
 		receiveFromNetCh: make(chan NetMsg, 16),
+		peerIDIndex:      make(map[string]int),
+		peerStateChs:     peerStateChs,
 	}
 
 	//Det er kun communication som må vite noe om network
@@ -128,6 +132,13 @@ func (c *Communication) run() {
 					Local: msg.Local,
 					Hall:  msg.HallRequests,
 				}
+				// forward state to worldview on the correct peer channel
+				if idx := c.getPeerIndex(msg.FromID); idx >= 0 {
+					select {
+					case c.peerStateChs[idx] <- msg.Local:
+					default:
+					}
+				}
 				lastPeerMsg[msg.FromID] = msg
 			}
 
@@ -136,6 +147,20 @@ func (c *Communication) run() {
 		}
 	}
 
+}
+
+// getPeerIndex returns the channel index for a peer ID, assigning a new slot if unseen.
+// Returns -1 if no slots are available.
+func (c *Communication) getPeerIndex(id string) int {
+	if idx, ok := c.peerIDIndex[id]; ok {
+		return idx
+	}
+	nextIdx := len(c.peerIDIndex)
+	if nextIdx >= len(c.peerStateChs) {
+		return -1
+	}
+	c.peerIDIndex[id] = nextIdx
+	return nextIdx
 }
 
 func isSameAsPrevious(last map[string]NetMsg, msg NetMsg) bool {
