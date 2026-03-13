@@ -152,7 +152,7 @@ func (l *localElevator) run(floorSensorChan chan int,
 		}
 		select {
 		case l.elevStateToWorldview <- l.getElevState():
-		default: // drop if worldview is busy; latest state will be sent on next event
+		default: // hvis worldview ikke klar til å motta mld, dropp å sende. Hvis ikke blokkeres HW sensorer
 		}
 	}
 }

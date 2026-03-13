@@ -94,7 +94,7 @@ func requestsShouldStop(e localElevator) bool {
 	switch e.dirn {
 
 	case driver.MD_Down:
-		if e.requests[e.floor][driver.BT_HallDown] || e.requests[e.floor][driver.BT_Cab] || !requestsAbove(e) {
+		if e.requests[e.floor][driver.BT_HallDown] || e.requests[e.floor][driver.BT_Cab] || !requestsBelow(e) {
 			return true
 		}
 		return false
