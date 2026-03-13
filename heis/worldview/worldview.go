@@ -1,12 +1,12 @@
 package worldview
 
 import (
+	"fmt"
 	"heis/config"
 	"heis/driver"
 	"heis/hallCallsAssigner"
 	"heis/localElevator"
 	"strconv"
-	"fmt"
 )
 
 type elevatorID int
@@ -36,14 +36,15 @@ type WorldViewDecider struct {
 	thisElevState   ElevState
 	otherElevStates []ElevState //Index corresponds to ElevID
 
-	messageFromLocalElevChannel  <-chan ElevState
+	messageFromLocalElevChannel  <-chan localElevator.ElevState
 	messageFromOtherElevChannels []<-chan ElevState //Index in array corresponds to ElevID
-	hallCallButtonChan <-chan driver.ButtonEvent
+	hallCallButtonChan           <-chan driver.ButtonEvent
 
 	//channel to HCA
 	hallCallAssignerChan chan hallCallsAssigner.HRAInput
 
-	//LES !!
+	//channel to communication module
+	toCommCh chan<- ElevState
 
 	//ID av heiser ved bruk av indeksering, potensielt problematisk mtp at heiser vil da endre IDen sin ila. programmets levetid når heiser
 	//mister nett og blir med tilbake. Blir kaos i sjekkingen under if newWorldView == oldWorldView.
@@ -54,6 +55,8 @@ func NewWorldViewModule(
 	messageFromOtherElevChannels []<-chan ElevState,
 	hallCallAssignerChan chan hallCallsAssigner.HRAInput,
 	driverToWorldviewChan <-chan driver.ButtonEvent,
+	toCommCh chan<- ElevState,
+	localElevCh <-chan localElevator.ElevState,
 	initialLocalElevState ElevState,
 	initialOtherElevStates []ElevState,
 ) *WorldViewDecider {
@@ -64,6 +67,8 @@ func NewWorldViewModule(
 		messageFromOtherElevChannels: messageFromOtherElevChannels,
 		hallCallAssignerChan:         hallCallAssignerChan,
 		hallCallButtonChan:           driverToWorldviewChan,
+		toCommCh:                     toCommCh,
+		messageFromLocalElevChannel:  localElevCh,
 		thisElevState:                initialLocalElevState,
 		otherElevStates:              initialOtherElevStates,
 	}
@@ -83,26 +88,26 @@ func (w *WorldViewDecider) loop() {
 		//Check for message from the local elevator
 		select {
 		case newElevState := <-w.messageFromLocalElevChannel:
-			if newElevState != w.thisElevState {
-				w.thisElevState = newElevState
+			converted := localElevStateToWorldviewState(newElevState, w.thisElevState.HallCalls)
+			if converted != w.thisElevState {
+				w.thisElevState = converted
 				elevatorStateHasChanged = true
 				fmt.Println("received new localELevState")
 			}
 
-		//TODO: Sjekk om den logikken er korrekt. 
+		//TODO: Sjekk om den logikken er korrekt.
 		case hallButtonPressed := <-w.hallCallButtonChan:
 			if hallButtonPressed.Button != driver.BT_Cab {
 				fmt.Println("received hallCallButtn press")
 				if w.thisElevState.HallCalls[hallButtonPressed.Floor][hallButtonPressed.Button] == NoOrder {
-            		w.compareSingleIncomingHallCall(Unconfirmed,
-                	hallButtonPressed.Floor, hallButtonPressed.Button)
-            		hallCallsHasChanged = true
-        			}
-					fmt.Println("processed hallbtnpress")
-					fmt.Println(w.thisElevState.HallCalls)
+					w.compareSingleIncomingHallCall(Unconfirmed,
+						hallButtonPressed.Floor, hallButtonPressed.Button)
+					hallCallsHasChanged = true
+				}
+				fmt.Println("processed hallbtnpress")
+				fmt.Println(w.thisElevState.HallCalls)
 			}
 			//TODO? check if the orderState has changed. if yes set hallCallsHasChanged variable to true
-
 
 		default:
 		}
@@ -123,7 +128,21 @@ func (w *WorldViewDecider) loop() {
 		if elevatorStateHasChanged || hallCallsHasChanged {
 			fmt.Println("sending updated info to HallCallAssigner")
 			w.hallCallAssignerChan <- w.sendUpdatedInformationToHallCallAssigner()
+			w.toCommCh <- w.thisElevState
+
 		}
+	}
+}
+
+func localElevStateToWorldviewState(s localElevator.ElevState, existingHallCalls [config.N_FLOORS][2]OrderState) ElevState {
+	return ElevState{
+		Floor:                 s.Floor,
+		Dirn:                  s.Dirn,
+		Behaviour:             s.Behaviour,
+		CabRequests:           s.CabRequests,
+		Obstruction:           s.Obstruction,
+		AbleToServiceRequests: s.AbleToServiceRequests,
+		HallCalls:             existingHallCalls,
 	}
 }
 

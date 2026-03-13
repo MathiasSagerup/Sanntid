@@ -1,10 +1,10 @@
 package localElevator
 
 import (
+	"fmt"
 	"heis/config"
 	"heis/driver"
 	"time"
-	"fmt"
 )
 
 const N_BUTTONS = 3
@@ -33,10 +33,6 @@ type ElevState struct {
 	AbleToServiceRequests bool
 }
 
-type HallCallRequest struct {
-	receiveHallCalls chan<- [N_FLOORS][2]bool
-}
-
 type localElevator struct {
 
 	//input channels from driver:
@@ -53,7 +49,7 @@ type localElevator struct {
 	obstruction           bool
 	ableToServiceRequests bool
 	dirnBehaviourPair     dirnBehaviourPair
-	hallCalls             [N_FLOORS][2]bool
+	assignedHallCalls     [N_FLOORS][2]bool
 	cabRequests           [N_FLOORS]bool
 
 	//Internal request channels (one per public method)
@@ -93,14 +89,14 @@ func NewLocalElev(floorSensorChan chan int,
 	l.behaviour = idle
 	l.floor = driver.GetFloor()
 	l.setAllLights()
-	l.sendElevState()
+	l.elevStateToWorldview <- l.getElevState()
 
 	//opprett oppdateringsloop
 	go l.run(floorSensorChan,
 		obstructionChan,
 		stopBtnChan,
 		buttonChan,
-		assignerToLocalElev, 
+		assignerToLocalElev,
 		l.doorTimeoutChan)
 	return l
 }
@@ -118,14 +114,14 @@ func (l *localElevator) run(floorSensorChan chan int,
 		case newFloor := <-floorSensorChan:
 			l.floor = newFloor
 			l.fsmOnFloorArrival(l.floor)
-			l.sendElevState()
 
 		case newBtn := <-buttonChan:
 			if newBtn.Button == driver.BT_Cab {
 				l.requests[newBtn.Floor][newBtn.Button] = true
 				l.fsmOnRequestButtonPress(newBtn.Floor, newBtn.Button)
-				l.sendElevState()
+
 			}
+
 			//HallButton handled by worldview
 
 		case obstr := <-obstructionChan:
@@ -147,15 +143,21 @@ func (l *localElevator) run(floorSensorChan chan int,
 		case <-l.doorTimeoutChan:
 			if !l.obstruction {
 				l.fsmOnDoorTimeout()
+
 			} else {
 				l.startDoorTimer()
+
 			}
 
+		}
+		select {
+		case l.elevStateToWorldview <- l.getElevState():
+		default: // drop if worldview is busy; latest state will be sent on next event
 		}
 	}
 }
 
-func (l *localElevator) sendElevState() {
+func (l *localElevator) getElevState() ElevState {
 	state := ElevState{
 		Floor:                 l.floor,
 		Dirn:                  l.dirn,
@@ -164,12 +166,7 @@ func (l *localElevator) sendElevState() {
 		Obstruction:           l.obstruction,
 		AbleToServiceRequests: l.ableToServiceRequests,
 	}
-	select {
-	case l.elevStateToWorldview <- state:
-		// Sent successfully
-	default:
-		// No receiver ready; skip to avoid blocking
-	}
+	return state
 }
 
 func (l *localElevator) setAllLights() {

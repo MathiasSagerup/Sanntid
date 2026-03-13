@@ -49,7 +49,7 @@ func main() {
 	worldviewButtonChan := make(chan driver.ButtonEvent)
 
 	//localElevator til Worldview
-	elevStateToWorldview := make(chan localElevator.ElevState)
+	elevStateToWorldview := make(chan localElevator.ElevState, 1)
 
 	//HallCallAssigner til localELevator
 	assignerToLocalElev := make(chan [config.N_FLOORS][2]bool)
@@ -77,9 +77,11 @@ func main() {
 	l.Print()
 
 	worldview.NewWorldViewModule(
-		[]<-chan worldview.ElevState{}, // channels from other elevators
+		[]<-chan worldview.ElevState{},
 		worldviewToHallCallAssigner,
 		worldviewButtonChan,
+		worldviewToCommuncation,
+		elevStateToWorldview,
 		worldview.ElevState{},
 		[]worldview.ElevState{},
 	)
