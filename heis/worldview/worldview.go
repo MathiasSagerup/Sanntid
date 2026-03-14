@@ -94,19 +94,19 @@ func (w *WorldViewDecider) loop() {
 			if converted != w.thisElevState {
 				w.thisElevState = converted
 				elevatorStateHasChanged = true
-				fmt.Println("received new localELevState")
+				//fmt.Println("received new localELevState")
 			}
 
 		//TODO: Sjekk om den logikken er korrekt.
 		case hallButtonPressed := <-w.hallCallButtonChan:
 			if hallButtonPressed.Button != driver.BT_Cab {
-				fmt.Println("received hallCallButtn press")
+				//fmt.Println("received hallCallButtn press")
 				if w.thisElevState.HallCalls[hallButtonPressed.Floor][hallButtonPressed.Button] == NoOrder {
 					w.compareSingleIncomingHallCall(Unconfirmed,
 						hallButtonPressed.Floor, hallButtonPressed.Button)
 					hallCallsHasChanged = true
 				}
-				fmt.Println("processed hallbtnpress")
+				//fmt.Println("processed hallbtnpress")
 				fmt.Println(w.thisElevState.HallCalls)
 			}
 			//TODO? check if the orderState has changed. if yes set hallCallsHasChanged variable to true
@@ -128,7 +128,8 @@ func (w *WorldViewDecider) loop() {
 		}
 
 		if elevatorStateHasChanged || hallCallsHasChanged {
-			fmt.Println("sending updated info to HallCallAssigner")
+			//fmt.Println("sending updated info to HallCallAssigner")
+			fmt.Println(w.thisElevState.HallCalls)
 			w.hallCallAssignerChan <- w.sendUpdatedInformationToHallCallAssigner()
 			w.toCommCh <- w.thisElevState
 
@@ -184,6 +185,12 @@ func (w *WorldViewDecider) compareSingleIncomingHallCall(incomingHallCallActivat
 				if (w.otherElevStates[elevID].AbleToServiceRequests) && (w.otherElevStates[elevID].HallCalls[floor][hallBtn] == Unconfirmed) {
 					unconfirmedCounter++
 				}
+			}
+			fmt.Printf("[confirm check] floor=%d btn=%d unconfirmedCounter=%d aliveCount=%d\n",
+				floor, hallBtn, unconfirmedCounter, w.getOtherElevsAliveCount())
+			for i, s := range w.otherElevStates {
+				fmt.Printf("  otherElev[%d]: AbleToServiceRequests=%v HallCall=%v\n",
+					i, s.AbleToServiceRequests, s.HallCalls[floor][hallBtn])
 			}
 			if unconfirmedCounter == w.getOtherElevsAliveCount() {
 				w.thisElevState.HallCalls[floor][hallBtn] = Confirmed

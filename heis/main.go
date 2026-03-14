@@ -59,7 +59,6 @@ func main() {
 
 	//worldview til communication:
 	worldviewToCommuncation := make(chan worldview.ElevState)
-	worldviewHallRequestsToCommuncation := make(chan [config.N_FLOORS][2]worldview.OrderState)
 
 	// peer state channels: communication writes, worldview reads (one per other elevator)
 	peerStateChs := make([]chan worldview.ElevState, config.N_ELEVATORS-1)
@@ -95,7 +94,7 @@ func main() {
 		make([]worldview.ElevState, config.N_ELEVATORS-1),
 	)
 
-	c := communication.NewCommunicationModule(id, config.BroadcastPort, worldviewToCommuncation, worldviewHallRequestsToCommuncation, peerStateChs)
+	c := communication.NewCommunicationModule(id, config.BroadcastPort, worldviewToCommuncation, peerStateChs)
 
 	go func() {
 		for update := range c.GetPeerUpdateChannel() {

@@ -88,6 +88,7 @@ func NewLocalElev(floorSensorChan chan int,
 	l.dirn = driver.MD_Stop
 	l.behaviour = idle
 	l.floor = driver.GetFloor()
+	l.ableToServiceRequests = true
 	l.setAllLights()
 	l.elevStateToWorldview <- l.getElevState()
 
@@ -119,11 +120,10 @@ func (l *localElevator) run(floorSensorChan chan int,
 			if newBtn.Button == driver.BT_Cab {
 				l.requests[newBtn.Floor][newBtn.Button] = true
 				l.fsmOnRequestButtonPress(newBtn.Floor, newBtn.Button)
-
+				l.cabRequests[newBtn.Floor] = true
 			}
 
 			//HallButton handled by worldview
-
 		case obstr := <-obstructionChan:
 			l.obstruction = obstr
 
@@ -136,7 +136,7 @@ func (l *localElevator) run(floorSensorChan chan int,
 		case newHallCalls := <-assignerToLocalElev:
 			//dersom heis er idle, og mottar newHallCalls, skjer ingenting per nå
 			//TODO: Bruk logikk fra fsmOnRequestButtonPress der heis er idle
-			fmt.Println("received order from HallCallAssigner")
+			//fmt.Println("received order from HallCallAssigner")
 			fmt.Println(newHallCalls)
 			l.fsmOnReceivedHallCalls(newHallCalls)
 
