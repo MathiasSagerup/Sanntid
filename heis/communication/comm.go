@@ -89,9 +89,11 @@ func (c *Communication) run() {
 
 			//Vi ønsker ikke å behandle meldinger som er identiske med den siste mottatte meldingen fra samme peer
 			if !isSameAsPrevious(lastPeerMsg, msg) {
-
+				lastPeerMsg[msg.FromID] = msg
+				
 				// forward state to worldview on the correct peer channel
 				idx := c.getCurrentOrAssignNewPeerIndex(msg.FromID)
+
 				fmt.Printf("[comm] forwarding state from %s (idx=%d) HallCalls=%v\n", msg.FromID, idx, msg.LocalElevState.HallCalls)
 				select {
 				case c.peerStateChs[idx] <- msg.LocalElevState:
@@ -104,6 +106,7 @@ func (c *Communication) run() {
 				// updating our recovery state with the latest from this peer
 				//TODO: Kanskje vi bare trenger å lese 1 recovered state og godta den første som kommer?
 				recoveredState, localStateWasRecovered := msg.BackupPeerState[c.myID]
+				fmt.Println("got here", localStateWasRecovered)
 				if localStateWasRecovered {
 					fmt.Printf("[comm] Received recovery state from peer %s: %v\n", msg.FromID, recoveredState)
 					select {
