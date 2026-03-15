@@ -2,9 +2,9 @@ package communication
 
 import (
 	"fmt"
-	"heis/config"
+//	"heis/config"
 	"heis/network/bcast"
-	"heis/network/peers"
+//	"heis/network/peers"
 	"heis/worldview"
 	"time"
 )
@@ -24,72 +24,55 @@ type NetMsg struct {
 type PeerUpdate struct {
 	ID    string
 	Local worldview.ElevState
-	Hall  [config.N_FLOORS][2]worldview.OrderState
+//	Hall  [config.N_FLOORS][2]worldview.OrderState
 }
 
 type Communication struct {
 	myID        string
-	port        int 		//Distinasjonsport for broadcasting?
 	bcastPeriod time.Duration
-
-	peerUpdateCh chan PeerUpdate //output opdateringer til peers på nett
-	// (ENDRE NAVN!Samme navn som kanalen som oppdaterer hvilke peers er på nettet i network/peers )
-
-	transmitToNetCh  chan NetMsg     //write only
-	receiveFromNetCh chan NetMsg     //read only
-
+	transmitToNetCh  chan NetMsg    
+	receiveFromNetCh chan NetMsg 
 	localWorldviewCh <-chan worldview.ElevState //read local state
-
-	// maps broadcast peer ID to index in peerStateChs
-	peerIDIndex map[string]int
-	// one channel per other elevator, forwarded to worldview
-	peerStateChs    []chan worldview.ElevState
-	peerDiscoveryCh chan peers.PeerUpdate
+	peerIDIndex map[string]int 		// maps broadcast peer ID to index in peerStateChs
+	peerStateChs    []chan worldview.ElevState // one channel per other elevator, forwarded to worldview
+	recoveredLocalStateCh chan worldview.ElevState
 }
 
 func NewCommunicationModule(
 	id string,
-	port int,
+	broadcastPort int,
 	worldviewToCommCh <-chan worldview.ElevState,
 	peerStateChs []chan worldview.ElevState,
+	recoveredLocalStateCh chan worldview.ElevState,
 ) *Communication {
-
-	peerDiscoveryCh := make(chan peers.PeerUpdate)
 	//transmitEnable := make(chan bool)
 
 	c := &Communication{
-		myID:             id,
-		port:             port,
-		localWorldviewCh: worldviewToCommCh,
-		bcastPeriod:      15 * time.Millisecond,
-		peerUpdateCh:     make(chan PeerUpdate, 1),
-		transmitToNetCh:  make(chan NetMsg, 1),
-		receiveFromNetCh: make(chan NetMsg, 1),
-		peerIDIndex:      make(map[string]int),
-		peerStateChs:     peerStateChs,
-		peerDiscoveryCh:  peerDiscoveryCh,
+		myID:             		id,
+		localWorldviewCh: 		worldviewToCommCh,
+		bcastPeriod:      		15 * time.Millisecond,
+		transmitToNetCh:  		make(chan NetMsg, 1),
+		receiveFromNetCh: 		make(chan NetMsg, 1),
+		peerIDIndex:      		make(map[string]int),
+		peerStateChs:     		peerStateChs,
+		recoveredLocalStateCh: 	recoveredLocalStateCh,
 	}
 
-	go bcast.Transmitter(port, c.transmitToNetCh)
-	go bcast.Receiver(port, c.receiveFromNetCh)
+	go bcast.Transmitter(broadcastPort, c.transmitToNetCh)
+	go bcast.Receiver(broadcastPort, c.receiveFromNetCh)
 	go c.run()
 
 	return c
 }
 
-//loop tilhører instand
-
 func (c *Communication) run() {
 
-	bcastTicker := time.NewTicker(c.bcastPeriod) //bcastTicker inneholder struct med en kanal C
+	bcastTicker := time.NewTicker(c.bcastPeriod)
 	defer bcastTicker.Stop()
-
-	//oppretter outMsg og LastPeerMsg
 
 	outMsg := NetMsg{FromID: c.myID}       //melding ut er fra ID
 	lastPeerMsg := make(map[string]NetMsg) //map av nøkkelpar ID til NetMsg
 
-	//vi leser fra og setter data på kanaler.
 	for {
 		select {
 
@@ -99,47 +82,36 @@ func (c *Communication) run() {
 
 		case msg := <-c.receiveFromNetCh:
 
-			//Ikke gå videre ved ygilige IDer
+			//Ikke gå videre med manglede ID eller meldinger fra oss selv
 			if msg.FromID == "" || msg.FromID == c.myID {
 				continue
 			}
 
-			//Ved ny info om peer fra nettet, send PeerUpdate på peerUpdateCh
+			//Vi ønsker ikke å behandle meldinger som er identiske med den siste mottatte meldingen fra samme peer
 			if !isSameAsPrevious(lastPeerMsg, msg) {
-					fmt.Println("reachedB")
-					newPeerUpdate := PeerUpdate{
-						ID:    msg.FromID,
-						Local: msg.LocalElevState,
-					}
-
-					select {
-					case c.peerUpdateCh <- newPeerUpdate:
-					default:
-						<-c.peerUpdateCh
-						c.peerUpdateCh <- newPeerUpdate
-				}
 
 				// forward state to worldview on the correct peer channel
-				if idx := c.getCurrentOrAssignNewPeerIndex(msg.FromID); idx >= 0 {
-					fmt.Printf("[comm] forwarding state from %s (idx=%d) HallCalls=%v\n", msg.FromID, idx, msg.LocalElevState.HallCalls)
-					select {
-					case c.peerStateChs[idx] <- msg.LocalElevState:
-					default:
-						fmt.Printf("[comm] WARNING: dropped state from %s (channel full)\n", msg.FromID)
-					}
+				idx := c.getCurrentOrAssignNewPeerIndex(msg.FromID)
+				fmt.Printf("[comm] forwarding state from %s (idx=%d) HallCalls=%v\n", msg.FromID, idx, msg.LocalElevState.HallCalls)
+				select {
+				case c.peerStateChs[idx] <- msg.LocalElevState:
+				default:
+					<- c.peerStateChs[idx] 
+					c.peerStateChs[idx] <- msg.LocalElevState
 				}
 				lastPeerMsg[msg.FromID] = msg
+
+				// updating our recovery state with the latest from this peer
+				//TODO: Kanskje vi bare trenger å lese 1 recovered state og godta den første som kommer?
+				select {
+				case c.recoveredLocalStateCh <- msg.LocalElevState:
+				default:
+					<- c.recoveredLocalStateCh
+					c.recoveredLocalStateCh <- msg.LocalElevState
+				}
 			}
 
-		case peerUpdate := <-c.peerDiscoveryCh:
-			if peerUpdate.New != "" {
-				// index is kept permanently so the same elevator
-				// gets the same index if it reconnects
-				c.getCurrentOrAssignNewPeerIndex(peerUpdate.New)
-			}
-
-		case <-bcastTicker.C: //utløses hver bcastPeriode
-			//fmt.Println("bcast ticker ticked")
+		case <-bcastTicker.C:
 			select {
 			case c.transmitToNetCh <- outMsg:
 			default:
@@ -147,11 +119,9 @@ func (c *Communication) run() {
 			}
 		}
 	}
-
 }
 
 // getPeerIndex returns the channel index for a peer ID, assigning a new slot if unseen.
-// Returns -1 if no slots are available.
 func (c *Communication) getCurrentOrAssignNewPeerIndex(id string) int {
 	if idx, ok := c.peerIDIndex[id]; ok {
 		return idx
@@ -173,11 +143,8 @@ func (c *Communication) getCurrentOrAssignNewPeerIndex(id string) int {
 func isSameAsPrevious(last map[string]NetMsg, msg NetMsg) bool {
 	prev, ok := last[msg.FromID]
 	if !ok {
+		//If no previous message from this peer, it's not the same
 		return false
 	}
 	return prev.LocalElevState == msg.LocalElevState
-}
-
-func (c *Communication) GetPeerUpdateChannel() <-chan PeerUpdate {
-	return c.peerUpdateCh
 }

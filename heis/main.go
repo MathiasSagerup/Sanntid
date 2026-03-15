@@ -94,7 +94,8 @@ func main() {
 		make([]worldview.ElevState, config.N_ELEVATORS-1),
 	)
 
-	communication.NewCommunicationModule(id, config.BroadcastPort, worldviewToCommuncation, peerStateChs)
+	recoveredLocalStateCh := make(chan worldview.ElevState, 1)
+	communication.NewCommunicationModule(id, config.BroadcastPort, worldviewToCommuncation, peerStateChs, recoveredLocalStateCh)
 
 //	go func() {
 //		for update := range c.GetPeerUpdateChannel() {
