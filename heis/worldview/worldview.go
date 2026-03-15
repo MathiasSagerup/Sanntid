@@ -107,7 +107,7 @@ func (w *WorldViewDecider) loop() {
 					hallCallsHasChanged = true
 				}
 				//fmt.Println("processed hallbtnpress")
-				fmt.Println(w.thisElevState.HallCalls)
+				//fmt.Println(w.thisElevState.HallCalls)
 			}
 			//TODO? check if the orderState has changed. if yes set hallCallsHasChanged variable to true
 
@@ -129,7 +129,7 @@ func (w *WorldViewDecider) loop() {
 
 		if elevatorStateHasChanged || hallCallsHasChanged {
 			//fmt.Println("sending updated info to HallCallAssigner")
-			fmt.Println(w.thisElevState.HallCalls)
+			//fmt.Println(w.thisElevState.HallCalls)
 			w.hallCallAssignerChan <- w.sendUpdatedInformationToHallCallAssigner()
 			w.toCommCh <- w.thisElevState
 

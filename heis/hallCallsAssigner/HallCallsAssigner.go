@@ -70,7 +70,7 @@ func assign(Input HRAInput) (map[string][config.N_FLOORS][2]bool, error) {
 	if err != nil {
 		return nil, fmt.Errorf("assigner: marshal: %v", err)
 	}
-	fmt.Println(Input)
+	//fmt.Println(Input)
 
 	out, err := exec.Command(executable, "-i", string(jsonBytes)).CombinedOutput()
 	if err != nil {

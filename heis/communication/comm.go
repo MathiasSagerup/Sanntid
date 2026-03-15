@@ -54,7 +54,7 @@ func NewCommunicationModule(
 	peerStateChs []chan worldview.ElevState,
 ) *Communication {
 
-	peerDiscoveryCh := make(chan peers.PeerUpdate, 16)
+	peerDiscoveryCh := make(chan peers.PeerUpdate)
 	//transmitEnable := make(chan bool)
 
 	c := &Communication{
@@ -62,9 +62,9 @@ func NewCommunicationModule(
 		port:             port,
 		localWorldviewCh: worldviewToCommCh,
 		bcastPeriod:      15 * time.Millisecond,
-		peerUpdateCh:     make(chan PeerUpdate, 16),
-		transmitToNetCh:  make(chan NetMsg, 16),
-		receiveFromNetCh: make(chan NetMsg, 16),
+		peerUpdateCh:     make(chan PeerUpdate, 1),
+		transmitToNetCh:  make(chan NetMsg, 1),
+		receiveFromNetCh: make(chan NetMsg, 1),
 		peerIDIndex:      make(map[string]int),
 		peerStateChs:     peerStateChs,
 		peerDiscoveryCh:  peerDiscoveryCh,
@@ -98,7 +98,7 @@ func (c *Communication) run() {
 			//fmt.Println("updated worldview received")
 
 		case msg := <-c.receiveFromNetCh:
-			fmt.Println("[comm] received message from", msg.FromID)
+
 			//Ikke gå videre ved ygilige IDer
 			if msg.FromID == "" || msg.FromID == c.myID {
 				continue
@@ -106,12 +106,21 @@ func (c *Communication) run() {
 
 			//Ved ny info om peer fra nettet, send PeerUpdate på peerUpdateCh
 			if !isSameAsPrevious(lastPeerMsg, msg) {
-				c.peerUpdateCh <- PeerUpdate{
-					ID:    msg.FromID,
-					Local: msg.LocalElevState,
+					fmt.Println("reachedB")
+					newPeerUpdate := PeerUpdate{
+						ID:    msg.FromID,
+						Local: msg.LocalElevState,
+					}
+
+					select {
+					case c.peerUpdateCh <- newPeerUpdate:
+					default:
+						<-c.peerUpdateCh
+						c.peerUpdateCh <- newPeerUpdate
 				}
+
 				// forward state to worldview on the correct peer channel
-				if idx := c.getPeerIndex(msg.FromID); idx >= 0 {
+				if idx := c.getCurrentOrAssignNewPeerIndex(msg.FromID); idx >= 0 {
 					fmt.Printf("[comm] forwarding state from %s (idx=%d) HallCalls=%v\n", msg.FromID, idx, msg.LocalElevState.HallCalls)
 					select {
 					case c.peerStateChs[idx] <- msg.LocalElevState:
@@ -126,12 +135,16 @@ func (c *Communication) run() {
 			if peerUpdate.New != "" {
 				// index is kept permanently so the same elevator
 				// gets the same index if it reconnects
-				c.getPeerIndex(peerUpdate.New)
+				c.getCurrentOrAssignNewPeerIndex(peerUpdate.New)
 			}
 
 		case <-bcastTicker.C: //utløses hver bcastPeriode
 			//fmt.Println("bcast ticker ticked")
-			c.transmitToNetCh <- outMsg
+			select {
+			case c.transmitToNetCh <- outMsg:
+			default:
+				fmt.Printf("[comm] WARNING: dropped message to network (channel full)\n")
+			}
 		}
 	}
 
@@ -139,15 +152,21 @@ func (c *Communication) run() {
 
 // getPeerIndex returns the channel index for a peer ID, assigning a new slot if unseen.
 // Returns -1 if no slots are available.
-func (c *Communication) getPeerIndex(id string) int {
+func (c *Communication) getCurrentOrAssignNewPeerIndex(id string) int {
 	if idx, ok := c.peerIDIndex[id]; ok {
 		return idx
 	}
+
 	nextIdx := len(c.peerIDIndex)
 	if nextIdx >= len(c.peerStateChs) {
-		return -1
+		errMsg := fmt.Sprintf("[comm] ERROR: Too many peers! Discovered peer %s but only %d slots available. System misconfigured.", 
+        id, len(c.peerStateChs))
+    	fmt.Printf("%s\n", errMsg)
+    	panic(errMsg)
 	}
+
 	c.peerIDIndex[id] = nextIdx
+	fmt.Printf("[comm] New peer detected. Assigned peer %s to index %d\n", id, nextIdx)
 	return nextIdx
 }
 
