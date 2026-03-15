@@ -103,11 +103,15 @@ func (c *Communication) run() {
 
 				// updating our recovery state with the latest from this peer
 				//TODO: Kanskje vi bare trenger å lese 1 recovered state og godta den første som kommer?
-				select {
-				case c.recoveredLocalStateCh <- msg.LocalElevState:
-				default:
-					<- c.recoveredLocalStateCh
-					c.recoveredLocalStateCh <- msg.LocalElevState
+				recoveredState, localStateWasRecovered := msg.BackupPeerState[c.myID]
+				if localStateWasRecovered {
+					fmt.Printf("[comm] Received recovery state from peer %s: %v\n", msg.FromID, recoveredState)
+					select {
+					case c.recoveredLocalStateCh <- recoveredState:
+					default:
+						<- c.recoveredLocalStateCh
+						c.recoveredLocalStateCh <- recoveredState
+					}	
 				}
 			}
 
