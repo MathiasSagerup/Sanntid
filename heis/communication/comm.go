@@ -55,7 +55,7 @@ func NewCommunicationModule(
 ) *Communication {
 
 	peerDiscoveryCh := make(chan peers.PeerUpdate, 16)
-	transmitEnable := make(chan bool)
+	//transmitEnable := make(chan bool)
 
 	c := &Communication{
 		myID:             id,
@@ -90,13 +90,12 @@ func (c *Communication) run() {
 	lastPeerMsg := make(map[string]NetMsg) //map av nøkkelpar ID til NetMsg
 
 	//vi leser fra og setter data på kanaler.
-	i := 0
 	for {
 		select {
 
 		case updatedWorldview := <-c.localWorldviewCh:
 			outMsg.LocalElevState = updatedWorldview
-			//fmt.Println("updated worldview received")
+			fmt.Println("updated worldview received")
 
 		case msg := <-c.receiveFromNetCh:
 			//Ikke gå videre ved ygilige IDer
@@ -130,10 +129,7 @@ func (c *Communication) run() {
 			}
 
 		case <-bcastTicker.C: //utløses hver bcastPeriode
-			if i == 0 {
-				fmt.Println("broadcasting msg")
-				i++
-			}
+			fmt.Println("bcast ticker ticked")
 			c.transmitToNetCh <- outMsg
 		}
 	}
