@@ -94,13 +94,13 @@ func main() {
 		make([]worldview.ElevState, config.N_ELEVATORS-1),
 	)
 
-	c := communication.NewCommunicationModule(id, config.BroadcastPort, worldviewToCommuncation, peerStateChs)
+	communication.NewCommunicationModule(id, config.BroadcastPort, worldviewToCommuncation, peerStateChs)
 
-	go func() {
-		for update := range c.GetPeerUpdateChannel() {
-			fmt.Printf("Peer update from %s: floor=%d\n", update.ID, update.Local.Floor)
-		}
-	}()
+//	go func() {
+//		for update := range c.GetPeerUpdateChannel() {
+//			fmt.Printf("Peer update from %s: floor=%d\n", update.ID, update.Local.Floor)
+//		}
+//	}()
 
 	//input: InputChan chan HRAInput, OutputChan chan [config.N_Floors][2]bool, ID string
 	hallCallsAssigner.NewHallCallAssigner(worldviewToHallCallAssigner, assignerToLocalElev, id)

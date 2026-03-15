@@ -95,9 +95,10 @@ func (c *Communication) run() {
 
 		case updatedWorldview := <-c.localWorldviewCh:
 			outMsg.LocalElevState = updatedWorldview
-			fmt.Println("updated worldview received")
+			//fmt.Println("updated worldview received")
 
 		case msg := <-c.receiveFromNetCh:
+			fmt.Println("[comm] received message from", msg.FromID)
 			//Ikke gå videre ved ygilige IDer
 			if msg.FromID == "" || msg.FromID == c.myID {
 				continue
@@ -129,7 +130,7 @@ func (c *Communication) run() {
 			}
 
 		case <-bcastTicker.C: //utløses hver bcastPeriode
-			fmt.Println("bcast ticker ticked")
+			//fmt.Println("bcast ticker ticked")
 			c.transmitToNetCh <- outMsg
 		}
 	}
