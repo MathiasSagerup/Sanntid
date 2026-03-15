@@ -27,31 +27,14 @@ type PeerUpdate struct {
 	Hall  [config.N_FLOORS][2]worldview.OrderState
 }
 
-// data som trengs for å tolke hvem som er tilgjengelig av andre peers enn den selv
-
-//Hele denne structen er unødvendig
-// (AbleToServiceRequests ligger i tilstanden som broadcastes)
-// (PeerUpdates i network/peers inneholder tapte noder og nye noder, bruk denne!)
-//ID er en del av melding som mottas/sendes
-
-type PeerStatus struct {
-	ID                    string
-	AbleToServiceRequests bool
-	SeenAt                time.Time
-}
-
-// definere ikke vei kanaler går, siden vi skal kunne bruke funksjoenr for å sende til og i communication bruke smame kanal for receive
 type Communication struct {
 	myID        string
-	port        int
+	port        int 		//Distinasjonsport for broadcasting?
 	bcastPeriod time.Duration
-
-	//communcation har eierskap på. Lar retning være åpen for å la andre moduler nå verdier som sendes på.
 
 	peerUpdateCh chan PeerUpdate //output opdateringer til peers på nett
 	// (ENDRE NAVN!Samme navn som kanalen som oppdaterer hvilke peers er på nettet i network/peers )
 
-	peerStatusCh     chan PeerStatus //output status til faulhandler
 	transmitToNetCh  chan NetMsg     //write only
 	receiveFromNetCh chan NetMsg     //read only
 
@@ -80,7 +63,6 @@ func NewCommunicationModule(
 		localWorldviewCh: worldviewToCommCh,
 		bcastPeriod:      15 * time.Millisecond,
 		peerUpdateCh:     make(chan PeerUpdate, 16),
-		peerStatusCh:     make(chan PeerStatus, 16),
 		transmitToNetCh:  make(chan NetMsg, 16),
 		receiveFromNetCh: make(chan NetMsg, 16),
 		peerIDIndex:      make(map[string]int),
@@ -90,8 +72,6 @@ func NewCommunicationModule(
 
 	go bcast.Transmitter(port, c.transmitToNetCh)
 	go bcast.Receiver(port, c.receiveFromNetCh)
-	go peers.Transmitter(config.PeersPort, id, transmitEnable)
-	go peers.Receiver(config.PeersPort, peerDiscoveryCh)
 	go c.run()
 
 	return c
@@ -122,13 +102,6 @@ func (c *Communication) run() {
 			//Ikke gå videre ved ygilige IDer
 			if msg.FromID == "" || msg.FromID == c.myID {
 				continue
-			}
-
-			//status sendes hver gang melding kommer inn, som heartbeat
-			c.peerStatusCh <- PeerStatus{
-				ID:                    msg.FromID,
-				AbleToServiceRequests: msg.LocalElevState.AbleToServiceRequests,
-				SeenAt:                time.Now(),
 			}
 
 			//Ved ny info om peer fra nettet, send PeerUpdate på peerUpdateCh
@@ -191,8 +164,4 @@ func isSameAsPrevious(last map[string]NetMsg, msg NetMsg) bool {
 
 func (c *Communication) GetPeerUpdateChannel() <-chan PeerUpdate {
 	return c.peerUpdateCh
-}
-
-func (c *Communication) GetPeerStatusChannel() <-chan PeerStatus {
-	return c.peerStatusCh
 }
