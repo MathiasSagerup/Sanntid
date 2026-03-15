@@ -70,7 +70,12 @@ func (c *Communication) run() {
 	bcastTicker := time.NewTicker(c.bcastPeriod)
 	defer bcastTicker.Stop()
 
-	outMsg := NetMsg{FromID: c.myID}       //melding ut er fra ID
+	outMsg := NetMsg{
+		FromID: c.myID, 
+		LocalElevState: worldview.ElevState{}, 
+		BackupPeerState: make(map[string]worldview.ElevState),
+	}
+
 	lastPeerMsg := make(map[string]NetMsg) //map av nøkkelpar ID til NetMsg
 
 	for {
@@ -89,10 +94,10 @@ func (c *Communication) run() {
 
 			//Vi ønsker ikke å behandle meldinger som er identiske med den siste mottatte meldingen fra samme peer
 			if !isSameAsPrevious(lastPeerMsg, msg) {
-				lastPeerMsg[msg.FromID] = msg
-				
 				// forward state to worldview on the correct peer channel
 				idx := c.getCurrentOrAssignNewPeerIndex(msg.FromID)
+				lastPeerMsg[msg.FromID] = msg
+				outMsg.BackupPeerState[msg.FromID] = msg.LocalElevState
 
 				fmt.Printf("[comm] forwarding state from %s (idx=%d) HallCalls=%v\n", msg.FromID, idx, msg.LocalElevState.HallCalls)
 				select {
@@ -101,7 +106,6 @@ func (c *Communication) run() {
 					<- c.peerStateChs[idx] 
 					c.peerStateChs[idx] <- msg.LocalElevState
 				}
-				lastPeerMsg[msg.FromID] = msg
 
 				// updating our recovery state with the latest from this peer
 				//TODO: Kanskje vi bare trenger å lese 1 recovered state og godta den første som kommer?
