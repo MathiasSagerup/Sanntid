@@ -41,6 +41,9 @@ func main() {
 
 	driver.Init(*serverAddr, config.N_FLOORS)
 
+	//Her mottas en recoverd state om ønsket fra communication module
+	recoveredLocalStateCh := make(chan worldview.ElevState, 1)
+
 	//sensor channels
 	floorSensorChan := make(chan int)
 	obstructionChan := make(chan bool)
@@ -58,33 +61,36 @@ func main() {
 	worldviewToHallCallAssigner := make(chan hallCallsAssigner.HRAInput)
 
 	//worldview til communication:
-	worldviewToCommuncation := make(chan worldview.ElevState)
+	worldviewToCommuncation := make(chan worldview.ElevState, 1)
 
-	// peer state channels: communication writes, worldview reads (one per other elevator)
-	peerStateChs := make([]chan worldview.ElevState, config.N_ELEVATORS-1)
-	peerReadChs := make([]<-chan worldview.ElevState, config.N_ELEVATORS-1)
+	//communication til worldview:
+	peersConnectedCh := make(chan [config.N_ELEVATORS-1]bool, 1)
+
+	peerStateChs := [config.N_ELEVATORS-1]chan worldview.ElevState{} //gis til communication
+	peerStateChsReadOnly := [config.N_ELEVATORS-1]<-chan worldview.ElevState{} //gis til worldview 
 	for i := range peerStateChs {
 		peerStateChs[i] = make(chan worldview.ElevState, 1)
-		peerReadChs[i] = peerStateChs[i]
+		peerStateChsReadOnly[i] = peerStateChs[i]
 	}
 
+	//Aktiver driver polling
 	go driver.PollButtons(buttonChan)
 	go driver.PollButtons(worldviewButtonChan)
 	go driver.PollFloorSensor(floorSensorChan)
 	go driver.PollObstructionSwitch(obstructionChan)
 	go driver.PollStopButton(stopBtnChan)
 
-	l := localElevator.NewLocalElev(floorSensorChan,
+	//Initialiser moduler
+	localElevator.NewLocalElev(floorSensorChan,
 		obstructionChan,
 		stopBtnChan,
 		buttonChan,
 		elevStateToWorldview,
-		assignerToLocalElev)
-
-	l.Print()
+		assignerToLocalElev,
+	)
 
 	worldview.NewWorldViewModule(
-		peerReadChs,
+		peerStateChsReadOnly,
 		worldviewToHallCallAssigner,
 		worldviewButtonChan,
 		worldviewToCommuncation,
@@ -94,14 +100,14 @@ func main() {
 		make([]worldview.ElevState, config.N_ELEVATORS-1),
 	)
 
-	recoveredLocalStateCh := make(chan worldview.ElevState, 1)
-	communication.NewCommunicationModule(id, config.BroadcastPort, worldviewToCommuncation, peerStateChs, recoveredLocalStateCh)
-
-//	go func() {
-//		for update := range c.GetPeerUpdateChannel() {
-//			fmt.Printf("Peer update from %s: floor=%d\n", update.ID, update.Local.Floor)
-//		}
-//	}()
+	communication.NewCommunicationModule(
+		id, 
+		config.BroadcastPort, 
+		worldviewToCommuncation, 
+		peerStateChs, 
+		recoveredLocalStateCh, 
+		peersConnectedCh,
+	)
 
 	//input: InputChan chan HRAInput, OutputChan chan [config.N_Floors][2]bool, ID string
 	hallCallsAssigner.NewHallCallAssigner(worldviewToHallCallAssigner, assignerToLocalElev, id)

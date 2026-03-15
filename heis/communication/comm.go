@@ -2,61 +2,52 @@ package communication
 
 import (
 	"fmt"
-//	"heis/config"
+	"heis/config"
 	"heis/network/bcast"
-//	"heis/network/peers"
 	"heis/worldview"
 	"time"
 )
 
-//DATATYPER SOM IKKE EIES AV COMMUNICATION - MÅ HENTES ANDRE STEDER SENERE
-
 type NetMsg struct {
 	FromID         string
 	LocalElevState worldview.ElevState
-	//HallRequests    [config.N_FLOORS][2]worldview.OrderState
-	BackupPeerState map[string]worldview.ElevState
-}
-
-//DATATYPER SOM EIES AV COMMUNICATION (network/peers)
-
-// SKIFT NAVN, SAMME NAVN SOM PeerUpdate i network/peers
-type PeerUpdate struct {
-	ID    string
-	Local worldview.ElevState
-//	Hall  [config.N_FLOORS][2]worldview.OrderState
+	BackupPeerState map[string]worldview.ElevState //maps string ID of peer to their latest sent state
 }
 
 type Communication struct {
-	myID        string
-	bcastPeriod time.Duration
-	transmitToNetCh  chan NetMsg    
-	receiveFromNetCh chan NetMsg 
-	localWorldviewCh <-chan worldview.ElevState //read local state
-	peerIDIndex map[string]int 		// maps broadcast peer ID to index in peerStateChs
-	peerStateChs    []chan worldview.ElevState // one channel per other elevator, forwarded to worldview
-	recoveredLocalStateCh chan worldview.ElevState
+	myID                  string
+	bcastPeriod           time.Duration
+	timoutCheckPeriod     time.Duration
+	transmitToNetCh       chan NetMsg
+	receiveFromNetCh      chan NetMsg
+	localWorldViewCh      <-chan worldview.ElevState
+	peerIDIndex           map[string]int                                   	// maps peer ID to its correponding index in peerStateChs and peersConnectedCh
+	peerStateChs          [config.N_ELEVATORS - 1]chan worldview.ElevState 	// one channel per other elevator, forwarded to worldview
+	peersConnectedCh      chan [config.N_ELEVATORS - 1]bool
+	recoveredLocalStateCh chan worldview.ElevState							//Used during initialization to regain previous state from peers if we are recovering from a failure
 }
 
 func NewCommunicationModule(
 	id string,
 	broadcastPort int,
 	worldviewToCommCh <-chan worldview.ElevState,
-	peerStateChs []chan worldview.ElevState,
+	peerStateChs [config.N_ELEVATORS - 1]chan worldview.ElevState,
 	recoveredLocalStateCh chan worldview.ElevState,
+	peersConnectedCh chan [config.N_ELEVATORS - 1]bool,
 ) *Communication {
 	//transmitEnable := make(chan bool)
 
 	c := &Communication{
-		myID:             		id,
-		localWorldviewCh: 		worldviewToCommCh,
-		bcastPeriod:      		15 * time.Millisecond,
-
-		transmitToNetCh:  		make(chan NetMsg, 1),
-		receiveFromNetCh: 		make(chan NetMsg, 1),
-		peerIDIndex:      		make(map[string]int),
-		peerStateChs:     		peerStateChs,
-		recoveredLocalStateCh: 	recoveredLocalStateCh,
+		myID:                  id,
+		localWorldViewCh:      worldviewToCommCh,
+		bcastPeriod:           15 * time.Millisecond, //TODO: Føler ikke denne er på riktig plass
+		timoutCheckPeriod:     100 * time.Millisecond, //TODO: Føler ikke denne er på riktig plass
+		transmitToNetCh:       make(chan NetMsg, 1),
+		receiveFromNetCh:      make(chan NetMsg, 1),
+		peerIDIndex:           make(map[string]int),
+		peerStateChs:          peerStateChs,
+		peersConnectedCh:      peersConnectedCh,
+		recoveredLocalStateCh: recoveredLocalStateCh,
 	}
 
 	go bcast.Transmitter(broadcastPort, c.transmitToNetCh)
@@ -71,9 +62,15 @@ func (c *Communication) run() {
 	bcastTicker := time.NewTicker(c.bcastPeriod)
 	defer bcastTicker.Stop()
 
+	checkElevatorTimeout := time.NewTicker(c.timoutCheckPeriod)
+	defer checkElevatorTimeout.Stop()
+
+	timeLastMessageRecieved := make(map[string]time.Time)
+	connectedElevators := [config.N_ELEVATORS - 1]bool{}
+
 	outMsg := NetMsg{
-		FromID: c.myID, 
-		LocalElevState: worldview.ElevState{}, 
+		FromID:          c.myID,
+		LocalElevState:  worldview.ElevState{},
 		BackupPeerState: make(map[string]worldview.ElevState),
 	}
 
@@ -82,7 +79,7 @@ func (c *Communication) run() {
 	for {
 		select {
 
-		case updatedWorldview := <-c.localWorldviewCh:
+		case updatedWorldview := <-c.localWorldViewCh:
 			outMsg.LocalElevState = updatedWorldview
 			//fmt.Println("updated worldview received")
 
@@ -93,21 +90,19 @@ func (c *Communication) run() {
 				continue
 			}
 
+			//Registrer at vi har mottatt en melding fra denne peer
+			id_index := c.getCurrentOrAssignNewPeerIndex(msg.FromID)
+			timeLastMessageRecieved[msg.FromID] = time.Now()
+			if connectedElevators[id_index] == false {
+				connectedElevators[id_index] = true
+				c.sendToPeersConnectedCh(connectedElevators)
+			}
+
 			//Vi ønsker ikke å behandle meldinger som er identiske med den siste mottatte meldingen fra samme peer
 			if !isSameAsPrevious(lastPeerMsg, msg) {
-				// Saving the latest message from this peer for future comparison and backup state recovery
 				lastPeerMsg[msg.FromID] = msg
-				outMsg.BackupPeerState[msg.FromID] = msg.LocalElevState
-
-				// Forward state to worldview on the correct peer channel
-				idx := c.getCurrentOrAssignNewPeerIndex(msg.FromID)
-				fmt.Printf("[comm] forwarding state from %s (idx=%d) HallCalls=%v\n", msg.FromID, idx, msg.LocalElevState.HallCalls)
-				select {
-				case c.peerStateChs[idx] <- msg.LocalElevState:
-				default:
-					<- c.peerStateChs[idx] 
-					c.peerStateChs[idx] <- msg.LocalElevState
-				}
+				outMsg.BackupPeerState[msg.FromID] = msg.LocalElevState //Will be returned to the sending peer for backup
+				c.sendToPeerStateChs(id_index, msg)
 
 				// Updating our recovery state with the latest from this peer
 				//TODO: Kanskje vi bare trenger å lese 1 recovered state og godta den første som kommer?
@@ -117,9 +112,9 @@ func (c *Communication) run() {
 					select {
 					case c.recoveredLocalStateCh <- recoveredState:
 					default:
-						<- c.recoveredLocalStateCh
+						<-c.recoveredLocalStateCh
 						c.recoveredLocalStateCh <- recoveredState
-					}	
+					}
 				}
 			}
 
@@ -129,11 +124,49 @@ func (c *Communication) run() {
 			default:
 				fmt.Printf("[comm] WARNING: dropped message to network (channel full)\n")
 			}
+
+		case <-checkElevatorTimeout.C:
+			connectedElevatorsFromLastCheck := connectedElevators
+
+			// Check which peers are currently timed out
+			now := time.Now()
+			for peerID, lastTimeMessageRecieved := range timeLastMessageRecieved {
+				id_index := c.getCurrentOrAssignNewPeerIndex(peerID)
+				if now.Sub(lastTimeMessageRecieved) > config.PEER_TIMEOUT_DURATION*time.Millisecond {
+					connectedElevators[id_index] = false
+				} else {
+					connectedElevators[id_index] = true
+				}
+			}
+
+			// Only send an update if a new elevator has timed out
+			if connectedElevators != connectedElevatorsFromLastCheck {
+				c.sendToPeersConnectedCh(connectedElevators)
+			}
 		}
 	}
 }
 
-// getPeerIndex returns the channel index for a peer ID, assigning a new slot if unseen.
+func (c *Communication) sendToPeersConnectedCh(connectedElevators [config.N_ELEVATORS - 1]bool) {
+	fmt.Printf("[comm] Changed elevator connectivity status: %v\n", connectedElevators)
+	select {
+	case c.peersConnectedCh <- connectedElevators:
+	default:
+		<-c.peersConnectedCh
+		c.peersConnectedCh <- connectedElevators
+	}
+}
+
+func (c *Communication) sendToPeerStateChs(id_index int, msg NetMsg) {
+	fmt.Printf("[comm] forwarding state from %s (idx=%d) HallCalls=%v\n", msg.FromID, id_index, msg.LocalElevState.HallCalls)
+	select {
+	case c.peerStateChs[id_index] <- msg.LocalElevState:
+	default:
+		<-c.peerStateChs[id_index]
+		c.peerStateChs[id_index] <- msg.LocalElevState
+	}
+}
+
 func (c *Communication) getCurrentOrAssignNewPeerIndex(id string) int {
 	if idx, ok := c.peerIDIndex[id]; ok {
 		return idx
@@ -141,10 +174,10 @@ func (c *Communication) getCurrentOrAssignNewPeerIndex(id string) int {
 
 	nextIdx := len(c.peerIDIndex)
 	if nextIdx >= len(c.peerStateChs) {
-		errMsg := fmt.Sprintf("[comm] ERROR: Too many peers! Discovered peer %s but only %d slots available. System misconfigured.", 
-        id, len(c.peerStateChs))
-    	fmt.Printf("%s\n", errMsg)
-    	panic(errMsg)
+		errMsg := fmt.Sprintf("[comm] ERROR: Too many peers! Discovered peer %s but only %d slots available. System misconfigured.",
+			id, len(c.peerStateChs))
+		fmt.Printf("%s\n", errMsg)
+		panic(errMsg)
 	}
 
 	c.peerIDIndex[id] = nextIdx

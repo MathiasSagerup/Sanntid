@@ -37,7 +37,7 @@ type WorldViewDecider struct {
 	otherElevStates []ElevState //Index corresponds to ElevID
 
 	messageFromLocalElevChannel  <-chan localElevator.ElevState
-	messageFromOtherElevChannels []<-chan ElevState //Index in array corresponds to ElevID
+	messageFromOtherElevChannels [config.N_ELEVATORS - 1]<-chan ElevState //Index in array corresponds to ElevID
 	hallCallButtonChan           <-chan driver.ButtonEvent
 
 	//channel to HCA
@@ -54,7 +54,7 @@ type WorldViewDecider struct {
 }
 
 func NewWorldViewModule(
-	messageFromOtherElevChannels []<-chan ElevState,
+	messageFromOtherElevChannels [config.N_ELEVATORS - 1]<-chan ElevState,
 	hallCallAssignerChan chan hallCallsAssigner.HRAInput,
 	driverToWorldviewChan <-chan driver.ButtonEvent,
 	toCommCh chan<- ElevState,

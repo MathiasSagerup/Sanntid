@@ -1,7 +1,6 @@
 package fault
 
 import (
-	"heis/communication"
 	"time"
 )
 
@@ -13,6 +12,12 @@ type Config struct {
 	PeerTimeout   time.Duration
 	PublishPeriod time.Duration
 	AllElevatorIDs []string
+}
+
+type PeerStatus struct {
+	ID                string
+	AbleToServiceHall bool
+	SeenAt            time.Time
 }
 
 //endre disse lokalt i faulhandler 
@@ -38,13 +43,13 @@ type FaultHandler struct{
 	//eierskap av fh
 	availableCh 	chan AvailableElevs //output 
 	//cahnnels den ikke har eierskp på: 
-	peerStatusCh 	<-chan communication.PeerStatus //fh skal kun lese peerstatus 
+	peerStatusCh 	<-chan PeerStatus //fh skal kun lese peerstatus 
 	localStuckCh 	<-chan bool //input
 }
 
 func InitialzeFaultHandlerModule(
 	id string,
-	peerStatusCh <-chan communication.PeerStatus,
+	peerStatusCh <-chan PeerStatus,
 	localStuckCh <-chan bool,
 	) *FaultHandler {
 
@@ -67,7 +72,7 @@ func InitialzeFaultHandlerModule(
 
 func (f *FaultHandler) loop() {
 	//siste status for peer som faulhandler har. 
-	lastStatusByPeer := make(map[string]communication.PeerStatus)
+	lastStatusByPeer := make(map[string]PeerStatus)
 	localIsStuck := false
 
 	//ticker utløser sending av availableCh
