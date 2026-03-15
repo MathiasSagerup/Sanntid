@@ -51,6 +51,7 @@ func NewCommunicationModule(
 		myID:             		id,
 		localWorldviewCh: 		worldviewToCommCh,
 		bcastPeriod:      		15 * time.Millisecond,
+
 		transmitToNetCh:  		make(chan NetMsg, 1),
 		receiveFromNetCh: 		make(chan NetMsg, 1),
 		peerIDIndex:      		make(map[string]int),
@@ -94,11 +95,12 @@ func (c *Communication) run() {
 
 			//Vi ønsker ikke å behandle meldinger som er identiske med den siste mottatte meldingen fra samme peer
 			if !isSameAsPrevious(lastPeerMsg, msg) {
-				// forward state to worldview on the correct peer channel
-				idx := c.getCurrentOrAssignNewPeerIndex(msg.FromID)
+				// Saving the latest message from this peer for future comparison and backup state recovery
 				lastPeerMsg[msg.FromID] = msg
 				outMsg.BackupPeerState[msg.FromID] = msg.LocalElevState
 
+				// Forward state to worldview on the correct peer channel
+				idx := c.getCurrentOrAssignNewPeerIndex(msg.FromID)
 				fmt.Printf("[comm] forwarding state from %s (idx=%d) HallCalls=%v\n", msg.FromID, idx, msg.LocalElevState.HallCalls)
 				select {
 				case c.peerStateChs[idx] <- msg.LocalElevState:
@@ -107,10 +109,9 @@ func (c *Communication) run() {
 					c.peerStateChs[idx] <- msg.LocalElevState
 				}
 
-				// updating our recovery state with the latest from this peer
+				// Updating our recovery state with the latest from this peer
 				//TODO: Kanskje vi bare trenger å lese 1 recovered state og godta den første som kommer?
 				recoveredState, localStateWasRecovered := msg.BackupPeerState[c.myID]
-				fmt.Println("got here", localStateWasRecovered)
 				if localStateWasRecovered {
 					fmt.Printf("[comm] Received recovery state from peer %s: %v\n", msg.FromID, recoveredState)
 					select {
