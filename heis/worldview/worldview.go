@@ -41,11 +41,11 @@ const (
 
 type HRAInput struct {
 	HallRequests  	[config.N_FLOORS][2]bool
-	thisElevState 	HRAELevStateInput
-	otherElevStates []HRAELevStateInput 
+	thisElevState 	HRAElevStateInput
+	otherElevStates []HRAElevStateInput 
 }
 
-type HRAELevStateInput struct{
+type HRAElevStateInput struct{
 	Floor                 int
 	Dirn                  driver.MotorDirection
 	Behaviour             localElevator.ElevatorBehaviour
@@ -290,18 +290,18 @@ func (w *WorldViewDecider) sendUpdatedInformationToHallCallAssigner() {
 	}
 
 	//Make HRAElevStates from current ElevStates
-	thisElevInput := HRAELevStateInput{
+	thisElevInput := HRAElevStateInput{
 	    Floor: 			w.thisElevState.Floor,
 		Dirn: 			w.thisElevState.Dirn,
 		Behaviour: 		w.thisElevState.Behaviour,
 		CabRequests: 	w.thisElevState.CabRequests,
 	}
 
-	otherElevStatesInput := []HRAELevStateInput{}
+	otherElevStatesInput := []HRAElevStateInput{}
 	for elevIndex := 0; elevIndex < config.N_ELEVATORS; elevIndex++ {
 		//We only pass on the elevator if it considers itself able to take orders, and is connected to network, and unobstructed
 		if w.otherElevStates[elevIndex].AbleToServiceRequests && w.connectedElevators[elevIndex] && !w.otherElevStates[elevIndex].Obstruction {
-			elevatorHRAState := HRAELevStateInput {
+			elevatorHRAState := HRAElevStateInput {
 				Floor: 			w.otherElevStates[elevIndex].Floor,
 				Dirn: 			w.otherElevStates[elevIndex].Dirn,
 				Behaviour: 		w.otherElevStates[elevIndex].Behaviour,
@@ -324,43 +324,5 @@ func (w *WorldViewDecider) sendUpdatedInformationToHallCallAssigner() {
 			<- w.hallCallAssignerChan
 			w.hallCallAssignerChan <- input
 	}
-
-	/*
-	states := make(map[string]hallCallsAssigner.HRAElevState)
-
-	// local elevator uses its string ID so the HCA can look it up by ID
-	localCabReqs := make([]bool, config.N_FLOORS)
-	for f := 0; f < config.N_FLOORS; f++ {
-		localCabReqs[f] = w.thisElevState.CabRequests[f]
-	}
-	states[w.localID] = hallCallsAssigner.HRAElevState{
-		Behaviour:   w.thisElevState.Behaviour.String(),
-		Floor:       w.thisElevState.Floor,
-		Direction:   w.thisElevState.Dirn.String(),
-		CabRequests: localCabReqs,
-	}
-
-	// other elevators use numeric keys (HCA doesn't need to look them up by name)
-	for i, elev := range w.otherElevStates {
-		if !elev.AbleToServiceRequests {
-			continue
-		}
-
-		cabReqs := make([]bool, config.N_FLOORS)
-		for f := 0; f < config.N_FLOORS; f++ {
-			cabReqs[f] = elev.CabRequests[f]
-		}
-		states["peer-"+strconv.Itoa(i)] = hallCallsAssigner.HRAElevState{
-			Behaviour:   elev.Behaviour.String(),
-			Floor:       elev.Floor,
-			Direction:   elev.Dirn.String(),
-			CabRequests: cabReqs,
-		}
-	}
-
-	return hallCallsAssigner.HRAInput{
-		HallRequests: hallRequests,
-		States:       states,
-	*/
 }
 
