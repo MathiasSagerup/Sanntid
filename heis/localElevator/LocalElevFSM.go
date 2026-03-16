@@ -1,7 +1,7 @@
 package localElevator
 
 import (
-	"fmt"
+	//"fmt"
 	"heis/config"
 	"heis/driver"
 	"time"
@@ -135,8 +135,8 @@ func (l *localElevator) run(floorSensorChan chan int,
 
 		case newHallCalls := <-assignerToLocalElev:
 			//dersom heis er idle, og mottar newHallCalls, skjer ingenting per nå
-			//TODO: Bruk logikk fra fsmOnRequestButtonPress der heis er idle
-			fmt.Println("[LocalElevatorFSM] received order from HallCallAssigner")
+			//Bruk logikk fra fsmOnRequestButtonPress der heis er idle
+			//fmt.Println("[LocalElevatorFSM] received order from HallCallAssigner")
 			//fmt.Println(newHallCalls)
 			l.fsmOnReceivedHallCalls(newHallCalls)
 

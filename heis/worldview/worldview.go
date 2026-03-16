@@ -9,6 +9,14 @@ import (
 	"strconv"
 )
 
+type ElevatorBehaviour int
+
+const (
+	idle     = 0
+	moving   = 1
+	doorOpen = 2
+)
+
 type elevatorID int
 
 type ElevState struct {
@@ -95,6 +103,16 @@ func (w *WorldViewDecider) loop() {
 				w.thisElevState = converted
 				elevatorStateHasChanged = true
 				//fmt.Println("received new localELevState")
+			}
+
+			//sjekk om dør åpen og om det er en hallCall på denne etasjen. Hvis ja, sett den til completed
+			if newElevState.Behaviour == doorOpen {
+				for btn:=0; btn < 2; btn++{
+					if w.thisElevState.HallCalls[newElevState.Floor][btn] == Confirmed {
+						w.thisElevState.HallCalls[newElevState.Floor][btn] = Completed
+						hallCallsHasChanged = true
+					}
+				}
 			}
 
 		//TODO: Sjekk om den logikken er korrekt.
@@ -266,7 +284,7 @@ func (w *WorldViewDecider) sendUpdatedInformationToHallCallAssigner() hallCallsA
 		if !elev.AbleToServiceRequests {
 			continue
 		}
-		
+
 		cabReqs := make([]bool, config.N_FLOORS)
 		for f := 0; f < config.N_FLOORS; f++ {
 			cabReqs[f] = elev.CabRequests[f]
