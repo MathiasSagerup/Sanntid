@@ -47,7 +47,7 @@ func NewCommunicationModule(
 		peerIDIndex:           make(map[string]int),
 		peerStateChs:          peerStateChs,
 		peersConnectedCh:      peersConnectedCh,
-		recoveredCabCallsCh: recoveredCabCallsCh,
+		recoveredCabCallsCh:   recoveredCabCallsCh,
 	}
 
 	go bcast.Transmitter(broadcastPort, c.transmitToNetCh)
@@ -89,7 +89,7 @@ func (c *Communication) run() {
 			if msg.FromID == "" || msg.FromID == c.myID {
 				continue
 			}
-
+			fmt.Print("recieved")
 			//Registrer at vi har mottatt en melding fra denne peer
 			id_index := c.getCurrentOrAssignNewPeerIndex(msg.FromID)
 			timeLastMessageRecieved[msg.FromID] = time.Now()

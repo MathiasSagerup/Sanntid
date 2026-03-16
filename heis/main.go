@@ -48,7 +48,7 @@ func main() {
 	driver.Init(*serverAddr, config.N_FLOORS)
 
 	//Her mottas en recoverd state om ønsket fra communication module
-	recoveredCabCallsCh := make(chan [config.N_FLOORS]bool)
+	recoveredCabCallsCh := make(chan [config.N_FLOORS]bool, 1)
 
 	//sensor channels
 	floorSensorChan := make(chan int)
