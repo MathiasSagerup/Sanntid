@@ -48,7 +48,7 @@ func main() {
 	driver.Init(*serverAddr, config.N_FLOORS)
 
 	//Her mottas en recoverd state om ønsket fra communication module
-	recoveredLocalStateCh := make(chan worldview.ElevState, 1)
+	recoveredCabCallsCh := make(chan [config.N_FLOORS]bool)
 
 	//sensor channels
 	floorSensorChan := make(chan int)
@@ -91,13 +91,13 @@ func main() {
 		config.BroadcastPort, 
 		worldviewToCommuncation, 
 		peerStateChs, 
-		recoveredLocalStateCh, 
+		recoveredCabCallsCh, 
 		peersConnectedCh,
 	)
 
 	//Initialiser moduler
 
-	intialElevState := checkForBackupState(recoveredLocalStateCh)
+	initialCabCalls := checkForBackupState(recoveredCabCallsCh)
 
 	worldview.NewWorldViewModule(
 		peerStateChsReadOnly,
@@ -117,6 +117,7 @@ func main() {
 		buttonChan,
 		elevStateToWorldview,
 		assignerToLocalElev,
+		initialCabCalls,
 	)
 
 	//input: InputChan chan HRAInput, OutputChan chan [config.N_Floors][2]bool, ID string
@@ -125,17 +126,16 @@ func main() {
 	select {}
 }
 
-func checkForBackupState(backupStateChan <-chan worldview.ElevState) worldview.ElevState {
+func checkForBackupState(recoverdCabCallsCh <-chan [config.N_FLOORS]bool) [config.N_FLOORS]bool {
 	now := time.Now()
-	recoverdState := worldview.ElevState{}
+	recoverdCabCalls := [config.N_FLOORS]bool{}
 	for {
 		if time.Since(now) > config.IntialStateCheckTime*time.Millisecond {
-			return recoverdState
+			return recoverdCabCalls
 		}
 		select {
-		case backupState := <-backupStateChan:
+		case recoverdCabCalls = <-recoverdCabCallsCh:
 			fmt.Println("[main] Backup state received, starting with recovered state")
-			return backupState
 		default:
 		}
 	}

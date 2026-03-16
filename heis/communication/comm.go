@@ -24,7 +24,7 @@ type Communication struct {
 	peerIDIndex           map[string]int                                   	// maps peer ID to its correponding index in peerStateChs and peersConnectedCh
 	peerStateChs          [config.N_ELEVATORS - 1]chan worldview.ElevState 	// one channel per other elevator, forwarded to worldview
 	peersConnectedCh      chan [config.N_ELEVATORS - 1]bool
-	recoveredLocalStateCh chan worldview.ElevState							//Used during initialization to regain previous state from peers if we are recovering from a failure
+	recoveredCabCallsCh   chan [config.N_FLOORS]bool							//Used during initialization to regain previous state from peers if we are recovering from a failure
 }
 
 func NewCommunicationModule(
@@ -32,7 +32,7 @@ func NewCommunicationModule(
 	broadcastPort int,
 	worldviewToCommCh <-chan worldview.ElevState,
 	peerStateChs [config.N_ELEVATORS - 1]chan worldview.ElevState,
-	recoveredLocalStateCh chan worldview.ElevState,
+	recoveredCabCallsCh chan [config.N_FLOORS]bool,
 	peersConnectedCh chan [config.N_ELEVATORS - 1]bool,
 ) *Communication {
 	//transmitEnable := make(chan bool)
@@ -47,7 +47,7 @@ func NewCommunicationModule(
 		peerIDIndex:           make(map[string]int),
 		peerStateChs:          peerStateChs,
 		peersConnectedCh:      peersConnectedCh,
-		recoveredLocalStateCh: recoveredLocalStateCh,
+		recoveredCabCallsCh: recoveredCabCallsCh,
 	}
 
 	go bcast.Transmitter(broadcastPort, c.transmitToNetCh)
@@ -110,10 +110,10 @@ func (c *Communication) run() {
 				if localStateWasRecovered {
 					fmt.Printf("[comm] Received recovery state from peer %s: %v\n", msg.FromID, recoveredState)
 					select {
-					case c.recoveredLocalStateCh <- recoveredState:
+					case c.recoveredCabCallsCh <- recoveredState.CabRequests:
 					default:
-						<-c.recoveredLocalStateCh
-						c.recoveredLocalStateCh <- recoveredState
+						<-c.recoveredCabCallsCh
+						c.recoveredCabCallsCh <- recoveredState.CabRequests
 					}
 				}
 			}
