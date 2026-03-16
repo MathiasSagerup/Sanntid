@@ -112,7 +112,6 @@ func main() {
 
 	localElevator.NewLocalElev(floorSensorChan,
 		obstructionChan,
-		stopBtnChan,
 		buttonChan,
 		elevStateToWorldview,
 		assignerToLocalElev,

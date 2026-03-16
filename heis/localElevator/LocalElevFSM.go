@@ -5,6 +5,7 @@ import (
 	"heis/config"
 	"heis/driver"
 	"time"
+	"fmt"
 )
 
 const N_BUTTONS = 3
@@ -50,10 +51,12 @@ type localElevator struct {
 	ableToServiceRequests bool
 	dirnBehaviourPair     dirnBehaviourPair
 	assignedHallCalls     [N_FLOORS][2]bool
-	cabRequests           [N_FLOORS]bool
 
 	//Internal request channels (one per public method)
 	elevStateToWorldview chan ElevState
+
+	//Input channel from hallcallassigner
+	assignerToLocalElev chan [N_FLOORS][2]bool
 }
 
 // å kjøre denne vil få heisen til å kjøre ned til en etasje, da vil localElevFSM
@@ -62,7 +65,6 @@ type localElevator struct {
 // -------------param--*package --- instans av package ---
 func NewLocalElev(floorSensorChan chan int,
 	obstructionChan chan bool,
-	stopBtnChan chan bool,
 	buttonChan chan driver.ButtonEvent,
 	elevStateToWorldview chan ElevState,
 	assignerToLocalElev chan [N_FLOORS][2]bool,
@@ -75,7 +77,7 @@ func NewLocalElev(floorSensorChan chan int,
 		obstructionChan:      obstructionChan,
 		buttonChan:           buttonChan,
 		elevStateToWorldview: elevStateToWorldview,
-		cabRequests:           initialCabCalls,
+		assignerToLocalElev:  assignerToLocalElev,
 	}
 
 	//initialiser heis, kjør ned til nærmeste etasje
@@ -86,62 +88,62 @@ func NewLocalElev(floorSensorChan chan int,
 		<-l.floorSensorChan
 	}
 
-	//sett til idle etter nådd nærmeste etasje
+	//sett til idle etter nådd nærmeste etasje og hent definert tilstand
 	driver.SetMotorDirection(driver.MD_Stop)
 	l.dirn = driver.MD_Stop
 	l.behaviour = idle
 	l.floor = driver.GetFloor()
 	l.ableToServiceRequests = true
+
+	//Aktiver initial cab calls
+	l.applyInitialRequests(initialCabCalls)
+	fmt.Println("initial requests:",l.requests)
 	l.setAllLights()
-	l.elevStateToWorldview <- l.getElevState()
+
+	//Send initialtilstand til world view
+	l.sendElevStateToWorldView()
 
 	//opprett oppdateringsloop
-	go l.run(floorSensorChan,
-		obstructionChan,
-		stopBtnChan,
-		buttonChan,
-		assignerToLocalElev,
-		l.doorTimeoutChan)
+	go l.run()
+
 	return l
 }
 
-func (l *localElevator) run(floorSensorChan chan int,
-	obstructionChan chan bool,
-	stopBtnChan chan bool,
-	buttonChan chan driver.ButtonEvent,
-	assignerToLocalElev chan [N_FLOORS][2]bool,
-	doorTimeOut chan bool) {
+func (l *localElevator) run() {
 
+	printTicker := time.NewTicker(time.Millisecond * 1000)
+	defer printTicker.Stop()
 	for {
 		select {
 
-		case newFloor := <-floorSensorChan:
+		case newFloor := <-l.floorSensorChan:
 			l.floor = newFloor
 			l.fsmOnFloorArrival(l.floor)
+			l.sendElevStateToWorldView()
+			
 
-		case newBtn := <-buttonChan:
+		case newBtn := <-l.buttonChan:
 			if newBtn.Button == driver.BT_Cab {
 				l.requests[newBtn.Floor][newBtn.Button] = true
 				l.fsmOnRequestButtonPress(newBtn.Floor, newBtn.Button)
-				l.cabRequests[newBtn.Floor] = true
+				
 			}
+			l.sendElevStateToWorldView()
 
 			//HallButton handled by worldview
-		case obstr := <-obstructionChan:
-			l.obstruction = obstr
+		case newObstr := <-l.obstructionChan:
+			l.obstruction = newObstr
 
 			if l.obstruction == true {
 				l.ableToServiceRequests = false
 			} else {
 				l.ableToServiceRequests = true
 			}
+			l.sendElevStateToWorldView()
 
-		case newHallCalls := <-assignerToLocalElev:
-			//dersom heis er idle, og mottar newHallCalls, skjer ingenting per nå
-			//Bruk logikk fra fsmOnRequestButtonPress der heis er idle
-			//fmt.Println("[LocalElevatorFSM] received order from HallCallAssigner")
-			//fmt.Println(newHallCalls)
+		case newHallCalls := <-l.assignerToLocalElev:
 			l.fsmOnReceivedHallCalls(newHallCalls)
+			l.sendElevStateToWorldView()
 
 		case <-l.doorTimeoutChan:
 			if !l.obstruction {
@@ -151,25 +153,55 @@ func (l *localElevator) run(floorSensorChan chan int,
 				l.startDoorTimer()
 
 			}
-
-		}
-		select {
-		case l.elevStateToWorldview <- l.getElevState():
-		default: // hvis worldview ikke klar til å motta mld, dropp å sende. Hvis ikke blokkeres HW sensorer
+			l.sendElevStateToWorldView()
+		
+		case <-printTicker.C:
+			fmt.Println("current state:")
+			fmt.Printf("floor: %d, dirn: %d, behaviour: %d, obstruction: %t, ableToServiceRequests: %t\n", l.floor, l.dirn, l.behaviour, l.obstruction, l.ableToServiceRequests)
+			fmt.Println("requests:" , l.requests)		//dersom heis er idle, og mottar newHallCalls, skjer ingenting per nå
+			//Bruk logikk fra fsmOnRequestButtonPress der heis er idle
+			//fmt.Println("[LocalElevatorFSM] received order from HallCallAssigner")
+			//fmt.Println(newHallCalls)
+	
 		}
 	}
+}
+
+func (l *localElevator) getCabCalls() [N_FLOORS]bool {
+	cabCalls := [N_FLOORS]bool{}
+
+	for floor:= 0; floor < N_FLOORS; floor++ {
+		cabCalls[floor] = l.requests[floor][driver.BT_Cab]
+	}
+	return cabCalls
 }
 
 func (l *localElevator) getElevState() ElevState {
 	state := ElevState{
 		Floor:                 l.floor,
 		Dirn:                  l.dirn,
-		CabRequests:           l.cabRequests,
+		CabRequests:           l.getCabCalls(),
 		Behaviour:             l.behaviour,
 		Obstruction:           l.obstruction,
 		AbleToServiceRequests: l.ableToServiceRequests,
 	}
 	return state
+}
+
+func (l *localElevator) applyInitialRequests(initialCabCalls [N_FLOORS]bool) {
+	for floor := 0; floor < N_FLOORS; floor++ {
+		l.requests[floor][driver.BT_Cab] = initialCabCalls[floor]
+	}
+}
+
+
+func (l *localElevator) sendElevStateToWorldView() {
+	select {
+	case l.elevStateToWorldview <- l.getElevState():
+	default:
+		<-l.elevStateToWorldview
+		l.elevStateToWorldview <- l.getElevState()
+	}
 }
 
 func (l *localElevator) setAllLights() {
