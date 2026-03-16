@@ -41,6 +41,7 @@ type localElevator struct {
 	obstructionChan chan bool
 	buttonChan      chan driver.ButtonEvent
 	doorTimeoutChan chan bool
+type [N][]
 
 	//internal states
 	floor                 int

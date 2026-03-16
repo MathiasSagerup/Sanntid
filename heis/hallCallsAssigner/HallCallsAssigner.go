@@ -19,10 +19,12 @@ type HRAElevState struct {
 	CabRequests []bool `json:"cabRequests"`
 }
 
+/*
 type HRAInput struct {
 	HallRequests [config.N_FLOORS][2]bool `json:"hallRequests"`
 	States       map[string]HRAElevState  `json:"states"`
 }
+*/
 
 type HallCallAssigner struct {
 
