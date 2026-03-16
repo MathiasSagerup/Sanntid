@@ -212,9 +212,11 @@ func (w *WorldViewDecider) compareSingleIncomingHallCall(incomingHallCallActivat
 			}
 			if unconfirmedCounter == w.getOtherElevsAliveCount() {
 				w.thisElevState.HallCalls[floor][hallBtn] = Confirmed
+				driver.SetButtonLamp(hallBtn,floor,true)
 			}
 		case Confirmed:
 			w.thisElevState.HallCalls[floor][hallBtn] = Confirmed
+			driver.SetButtonLamp(hallBtn,floor,true)
 		default:
 		}
 
@@ -236,10 +238,12 @@ func (w *WorldViewDecider) compareSingleIncomingHallCall(incomingHallCallActivat
 			}
 			if completedCounter == w.getOtherElevsAliveCount() {
 				w.thisElevState.HallCalls[floor][hallBtn] = NoOrder
+				driver.SetButtonLamp(hallBtn,floor,false)
 
 			}
 		case NoOrder:
 			w.thisElevState.HallCalls[floor][hallBtn] = NoOrder
+			driver.SetButtonLamp(hallBtn,floor,false)
 		}
 	}
 }
