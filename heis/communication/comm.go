@@ -108,7 +108,6 @@ func (c *Communication) run() {
 				//TODO: Kanskje vi bare trenger å lese 1 recovered state og godta den første som kommer?
 				recoveredState, localStateWasRecovered := msg.BackupPeerState[c.myID]
 				if localStateWasRecovered {
-					fmt.Printf("[comm] Received recovery state from peer %s: %v\n", msg.FromID, recoveredState)
 					select {
 					case c.recoveredCabCallsCh <- recoveredState.CabRequests:
 					default:
