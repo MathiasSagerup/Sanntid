@@ -58,24 +58,24 @@ func main() {
 	worldviewButtonChan := make(chan driver.ButtonEvent)
 
 	//localElevator til Worldview
-	elevStateToWorldview := make(chan localElevator.ElevState, 1)
+	elevStateToWorldview := make(chan worldview.ElevState, 1)
 
 	//HallCallAssigner til localELevator
 	assignerToLocalElev := make(chan [config.N_FLOORS][2]bool)
 
 	//input kanal til hallCallsAssigner:
-	worldviewToHallCallAssigner := make(chan hallCallsAssigner.HRAInput)
+	worldviewToHallCallAssigner := make(chan worldview.HRAInput)
 
 	//worldview til communication:
-	worldviewToCommuncation := make(chan worldview.ElevState, 1)
+	worldviewToCommuncation := make(chan communication.PeerState, 1)
 
 	//communication til worldview:
 	peersConnectedCh := make(chan [config.N_ELEVATORS-1]bool, 1)
 
-	peerStateChs := [config.N_ELEVATORS-1]chan worldview.ElevState{} //gis til communication
-	peerStateChsReadOnly := [config.N_ELEVATORS-1]<-chan worldview.ElevState{} //gis til worldview 
+	peerStateChs := [config.N_ELEVATORS-1]chan communication.PeerState{} //gis til communication
+	peerStateChsReadOnly := [config.N_ELEVATORS-1]<-chan communication.PeerState{} //gis til worldview 
 	for i := range peerStateChs {
-		peerStateChs[i] = make(chan worldview.ElevState, 1)
+		peerStateChs[i] = make(chan communication.PeerState, 1)
 		peerStateChsReadOnly[i] = peerStateChs[i]
 	}
 
@@ -106,8 +106,7 @@ func main() {
 		worldviewToCommuncation,
 		elevStateToWorldview,
 		id,
-		worldview.ElevState{},
-		make([]worldview.ElevState, config.N_ELEVATORS-1),
+		peersConnectedCh,
 	)
 
 	localElevator.NewLocalElev(floorSensorChan,
