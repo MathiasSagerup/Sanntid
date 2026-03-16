@@ -40,8 +40,8 @@ func NewCommunicationModule(
 	c := &Communication{
 		myID:                  id,
 		localWorldViewCh:      worldviewToCommCh,
-		bcastPeriod:           15 * time.Millisecond, //TODO: Føler ikke denne er på riktig plass
-		timoutCheckPeriod:     100 * time.Millisecond, //TODO: Føler ikke denne er på riktig plass
+		bcastPeriod:           15 * time.Millisecond, //TODO: Føler ikke denne er på riktig plass, flytte til config?
+		timoutCheckPeriod:     100 * time.Millisecond, //TODO: Føler ikke denne er på riktig plass, flytte til config?
 		transmitToNetCh:       make(chan NetMsg, 1),
 		receiveFromNetCh:      make(chan NetMsg, 1),
 		peerIDIndex:           make(map[string]int),

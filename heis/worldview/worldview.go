@@ -263,6 +263,10 @@ func (w *WorldViewDecider) sendUpdatedInformationToHallCallAssigner() hallCallsA
 
 	// other elevators use numeric keys (HCA doesn't need to look them up by name)
 	for i, elev := range w.otherElevStates {
+		if !elev.AbleToServiceRequests {
+			continue
+		}
+		
 		cabReqs := make([]bool, config.N_FLOORS)
 		for f := 0; f < config.N_FLOORS; f++ {
 			cabReqs[f] = elev.CabRequests[f]

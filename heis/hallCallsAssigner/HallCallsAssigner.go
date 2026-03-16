@@ -66,6 +66,8 @@ func assign(Input HRAInput) (map[string][config.N_FLOORS][2]bool, error) {
 		executable += ".exe"
 	}
 
+	//check for dead peers. 
+
 	jsonBytes, err := json.Marshal(Input)
 	if err != nil {
 		return nil, fmt.Errorf("assigner: marshal: %v", err)

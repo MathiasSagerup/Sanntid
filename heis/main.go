@@ -15,6 +15,11 @@ import (
 
 func main() {
 
+	//for å kjøre på fysik heis og sim
+	// ./SimElevatorServer --port randum num (e.g 16042) --id elevator-num (e.g elevator-1) og go run . --server localhost:16042 --id elevator-num
+	// i annen terminal elevatorserver
+	// go run . --server 
+
 	//for å kjøre på samme pc:
 	// ./SimElevatorServer --port 15657 og go run . --server localhost:15657 --id elevator-1
 	// ./SimElevatorServer --port 15658 og go run . --server localhost:15658 --id elevator-2
