@@ -154,14 +154,6 @@ func (l *localElevator) run() {
 
 			}
 			l.sendElevStateToWorldView()
-		
-		case <-printTicker.C:
-			fmt.Println("current state:")
-			fmt.Printf("floor: %d, dirn: %d, behaviour: %d, obstruction: %t, ableToServiceRequests: %t\n", l.floor, l.dirn, l.behaviour, l.obstruction, l.ableToServiceRequests)
-			fmt.Println("requests:" , l.requests)		//dersom heis er idle, og mottar newHallCalls, skjer ingenting per nå
-			//Bruk logikk fra fsmOnRequestButtonPress der heis er idle
-			//fmt.Println("[LocalElevatorFSM] received order from HallCallAssigner")
-			//fmt.Println(newHallCalls)
 	
 		}
 	}
