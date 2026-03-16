@@ -89,7 +89,7 @@ func (c *Communication) run() {
 			if msg.FromID == "" || msg.FromID == c.myID {
 				continue
 			}
-			
+
 			//Registrer at vi har mottatt en melding fra denne peer
 			id_index := c.getCurrentOrAssignNewPeerIndex(msg.FromID)
 			timeLastMessageRecieved[msg.FromID] = time.Now()
