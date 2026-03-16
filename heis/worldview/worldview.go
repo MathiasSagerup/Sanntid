@@ -54,6 +54,8 @@ type WorldViewDecider struct {
 	//channel to communication module
 	toCommCh chan<- ElevState
 
+	recoverLocalStateCh chan ElevState
+
 	localID string
 
 	//ID av heiser ved bruk av indeksering, potensielt problematisk mtp at heiser vil da endre IDen sin ila. programmets levetid når heiser
@@ -70,6 +72,7 @@ func NewWorldViewModule(
 	localID string,
 	initialLocalElevState ElevState,
 	initialOtherElevStates []ElevState,
+	initialLocalState ElevState , //Set as empty struct if no initial state is given
 ) *WorldViewDecider {
 
 	w := &WorldViewDecider{
@@ -82,6 +85,10 @@ func NewWorldViewModule(
 		thisElevState:                initialLocalElevState,
 		otherElevStates:              initialOtherElevStates,
 	}
+
+	
+	
+		
 
 	go w.loop()
 

@@ -11,6 +11,7 @@ import (
 	"heis/network/localip"
 	"heis/worldview"
 	"os"
+	"time"
 )
 
 func main() {
@@ -85,14 +86,18 @@ func main() {
 	go driver.PollObstructionSwitch(obstructionChan)
 	go driver.PollStopButton(stopBtnChan)
 
-	//Initialiser moduler
-	localElevator.NewLocalElev(floorSensorChan,
-		obstructionChan,
-		stopBtnChan,
-		buttonChan,
-		elevStateToWorldview,
-		assignerToLocalElev,
+	communication.NewCommunicationModule(
+		id, 
+		config.BroadcastPort, 
+		worldviewToCommuncation, 
+		peerStateChs, 
+		recoveredLocalStateCh, 
+		peersConnectedCh,
 	)
+
+	//Initialiser moduler
+
+	intialElevState := checkForBackupState(recoveredLocalStateCh)
 
 	worldview.NewWorldViewModule(
 		peerStateChsReadOnly,
@@ -103,19 +108,35 @@ func main() {
 		id,
 		worldview.ElevState{},
 		make([]worldview.ElevState, config.N_ELEVATORS-1),
+		intialElevState, 
 	)
 
-	communication.NewCommunicationModule(
-		id, 
-		config.BroadcastPort, 
-		worldviewToCommuncation, 
-		peerStateChs, 
-		recoveredLocalStateCh, 
-		peersConnectedCh,
+	localElevator.NewLocalElev(floorSensorChan,
+		obstructionChan,
+		stopBtnChan,
+		buttonChan,
+		elevStateToWorldview,
+		assignerToLocalElev,
 	)
 
 	//input: InputChan chan HRAInput, OutputChan chan [config.N_Floors][2]bool, ID string
 	hallCallsAssigner.NewHallCallAssigner(worldviewToHallCallAssigner, assignerToLocalElev, id)
 
 	select {}
+}
+
+func checkForBackupState(backupStateChan <-chan worldview.ElevState) worldview.ElevState {
+	now := time.Now()
+	recoverdState := worldview.ElevState{}
+	for {
+		if time.Since(now) > config.IntialStateCheckTime*time.Millisecond {
+			return recoverdState
+		}
+		select {
+		case backupState := <-backupStateChan:
+			fmt.Println("[main] Backup state received, starting with recovered state")
+			return backupState
+		default:
+		}
+	}
 }
