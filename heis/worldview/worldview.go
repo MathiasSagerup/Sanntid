@@ -107,6 +107,7 @@ func (w *WorldViewDecider) loop() {
 
 			//sjekk om dør åpen og om det er en hallCall på denne etasjen. Hvis ja, sett den til completed
 			if newElevState.Behaviour == doorOpen {
+				//TODO: Sjekk om LocalElevState kan bestemme dette. //ikke fjerne begge ordre. 
 				for btn:=0; btn < 2; btn++{
 					if w.thisElevState.HallCalls[newElevState.Floor][btn] == Confirmed {
 						w.thisElevState.HallCalls[newElevState.Floor][btn] = Completed
