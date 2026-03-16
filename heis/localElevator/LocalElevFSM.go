@@ -65,7 +65,9 @@ func NewLocalElev(floorSensorChan chan int,
 	stopBtnChan chan bool,
 	buttonChan chan driver.ButtonEvent,
 	elevStateToWorldview chan ElevState,
-	assignerToLocalElev chan [N_FLOORS][2]bool) *localElevator {
+	assignerToLocalElev chan [N_FLOORS][2]bool,
+	initialCabCalls [N_FLOORS]bool,
+	)*localElevator {
 
 	l := &localElevator{
 		doorTimeoutChan:      make(chan bool, 1),
@@ -73,6 +75,7 @@ func NewLocalElev(floorSensorChan chan int,
 		obstructionChan:      obstructionChan,
 		buttonChan:           buttonChan,
 		elevStateToWorldview: elevStateToWorldview,
+		cabRequests:           initialCabCalls,
 	}
 
 	//initialiser heis, kjør ned til nærmeste etasje

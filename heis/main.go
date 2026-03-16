@@ -108,7 +108,6 @@ func main() {
 		id,
 		worldview.ElevState{},
 		make([]worldview.ElevState, config.N_ELEVATORS-1),
-		intialElevState, 
 	)
 
 	localElevator.NewLocalElev(floorSensorChan,
