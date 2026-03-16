@@ -6,6 +6,9 @@ import (
 	"heis/config"
 	"os/exec"
 	"runtime"
+	"heis/localElevator"
+	"heis/driver"
+	"strconv"
 )
 
 //chan for elevStateA
@@ -19,15 +22,26 @@ type HRAElevState struct {
 	CabRequests []bool `json:"cabRequests"`
 }
 
-/*
-type HRAInput struct {
+
+type HRAFormattedInput struct {
 	HallRequests [config.N_FLOORS][2]bool `json:"hallRequests"`
 	States       map[string]HRAElevState  `json:"states"`
 }
-*/
+
+type HRAInput struct {
+	HallRequests  	[config.N_FLOORS][2]bool
+	thisElevState 	HRAElevStateInput
+	otherElevStates []HRAElevStateInput 
+}
+
+type HRAElevStateInput struct{
+	Behaviour             localElevator.ElevatorBehaviour
+	Floor                 int
+	Dirn                  driver.MotorDirection
+	CabRequests           [config.N_FLOORS]bool
+}
 
 type HallCallAssigner struct {
-
 	//inptu channel from worldview
 	HRAInputChan chan HRAInput
 
@@ -68,9 +82,18 @@ func assign(Input HRAInput) (map[string][config.N_FLOORS][2]bool, error) {
 		executable += ".exe"
 	}
 
-	//check for dead peers. 
+	formattedInput := HRAFormattedInput
 
-	jsonBytes, err := json.Marshal(Input)
+	states:= make(map[string]HRAElevStateInput, len(Input.otherElevStates)+1)
+	states["1"] = Input.thisElevState
+	for i, elev := range Input.otherElevStates {
+		states[strconv.Itoa(i)] = elev
+	}
+
+	
+
+	jsonBytes, err := json.Marshal()
+
 	if err != nil {
 		return nil, fmt.Errorf("assigner: marshal: %v", err)
 	}
@@ -88,3 +111,41 @@ func assign(Input HRAInput) (map[string][config.N_FLOORS][2]bool, error) {
 
 	return assignedHallRequests, err
 }
+
+/*
+	states := make(map[string]hallCallsAssigner.HRAElevState)
+
+	// local elevator uses its string ID so the HCA can look it up by ID
+	localCabReqs := make([]bool, config.N_FLOORS)
+	for f := 0; f < config.N_FLOORS; f++ {
+		localCabReqs[f] = w.thisElevState.CabRequests[f]
+	}
+	states[w.localID] = hallCallsAssigner.HRAElevState{
+		Behaviour:   w.thisElevState.Behaviour.String(),
+		Floor:       w.thisElevState.Floor,
+		Direction:   w.thisElevState.Dirn.String(),
+		CabRequests: localCabReqs,
+	}
+
+	// other elevators use numeric keys (HCA doesn't need to look them up by name)
+	for i, elev := range w.otherElevStates {
+		if !elev.AbleToServiceRequests {
+			continue
+		}
+
+		cabReqs := make([]bool, config.N_FLOORS)
+		for f := 0; f < config.N_FLOORS; f++ {
+			cabReqs[f] = elev.CabRequests[f]
+		}
+		states["peer-"+strconv.Itoa(i)] = hallCallsAssigner.HRAElevState{
+			Behaviour:   elev.Behaviour.String(),
+			Floor:       elev.Floor,
+			Direction:   elev.Dirn.String(),
+			CabRequests: cabReqs,
+		}
+	}
+
+	return hallCallsAssigner.HRAInput{
+		HallRequests: hallRequests,
+		States:       states,
+	*/
