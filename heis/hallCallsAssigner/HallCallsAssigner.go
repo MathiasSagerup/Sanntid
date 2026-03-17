@@ -82,7 +82,7 @@ func assign(Input HRAInput) (map[string][config.N_FLOORS][2]bool, error) {
 		executable += ".exe"
 	}
 
-	formattedInput := HRAFormattedInput
+	//formattedInput := HRAFormattedInput
 
 	states:= make(map[string]HRAElevStateInput, len(Input.otherElevStates)+1)
 	states["1"] = Input.thisElevState

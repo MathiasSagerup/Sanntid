@@ -1,11 +1,10 @@
 package localElevator
 
 import (
-	//"fmt"
+	"fmt"
 	"heis/config"
 	"heis/driver"
 	"time"
-	"fmt"
 )
 
 const N_BUTTONS = 3
@@ -41,7 +40,6 @@ type localElevator struct {
 	obstructionChan chan bool
 	buttonChan      chan driver.ButtonEvent
 	doorTimeoutChan chan bool
-type [N][]
 
 	//internal states
 	floor                 int
