@@ -99,6 +99,7 @@ func (c *Communication) run() {
 
 			//Vi ønsker ikke å behandle meldinger som er identiske med den siste mottatte meldingen fra samme peer
 			if !isSameAsPrevious(lastPeerMsg, msg) {
+				
 				lastPeerMsg[msg.FromID] = msg
 				outMsg.Backupworldview[msg.FromID] = msg.LocalState //Will be returned to the sending peer for backup
 				c.sendToPeerStateChs(id_index, msg)
