@@ -6,7 +6,7 @@ import (
 	"heis/communication"
 	"heis/config"
 	"heis/driver"
-	"heis/hallCallsAssigner"
+	//"heis/hallCallsAssigner"
 	"heis/localElevator"
 	"heis/network/localip"
 	"heis/worldview"
@@ -51,20 +51,20 @@ func main() {
 	recoveredCabCallsCh := make(chan [config.N_FLOORS]bool, 1)
 
 	//sensor channels
-	floorSensorChan := make(chan int)
-	obstructionChan := make(chan bool)
-	stopBtnChan := make(chan bool)
-	buttonChan := make(chan driver.ButtonEvent)
-	worldviewButtonChan := make(chan driver.ButtonEvent)
+	floorSensorChan := make(chan int, 1)
+	obstructionChan := make(chan bool, 1)
+	stopBtnChan := make(chan bool, 1)
+	buttonChan := make(chan driver.ButtonEvent, 1)
+	worldviewButtonChan := make(chan driver.ButtonEvent, 1)
 
 	//localElevator til Worldview
 	elevStateToWorldview := make(chan localElevator.ElevState, 1)
 
 	//HallCallAssigner til localELevator
-	assignerToLocalElev := make(chan [config.N_FLOORS][2]bool)
+	assignerToLocalElev := make(chan [config.N_FLOORS][2]bool, 1)
 
 	//input kanal til hallCallsAssigner:
-	worldviewToHallCallAssigner := make(chan worldview.HRAInput)
+	worldviewToHallCallAssigner := make(chan worldview.HRAInput, 1)
 
 	//worldview til communication:
 	worldviewToCommuncation := make(chan worldview.PeerState, 1)
