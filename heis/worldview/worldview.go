@@ -112,7 +112,7 @@ func (w *WorldViewDecider) loop() {
 		case newElevState := <-w.messageFromLocalElevChannel:
 			w.thisElevState = newElevState
 			w.sendUpdatedInformationToHallCallAssigner()
-			w.sendStateUpdateToCommunication()
+			w.sendUpdatedInformationToCommunication()
 
 		case hallButtonPressed := <-w.hallCallButtonChan:
 			hallCallsBeforeCheck := w.hallCalls
@@ -131,7 +131,7 @@ func (w *WorldViewDecider) loop() {
 
 			if hallCallsBeforeCheck != w.hallCalls {
 				w.sendUpdatedInformationToHallCallAssigner()
-				w.sendStateUpdateToCommunication()
+				w.sendUpdatedInformationToCommunication()
 			}
 
 
@@ -148,14 +148,14 @@ func (w *WorldViewDecider) loop() {
 						w.updateHallCallsAndLights(newPeerState.HallCalls, elevID)
 						if hallCallsBeforeCheck != w.hallCalls {
 							w.sendUpdatedInformationToHallCallAssigner()
-							w.sendStateUpdateToCommunication()
+							w.sendUpdatedInformationToCommunication()
 						}
 						
 						//Check local elev state transition from sender
 						if newPeerState.LocalElevState != w.otherElevStates[elevID] {
 							w.otherElevStates[elevID] = newPeerState.LocalElevState
 							w.sendUpdatedInformationToHallCallAssigner()
-							w.sendStateUpdateToCommunication()
+							w.sendUpdatedInformationToCommunication() //TODO: Vurder om vi kan fjerne denne
 						}
 					
 					default:
@@ -188,6 +188,7 @@ func (w *WorldViewDecider) updateSpecifiedHallCallAndLight(incomingHallCall Orde
 			w.hallCalls[floor][hallBtn].state = Unconfirmed
 		case Confirmed:
 			w.hallCalls[floor][hallBtn].state = Confirmed
+			driver.SetButtonLamp(hallBtn,floor,true)
 		default:
 			//TODO: Legg til warnings her
 		}
@@ -248,6 +249,7 @@ func (w *WorldViewDecider) updateSpecifiedHallCallAndLight(incomingHallCall Orde
 
 		case NoOrder:
 			w.hallCalls[floor][hallBtn].state = NoOrder
+			w.hallCalls[floor][hallBtn].confirmation = [config.N_ELEVATORS - 1]bool{} //reset all confirmations to false after transition
 			driver.SetButtonLamp(hallBtn,floor,false)
 		}
 	}
@@ -272,7 +274,7 @@ func (w *WorldViewDecider) getNumberOfConnectedPeers() int{
 	return connectedPeers
 }
 
-func (w *WorldViewDecider) sendStateUpdateToCommunication() {
+func (w *WorldViewDecider) sendUpdatedInformationToCommunication() {
 	input := PeerState{w.thisElevState, w.getHallCallsWithoutConfirmation()}
 	select{	
 		case w.toCommCh <- input:
