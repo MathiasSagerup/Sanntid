@@ -4,14 +4,17 @@ import (
 	"fmt"
 	"heis/config"
 	"heis/network/bcast"
-	"heis/worldview"
+	//KODEKVALITET
+	//"heis/worldview" //VI TRENGER IKKE LENGER intern wordwiew info 
+	"heis/model"
+	//------------
 	"time"
 )
-
+//KODEKVALITET: 
 type NetMsg struct {
-	FromID         				string
-	LocalState					worldview.PeerState
-	Backupworldview				map[string]worldview.PeerState  		//maps string ID of peer to their latest sent state
+	FromID          string
+	LocalState      model.PeerState//
+	BackupWorldView map[string]model.PeerState//
 }
 
 type Communication struct {
@@ -20,9 +23,10 @@ type Communication struct {
 	timoutCheckPeriod     time.Duration
 	transmitToNetCh       chan NetMsg
 	receiveFromNetCh      chan NetMsg
-	localWorldViewCh      <-chan worldview.PeerState
+	localWorldViewCh      <-chan model.PeerState//
 	peerIDIndex           map[string]int                                   	// maps peer ID to its correponding index in worldview.PeerStateChs and peersConnectedCh
-	PeerStateChs          [config.N_ELEVATORS - 1]chan worldview.PeerState 	// one channel per other elevator, forwarded to worldview
+	//PeerStateChs          [config.N_ELEVATORS - 1]chan wordwiew.PeerState // one channel per other elevator, forwarded to worldview
+	peerStateChs          [config.N_ELEVATORS - 1]chan model.PeerState //liten boisktav, og modell
 	peersConnectedCh      chan [config.N_ELEVATORS - 1]bool
 	recoveredCabCallsCh   chan [config.N_FLOORS]bool							//Used during initialization to regain previous state from peers if we are recovering from a failure
 }

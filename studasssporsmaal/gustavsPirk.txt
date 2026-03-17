@@ -1,0 +1,33 @@
+-------- modul ansvar-----------------
+
+krav: 
+- høy kohesjon: alle deler i modulen jobber for det samme. Tydelig ansvar (etter data)
+- lav coupling: Lite avhgengigheter mellom moduler. 
+
+
+forslag er: 
+
+driver er hardwarelag (I/O)
+localElevator er tydelig lokal FSM og lokal oppførsel
+communication er nettverksutveksling (info til og fra nettet)
+worldview er felles systemmodell:
+- hvilke hallcalls som finnes
+- hva tilstander til andre heiser er 
+- hvilke heiser som er tilkoblet 
+hallCallsAssigner er ren fordelingslogikk
+main er oppkobling
+
+
+# Forslag til kodekvalitetsforbedringer
+
+## worldview
+Problem:
+- Høy coupling mot localElevator og driver
+
+Forslag:
+- Flytte ElevState til model
+- La worldview motta model.HallCallEvent i stedet for driver.ButtonEvent
+
+Konsekvens:
+- Tydeligere kontrakter mellom moduler
+- Mindre spredning av endringer

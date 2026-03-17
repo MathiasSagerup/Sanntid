@@ -6,6 +6,7 @@ import (
 	"heis/communication"
 	"heis/config"
 	"heis/driver"
+	"heis/model"
 	//"heis/hallCallsAssigner"
 	"heis/localElevator"
 	"heis/network/localip"
@@ -54,8 +55,15 @@ func main() {
 	floorSensorChan := make(chan int, 1)
 	obstructionChan := make(chan bool, 1)
 	stopBtnChan := make(chan bool, 1)
-	buttonChan := make(chan driver.ButtonEvent, 1)
-	worldviewButtonChan := make(chan driver.ButtonEvent, 1)
+
+
+	//KODEKVALITET ENDRINGER
+
+
+	//buttonChan := make(chan driver.ButtonEvent, 1)
+	//worldviewButtonChan := make(chan driver.ButtonEvent, 1)
+
+	//---------------
 
 	//localElevator til Worldview
 	elevStateToWorldview := make(chan localElevator.ElevState, 1)
@@ -80,11 +88,27 @@ func main() {
 	}
 
 	//Aktiver driver polling
-	go driver.PollButtons(buttonChan)
-	go driver.PollButtons(worldviewButtonChan)
+
+
+	//KODEKVALITET ENDRING: 
+
+
+	//go driver.PollButtons(buttonChan)
+	//go driver.PollButtons(worldviewButtonChan)
+
+	driverButtonChan := make(chan driver.ButtonEvent, 1)
+	go driver.PollButtons(driverButtonChan) //Vi henter ut herfra 
+	buttonChan := make(chan driver.ButtonEvent, 1) //det localelev mottar
+	hallCallEventChan := make(chan model.HallCallEvent, 1)//det wordwiew mottar
+	go fanOutButtons(driverButtonChan, buttonChan, hallCallEventChan) //tar inn driverButtonChan og formatere utverdier på buttonChan  og hallCallEventChan
+	
+	
+	
+	//-----------------------------
 	go driver.PollFloorSensor(floorSensorChan)
 	go driver.PollObstructionSwitch(obstructionChan)
 	go driver.PollStopButton(stopBtnChan)
+
 
 	communication.NewCommunicationModule(
 		id, 
@@ -137,3 +161,35 @@ func checkForBackupState(recoverdCabCallsCh <-chan [config.N_FLOORS]bool) [confi
 		}
 	}
 }
+
+
+///KODEKVALITET ENDRING: Dette gjør at worldview og local elevator slipper å forstå driver logikk (pakke ut tastetrykk)
+
+func fanOutButtons(
+    in <-chan driver.ButtonEvent,
+    toLocalElev chan<- driver.ButtonEvent,
+    toWorldview chan<- model.HallCallEvent,
+) {
+    for btn := range in {
+
+        // 1. send ALT til localElevator
+        toLocalElev <- btn
+
+        // 2. send KUN hall calls til worldview
+        switch btn.Button {
+        case driver.BT_HallUp:
+            toWorldview <- model.HallCallEvent{
+                Floor:  btn.Floor,
+                Button: model.HallUp,
+            }
+        case driver.BT_HallDown:
+            toWorldview <- model.HallCallEvent{
+                Floor:  btn.Floor,
+                Button: model.HallDown,
+            }
+        }
+    }
+}
+
+
+//------------------

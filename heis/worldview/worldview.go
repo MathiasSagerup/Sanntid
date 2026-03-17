@@ -8,6 +8,7 @@ import (
 
 	//	"heis/hallCallsAssigner"
 	"heis/localElevator"
+	"heis/model"//KODEKVALITET
 	//	"strconv"
 	"time"
 )
@@ -22,24 +23,32 @@ const (
 
 type elevatorID int
 
+//KODEKVALITET: modell ref.
 type HallCallWithConfirmation struct {
-	state OrderState
+	state model.OrderState
 	confirmation [config.N_ELEVATORS - 1]bool
 }
+//-----------------
 
-type OrderState int
+//KODEKVALITET: denne passer inn i model 
+//type OrderState int
+//
+//const (
+//	NoOrder OrderState = iota
+//	Unconfirmed
+//	Confirmed
+//	Completed
+//)
+//--------------
 
-const (
-	NoOrder OrderState = iota
-	Unconfirmed
-	Confirmed
-	Completed
-)
+//KODEKVALITET: flytter til model 
 
-type PeerState struct {
-	LocalElevState localElevator.ElevState
-	HallCalls [config.N_FLOORS][2]OrderState	
-}
+//type PeerState struct {
+//	LocalElevState localElevator.ElevState
+//	HallCalls [config.N_FLOORS][2]OrderState	
+//}
+
+//-------------
 
 type HRAInput struct {
 	HallRequests  	[config.N_FLOORS][2]bool
@@ -61,27 +70,31 @@ type WorldViewDecider struct {
 
 	//System state
 	hallCalls [config.N_FLOORS][2]HallCallWithConfirmation
-	thisElevState localElevator.ElevState
-	otherElevStates [config.N_ELEVATORS-1]localElevator.ElevState 	//Index corresponds to ElevID and are kept concistent
+	//KODEKVALITET: endrer eierskap for model typer - kontrakt 
+	thisElevState model.ElevatorState
+	otherElevStates [config.N_ELEVATORS-1]model.ElevatorState	//Index corresponds to ElevID and are kept concistent
 	connectedElevators [config.N_ELEVATORS - 1]bool 		//Index corresponds to ElevID and are kept concistent
-	
+
 	//Channels
-	messageFromLocalElevChannel <-chan localElevator.ElevState
-	messageFromOtherElevChannels [config.N_ELEVATORS - 1]<-chan PeerState //Index corresponds to ElevID and are kept concistent
-	hallCallButtonChan <-chan driver.ButtonEvent
+	messageFromLocalElevChannel <-chan model.ElevatorState
+	messageFromOtherElevChannels [config.N_ELEVATORS - 1]<-chan model.PeerState //Index corresponds to ElevID and are kept concistent
+	hallCallButtonChan <-chan model.HallCallEvent//KODEKVALITET
 	hallCallAssignerChan chan HRAInput
-	toCommCh chan PeerState
+	toCommCh chan model.PeerState
 	connectedElevatorsCh <-chan [config.N_ELEVATORS - 1]bool
+	//---------------------
 }
 
+//KODEKVALITET : ref til moduler 
 func NewWorldViewModule(
-	messageFromOtherElevChannels [config.N_ELEVATORS - 1]<-chan PeerState,
+	messageFromOtherElevChannels [config.N_ELEVATORS - 1]<-chan model.PeerState,//
 	hallCallAssignerChan chan HRAInput,
 	driverToWorldviewChan <-chan driver.ButtonEvent,
-	toCommCh chan PeerState,
-	localElevCh <-chan localElevator.ElevState,
+	toCommCh chan model.PeerState,//
+	localElevCh <-chan model.ElevatorState,//
 	localID string,
 	connectedElevatorsCh <-chan [config.N_ELEVATORS - 1]bool,
+//--------------------------
 
 ) *WorldViewDecider {
 
@@ -98,7 +111,6 @@ func NewWorldViewModule(
 		otherElevStates:              [config.N_ELEVATORS - 1]localElevator.ElevState{},
 		connectedElevators:			  [config.N_ELEVATORS - 1]bool{},
 	}
-
 	go w.loop()
 
 	return w
@@ -114,11 +126,13 @@ func (w *WorldViewDecider) loop() {
 			w.sendUpdatedInformationToHallCallAssigner()
 			w.sendUpdatedInformationToCommunication()
 
+		//KODEKVALITET: nå får hall calls kun hall calls, så alt av cab calls filtrering forsvinner: 
+
 		case hallButtonPressed := <-w.hallCallButtonChan:
 			hallCallsBeforeCheck := w.hallCalls
 
 			fmt.Println("[worldview] HallCallButton registered")
-			if hallButtonPressed.Button != driver.BT_Cab { //TODO: Sjekk med Jens hva denne gjør
+			//if hallButtonPressed.Button != driver.BT_Cab { //DENNE DELEN FORSVINNER 
 				if w.hallCalls[hallButtonPressed.Floor][hallButtonPressed.Button].state == NoOrder {
 					if w.getNumberOfConnectedPeers() == 0{
 						w.hallCalls[hallButtonPressed.Floor][hallButtonPressed.Button].state = Confirmed
@@ -127,12 +141,13 @@ func (w *WorldViewDecider) loop() {
 						w.hallCalls[hallButtonPressed.Floor][hallButtonPressed.Button].state = Unconfirmed
 					}
 				}
-			}
+			//}
 
 			if hallCallsBeforeCheck != w.hallCalls {
 				w.sendUpdatedInformationToHallCallAssigner()
 				w.sendUpdatedInformationToCommunication()
 			}
+		//---------------------------------
 
 
 		case <-checkMessagesFromOtherElevChannels.C:
@@ -275,7 +290,13 @@ func (w *WorldViewDecider) getNumberOfConnectedPeers() int{
 }
 
 func (w *WorldViewDecider) sendUpdatedInformationToCommunication() {
-	input := PeerState{w.thisElevState, w.getHallCallsWithoutConfirmation()}
+	//KODEKVALITET: endre ti modell ref. 
+	//input := PeerState{w.thisElevState, w.getHallCallsWithoutConfirmation()}
+	input := model.PeerState{
+		LocalElevState: w.thisElevState,
+		HallCalls:      w.getHallCallsWithoutConfirmation(),
+	}
+	//----------------
 	select{	
 		case w.toCommCh <- input:
 		default:
