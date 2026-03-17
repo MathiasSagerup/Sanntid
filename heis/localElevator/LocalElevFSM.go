@@ -50,9 +50,11 @@ type localElevator struct {
 	ableToServiceRequests bool
 	dirnBehaviourPair     dirnBehaviourPair
 	assignedHallCalls     [N_FLOORS][2]bool
+	completedHallCalls    [N_FLOORS][2]bool
 
 	//Internal request channels (one per public method)
 	elevStateToWorldview chan ElevState
+	completedHallcallsCh chan [N_FLOORS][2]bool
 
 	//Input channel from hallcallassigner
 	assignerToLocalElev chan [N_FLOORS][2]bool
@@ -67,6 +69,7 @@ func NewLocalElev(floorSensorChan chan int,
 	buttonChan chan driver.ButtonEvent,
 	elevStateToWorldview chan ElevState,
 	assignerToLocalElev chan [N_FLOORS][2]bool,
+	completedHallCallsCh chan [N_FLOORS][2]bool,
 	initialCabCalls [N_FLOORS]bool,
 	)*localElevator {
 
@@ -77,6 +80,7 @@ func NewLocalElev(floorSensorChan chan int,
 		buttonChan:           buttonChan,
 		elevStateToWorldview: elevStateToWorldview,
 		assignerToLocalElev:  assignerToLocalElev,
+		completedHallcallsCh: completedHallCallsCh,
 	}
 
 	//initialiser heis, kjør ned til nærmeste etasje
@@ -220,7 +224,12 @@ func (l *localElevator) fsmOnReceivedHallCalls(newHallCalls [config.N_FLOORS][2]
 	case doorOpen:
 		if requestsShouldClearImmediately(*l, l.floor, driver.BT_HallUp) {
 			l.startDoorTimer()
+			l.completedHallCalls[l.floor][driver.BT_HallUp] = true
+			l.sendCompletedHallCallsToWorldView()
+
 		} else if requestsShouldClearImmediately(*l, l.floor, driver.BT_HallDown) {
+			l.completedHallCalls[l.floor][driver.BT_HallDown] = true
+			l.sendCompletedHallCallsToWorldView()
 			l.startDoorTimer()
 		} else {
 			//do nothing
@@ -239,12 +248,23 @@ func (l *localElevator) fsmOnReceivedHallCalls(newHallCalls [config.N_FLOORS][2]
 			driver.SetDoorOpenLamp(true)
 			l.startDoorTimer()
 			requestsClearAtCurrentFloor(l)
+			l.sendCompletedHallCallsToWorldView()
+			l.completedHallcallsCh <- l.completedHallCalls
 		case moving:
 			driver.SetMotorDirection(l.dirn)
 		case idle:
 			// nothing to do
 		}
 
+	}
+}
+
+func (l *localElevator) sendCompletedHallCallsToWorldView() {
+	select {
+	case l.completedHallcallsCh <- l.completedHallCalls:
+	default:
+		<-l.completedHallcallsCh
+		l.completedHallcallsCh <- l.completedHallCalls
 	}
 }
 
@@ -271,6 +291,8 @@ func (l *localElevator) fsmOnRequestButtonPress(btnFloor int, btnType driver.But
 	switch l.behaviour {
 	case doorOpen:
 		if requestsShouldClearImmediately(*l, btnFloor, btnType) {
+			l.completedHallCalls[btnFloor][btnType] = true
+			l.sendCompletedHallCallsToWorldView()
 			l.startDoorTimer()
 		} else {
 			l.requests[btnFloor][btnType] = true

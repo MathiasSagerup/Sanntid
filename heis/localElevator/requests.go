@@ -119,6 +119,7 @@ func requestsShouldClearImmediately(e localElevator, btnFloor int, btnType drive
 	if e.floor == btnFloor {
 
 		if e.dirn == driver.MD_Up && btnType == driver.BT_HallUp {
+	
 			return true
 
 		} else if e.dirn == driver.MD_Down && btnType == driver.BT_HallDown {
@@ -148,23 +149,48 @@ func requestsClearAtCurrentFloor(e *localElevator) {
 
 	case driver.MD_Up:
 		if !requestsAbove(*e) && !e.requests[e.floor][driver.BT_HallUp] {
-			e.requests[e.floor][driver.BT_HallDown] = false
+			if e.requests[e.floor][driver.BT_HallDown] {
+				e.requests[e.floor][driver.BT_HallDown] = false
+				e.completedHallCalls[e.floor][driver.BT_HallDown] = true
+				e.sendCompletedHallCallsToWorldView()
+			}
 		}
 
-		e.requests[e.floor][driver.BT_HallUp] = false
+		if e.requests[e.floor][driver.BT_HallUp] {
+			e.requests[e.floor][driver.BT_HallUp] = false
+			e.completedHallCalls[e.floor][driver.BT_HallUp] = true
+			e.sendCompletedHallCallsToWorldView()
+		}
 		break
 
 	case driver.MD_Down:
 		if !requestsBelow(*e) && !e.requests[e.floor][driver.BT_HallDown] {
-			e.requests[e.floor][driver.BT_HallUp] = false
+			if e.requests[e.floor][driver.BT_HallUp] {
+				e.requests[e.floor][driver.BT_HallUp] = false
+				e.completedHallCalls[e.floor][driver.BT_HallUp] = true
+				e.sendCompletedHallCallsToWorldView()
+			}
 		}
 
-		e.requests[e.floor][driver.BT_HallDown] = false
+		if e.requests[e.floor][driver.BT_HallDown] {
+			e.requests[e.floor][driver.BT_HallDown] = false
+			e.completedHallCalls[e.floor][driver.BT_HallDown] = true
+			e.sendCompletedHallCallsToWorldView()
+		}
 		break
 
 	case driver.MD_Stop:
-		e.requests[e.floor][driver.BT_HallDown] = false
-		e.requests[e.floor][driver.BT_HallUp] = false
+		if e.requests[e.floor][driver.BT_HallDown] {
+			e.requests[e.floor][driver.BT_HallDown] = false
+			e.completedHallCalls[e.floor][driver.BT_HallDown] = true
+			e.sendCompletedHallCallsToWorldView()
+		}
+
+		if e.requests[e.floor][driver.BT_HallUp] {
+			e.requests[e.floor][driver.BT_HallUp] = false
+			e.completedHallCalls[e.floor][driver.BT_HallUp] = true
+			e.sendCompletedHallCallsToWorldView()
+		}
 		break
 
 	default:

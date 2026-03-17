@@ -6,7 +6,7 @@ import (
 	"heis/communication"
 	"heis/config"
 	"heis/driver"
-	//"heis/hallCallsAssigner"
+	"heis/hallCallsAssigner"
 	"heis/localElevator"
 	"heis/network/localip"
 	"heis/worldview"
@@ -59,12 +59,14 @@ func main() {
 
 	//localElevator til Worldview
 	elevStateToWorldview := make(chan localElevator.ElevState, 1)
+	completedHallCallsCh := make(chan [config.N_FLOORS][2]bool, 1)
+
 
 	//HallCallAssigner til localELevator
 	assignerToLocalElev := make(chan [config.N_FLOORS][2]bool, 1)
 
 	//input kanal til hallCallsAssigner:
-	worldviewToHallCallAssigner := make(chan worldview.HRAInput, 1)
+	worldviewToHallCallAssigner := make(chan hallCallsAssigner.HRAInput, 1)
 
 	//worldview til communication:
 	worldviewToCommuncation := make(chan worldview.PeerState, 1)
@@ -107,6 +109,7 @@ func main() {
 		elevStateToWorldview,
 		id,
 		peersConnectedCh,
+		completedHallCallsCh,
 	)
 
 	localElevator.NewLocalElev(floorSensorChan,
@@ -114,12 +117,13 @@ func main() {
 		buttonChan,
 		elevStateToWorldview,
 		assignerToLocalElev,
+		completedHallCallsCh,
 		initialCabCalls,
 	)
 
 	//input: InputChan chan HRAInput, OutputChan chan [config.N_Floors][2]bool, ID string
 
-	//hallCallsAssigner.NewHallCallAssigner(worldviewToHallCallAssigner, assignerToLocalElev, id)
+	hallCallsAssigner.NewHallCallAssigner(worldviewToHallCallAssigner, assignerToLocalElev, id)
 	select {}
 }
 
