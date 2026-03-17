@@ -23,6 +23,9 @@ type Communication struct {
 	localWorldViewCh      <-chan worldview.PeerState
 	peerIDIndex           map[string]int                                   	// maps peer ID to its correponding index in worldview.PeerStateChs and peersConnectedCh
 	PeerStateChs          [config.N_ELEVATORS - 1]chan worldview.PeerState 	// one channel per other elevator, forwarded to worldview
+	localWorldViewCh      <-chan worldview.PeerState
+	peerIDIndex           map[string]int                                   	// maps peer ID to its correponding index in worldview.PeerStateChs and peersConnectedCh
+	PeerStateChs          [config.N_ELEVATORS - 1]chan worldview.PeerState 	// one channel per other elevator, forwarded to worldview
 	peersConnectedCh      chan [config.N_ELEVATORS - 1]bool
 	recoveredCabCallsCh   chan [config.N_FLOORS]bool							//Used during initialization to regain previous state from peers if we are recovering from a failure
 }
@@ -45,6 +48,7 @@ func NewCommunicationModule(
 		transmitToNetCh:       make(chan NetMsg, 1),
 		receiveFromNetCh:      make(chan NetMsg, 1),
 		peerIDIndex:           make(map[string]int),
+		PeerStateChs:		   PeerStateChs,
 		PeerStateChs:		   PeerStateChs,
 		peersConnectedCh:      peersConnectedCh,
 		recoveredCabCallsCh:   recoveredCabCallsCh,
@@ -90,6 +94,7 @@ func (c *Communication) run() {
 				continue
 			}
 
+
 			//Registrer at vi har mottatt en melding fra denne peer
 			id_index := c.getCurrentOrAssignNewPeerIndex(msg.FromID)
 			timeLastMessageRecieved[msg.FromID] = time.Now()
@@ -97,20 +102,24 @@ func (c *Communication) run() {
 				connectedElevators[id_index] = true
 				c.sendToPeersConnectedCh(connectedElevators)
 			}
-
+			
 			//Vi ønsker ikke å behandle meldinger som er identiske med den siste mottatte meldingen fra samme peer
 			if !isSameAsPrevious(lastPeerMsg, msg) {
+				fmt.Println("[comm] Videresender hallcalls", msg.LocalState.HallCalls)
 				lastPeerMsg[msg.FromID] = msg
 				outMsg.Backupworldview[msg.FromID] = msg.localState //Will be returned to the sending peer for backup
 				c.sendToPeerStateChs(id_index, msg)
 
 				// Updating our recovery state with the latest from this peer
 				recoveredState, localStateWasRecovered := msg.Backupworldview[c.myID]
+				recoveredState, localStateWasRecovered := msg.Backupworldview[c.myID]
 				if localStateWasRecovered {
 					select {
 					case c.recoveredCabCallsCh <- recoveredState.LocalElevState.CabRequests:
+					case c.recoveredCabCallsCh <- recoveredState.LocalElevState.CabRequests:
 					default:
 						<-c.recoveredCabCallsCh
+						c.recoveredCabCallsCh <- recoveredState.LocalElevState.CabRequests
 						c.recoveredCabCallsCh <- recoveredState.LocalElevState.CabRequests
 					}
 				}
@@ -172,7 +181,9 @@ func (c *Communication) getCurrentOrAssignNewPeerIndex(id string) int {
 
 	nextIdx := len(c.peerIDIndex)
 	if nextIdx >= len(c.PeerStateChs) {
+	if nextIdx >= len(c.PeerStateChs) {
 		errMsg := fmt.Sprintf("[comm] ERROR: Too many peers! Discovered peer %s but only %d slots available. System misconfigured.",
+			id, len(c.PeerStateChs))
 			id, len(c.PeerStateChs))
 		fmt.Printf("%s\n", errMsg)
 		panic(errMsg)
