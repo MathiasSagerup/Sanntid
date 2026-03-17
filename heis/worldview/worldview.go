@@ -130,6 +130,7 @@ func (w *WorldViewDecider) loop() {
 			}
 
 			if hallCallsBeforeCheck != w.hallCalls {
+				fmt.Print("Update passed")
 				w.sendUpdatedInformationToHallCallAssigner()
 				w.sendStateUpdateToCommunication()
 			}

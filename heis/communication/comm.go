@@ -80,6 +80,7 @@ func (c *Communication) run() {
 		select {
 
 		case updatedWorldview := <-c.localWorldViewCh:
+			fmt.Println("Update recieved with hallcalls", updatedWorldview.HallCalls)
 			outMsg.localState = updatedWorldview
 
 		case msg := <-c.receiveFromNetCh:
