@@ -136,7 +136,7 @@ func (w *WorldViewDecider) loop() {
 
 
 		case <-checkMessagesFromOtherElevChannels.C:
-
+			//fmt.Println("NewMessagRegistered")
 			//Check each channel that corresponds to an elevator that is currently connected
 			for elevID := 0; elevID < len(w.messageFromOtherElevChannels); elevID++ {
 				if w.connectedElevators[elevID] == true{
@@ -144,6 +144,7 @@ func (w *WorldViewDecider) loop() {
 					case newPeerState := <-w.messageFromOtherElevChannels[elevID]:
 						
 						//Check state transition with new hallcalls
+						fmt.Println("HallCallsAreBeingChecked", newPeerState.HallCalls)
 						hallCallsBeforeCheck := w.hallCalls
 						w.updateHallCallsAndLights(newPeerState.HallCalls, elevID)
 						if hallCallsBeforeCheck != w.hallCalls {
@@ -153,6 +154,7 @@ func (w *WorldViewDecider) loop() {
 						
 						//Check local elev state transition from sender
 						if newPeerState.LocalElevState != w.otherElevStates[elevID] {
+							fmt.Println("HallCallsWereChanged")
 							w.otherElevStates[elevID] = newPeerState.LocalElevState
 							w.sendUpdatedInformationToHallCallAssigner()
 							w.sendStateUpdateToCommunication()
@@ -165,8 +167,9 @@ func (w *WorldViewDecider) loop() {
 			}
 		
 		case newConnectedElevators := <- w.connectedElevatorsCh:
+
 			w.connectedElevators = newConnectedElevators
-		
+			fmt.Println("[Worldview] Connected elevators updated", w.connectedElevators)
 		}
 	}
 }

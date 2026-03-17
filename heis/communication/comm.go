@@ -10,7 +10,7 @@ import (
 
 type NetMsg struct {
 	FromID         				string
-	localState					worldview.PeerState
+	LocalState					worldview.PeerState
 	Backupworldview				map[string]worldview.PeerState  		//maps string ID of peer to their latest sent state
 }
 
@@ -70,7 +70,7 @@ func (c *Communication) run() {
 
 	outMsg := NetMsg{
 		FromID:        		c.myID,
-		localState:  		worldview.PeerState{},
+		LocalState:  		worldview.PeerState{},
 		Backupworldview: 	make(map[string]worldview.PeerState),
 	}
 
@@ -80,7 +80,7 @@ func (c *Communication) run() {
 		select {
 
 		case updatedWorldview := <-c.localWorldViewCh:
-			outMsg.localState = updatedWorldview
+			outMsg.LocalState = updatedWorldview
 
 		case msg := <-c.receiveFromNetCh:
 
@@ -96,11 +96,12 @@ func (c *Communication) run() {
 				connectedElevators[id_index] = true
 				c.sendToPeersConnectedCh(connectedElevators)
 			}
-
+			
 			//Vi ønsker ikke å behandle meldinger som er identiske med den siste mottatte meldingen fra samme peer
 			if !isSameAsPrevious(lastPeerMsg, msg) {
+				fmt.Println("[comm] Videresender hallcalls", msg.LocalState.HallCalls)
 				lastPeerMsg[msg.FromID] = msg
-				outMsg.Backupworldview[msg.FromID] = msg.localState //Will be returned to the sending peer for backup
+				outMsg.Backupworldview[msg.FromID] = msg.LocalState //Will be returned to the sending peer for backup
 				c.sendToPeerStateChs(id_index, msg)
 
 				// Updating our recovery state with the latest from this peer
@@ -155,12 +156,12 @@ func (c *Communication) sendToPeersConnectedCh(connectedElevators [config.N_ELEV
 }
 
 func (c *Communication) sendToPeerStateChs(id_index int, msg NetMsg) {
-	fmt.Printf("[comm] forwarding state from %s (idx=%d) HallCalls=%v\n", msg.FromID, id_index, msg.localState.HallCalls)
+	fmt.Printf("[comm] forwarding state from %s (idx=%d) HallCalls=%v\n", msg.FromID, id_index, msg.LocalState.HallCalls)
 	select {
-	case c.PeerStateChs[id_index] <- msg.localState:
+	case c.PeerStateChs[id_index] <- msg.LocalState:
 	default:
 		<-c.PeerStateChs[id_index]
-		c.PeerStateChs[id_index] <- msg.localState
+		c.PeerStateChs[id_index] <- msg.LocalState
 	}
 }
 
@@ -188,5 +189,5 @@ func isSameAsPrevious(last map[string]NetMsg, msg NetMsg) bool {
 		//If no previous message from this peer, it's not the same
 		return false
 	}
-	return prev.localState == msg.localState
+	return (prev.LocalState == msg.LocalState)
 }
