@@ -114,8 +114,6 @@ func NewLocalElev(floorSensorChan chan int,
 
 func (l *localElevator) run() {
 
-	printTicker := time.NewTicker(time.Millisecond * 1000)
-	defer printTicker.Stop()
 	for {
 		select {
 
@@ -145,6 +143,7 @@ func (l *localElevator) run() {
 			l.sendElevStateToWorldView()
 
 		case newHallCalls := <-l.assignerToLocalElev:
+			fmt.Println("[localElevator] received new hall calls from assigner: ", newHallCalls)
 			l.fsmOnReceivedHallCalls(newHallCalls)
 			l.sendElevStateToWorldView()
 

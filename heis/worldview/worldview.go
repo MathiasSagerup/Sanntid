@@ -310,6 +310,8 @@ func (w *WorldViewDecider) sendUpdatedInformationToCommunication() {
 //TODO: Sjekk at denne gir mening med nye structs
 func (w *WorldViewDecider) sendUpdatedInformationToHallCallAssigner() {
 	//Transform hallRequestStates to bools
+	
+
 	hallRequestsInput := [config.N_FLOORS][2]bool{}
 
 	for floor := 0; floor < config.N_FLOORS; floor++ {
