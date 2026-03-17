@@ -2,7 +2,7 @@ package config
 
 const (
 	N_FLOORS    = 4
-	N_ELEVATORS = 3
+	N_ELEVATORS = 2
 	N_BUTTONS   = 3 // HallUp, HallDown, Cab
 	PEER_TIMEOUT_DURATION = 1000 // milliseconds
 	DoorOpenDuration = 3.0 // seconds

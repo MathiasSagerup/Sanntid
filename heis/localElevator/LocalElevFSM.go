@@ -248,8 +248,6 @@ func (l *localElevator) fsmOnReceivedHallCalls(newHallCalls [config.N_FLOORS][2]
 			driver.SetDoorOpenLamp(true)
 			l.startDoorTimer()
 			requestsClearAtCurrentFloor(l)
-			l.sendCompletedHallCallsToWorldView()
-			l.completedHallcallsCh <- l.completedHallCalls
 		case moving:
 			driver.SetMotorDirection(l.dirn)
 		case idle:
@@ -263,9 +261,9 @@ func (l *localElevator) sendCompletedHallCallsToWorldView() {
 	select {
 	case l.completedHallcallsCh <- l.completedHallCalls:
 	default:
-		<-l.completedHallcallsCh
-		l.completedHallcallsCh <- l.completedHallCalls
+		fmt.Println("[localElevator] Warning: completedHallCalls channel is full, skipping update")
 	}
+	l.completedHallCalls = [N_FLOORS][2]bool{}
 }
 
 // logikk for tilstandsendring i etasje

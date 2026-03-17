@@ -92,7 +92,7 @@ func (c *Communication) run() {
 			//Registrer at vi har mottatt en melding fra denne peer
 			id_index := c.getCurrentOrAssignNewPeerIndex(msg.FromID)
 			timeLastMessageRecieved[msg.FromID] = time.Now()
-			
+
 			if connectedElevators[id_index] == false {
 				connectedElevators[id_index] = true
 				c.sendToPeersConnectedCh(connectedElevators)
@@ -156,7 +156,7 @@ func (c *Communication) sendToPeersConnectedCh(connectedElevators [config.N_ELEV
 }
 
 func (c *Communication) sendToPeerStateChs(id_index int, msg NetMsg) {
-	fmt.Printf("[comm] forwarding state from %s (idx=%d) HallCalls=%v\n", msg.FromID, id_index, msg.LocalState.HallCalls)
+	//fmt.Printf("[comm] forwarding state from %s (idx=%d) HallCalls=%v\n", msg.FromID, id_index, msg.LocalState.HallCalls)
 	select {
 	case c.PeerStateChs[id_index] <- msg.LocalState:
 	default:

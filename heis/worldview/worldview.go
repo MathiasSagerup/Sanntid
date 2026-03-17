@@ -100,9 +100,11 @@ func (w *WorldViewDecider) loop() {
 	for {
 		select {
 		case newElevState := <-w.messageFromLocalElevChannel:
-			w.thisElevState = newElevState
-			w.sendUpdatedInformationToHallCallAssigner()
-			w.sendUpdatedInformationToCommunication()
+			if w.thisElevState != newElevState {
+				w.thisElevState = newElevState
+				w.sendUpdatedInformationToHallCallAssigner()
+				w.sendUpdatedInformationToCommunication()
+			}
 
 		case hallButtonPressed := <-w.hallCallButtonChan:
 			hallCallsBeforeCheck := w.hallCalls
@@ -192,13 +194,15 @@ func (w *WorldViewDecider) updateSpecifiedHallCallAndLight(incomingHallCall Orde
 	switch w.hallCalls[floor][hallBtn].state {
 	case NoOrder:
 		switch incomingHallCall {
+		case NoOrder:
+			//Do nothing, is expected when new elevators first connect after initialization
 		case Unconfirmed:
 			w.hallCalls[floor][hallBtn].state = Unconfirmed
 		case Confirmed:
 			w.hallCalls[floor][hallBtn].state = Confirmed
 			driver.SetButtonLamp(hallBtn,floor,true)
 		default:
-			//TODO: Legg til warnings her
+			fmt.Print("[worldview] Unexpected transition, current hallcall is: ", w.hallCalls[floor][hallBtn].state, "but received: ", incomingHallCall, "floor: ", floor, "direction: ", hallBtn)
 		}
 
 	case Unconfirmed:
@@ -224,16 +228,23 @@ func (w *WorldViewDecider) updateSpecifiedHallCallAndLight(incomingHallCall Orde
 			w.hallCalls[floor][hallBtn].state = Confirmed
 			w.hallCalls[floor][hallBtn].confirmation = [config.N_ELEVATORS - 1]bool{} //reset all confirmations to false after transition
 			driver.SetButtonLamp(hallBtn,floor,true)
+		
+		case Completed:
+			w.hallCalls[floor][hallBtn].state = Completed
+			w.hallCalls[floor][hallBtn].confirmation = [config.N_ELEVATORS - 1]bool{} //reset all confirmations to false after transition
+			driver.SetButtonLamp(hallBtn,floor,true)
 		default:
-			//TODO: Legg til warnings her
+			fmt.Print("[worldview] Unexpected transition, current hallcall is: ", w.hallCalls[floor][hallBtn].state, "but received: ", incomingHallCall, "floor: ", floor, "direction: ", hallBtn)
 		}
 
 	case Confirmed:
 		switch incomingHallCall {
+		case Confirmed:
+			//Do nothing, is expected when an peer corractly changes to confirmes as well
 		case Completed:
 			w.hallCalls[floor][hallBtn].state = Completed
 		default:
-			//TODO: Legg til warnings her
+			fmt.Print("[worldview] Unexpected transition, current hallcall is: ", w.hallCalls[floor][hallBtn].state, "but received: ", incomingHallCall, "floor: ", floor, "direction: ", hallBtn)
 		}
 
 	case Completed:
@@ -259,6 +270,9 @@ func (w *WorldViewDecider) updateSpecifiedHallCallAndLight(incomingHallCall Orde
 			w.hallCalls[floor][hallBtn].state = NoOrder
 			w.hallCalls[floor][hallBtn].confirmation = [config.N_ELEVATORS - 1]bool{} //reset all confirmations to false after transition
 			driver.SetButtonLamp(hallBtn,floor,false)
+		
+		default:
+			fmt.Print("[worldview] Unexpected transition, current hallcall is: ", w.hallCalls[floor][hallBtn].state, "but received: ", incomingHallCall, "floor: ", floor, "direction: ", hallBtn)
 		}
 	}
 }
@@ -283,6 +297,7 @@ func (w *WorldViewDecider) getNumberOfConnectedPeers() int{
 }
 
 func (w *WorldViewDecider) sendUpdatedInformationToCommunication() {
+	fmt.Printf("[worldview] Current hallcalls are: %v\n", w.hallCalls)
 	input := PeerState{w.thisElevState, w.getHallCallsWithoutConfirmation()}
 	select{	
 		case w.toCommCh <- input:

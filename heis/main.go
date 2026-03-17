@@ -59,8 +59,7 @@ func main() {
 
 	//localElevator til Worldview
 	elevStateToWorldview := make(chan localElevator.ElevState, 1)
-	completedHallCallsCh := make(chan [config.N_FLOORS][2]bool, 1)
-
+	completedHallCallsCh := make(chan [config.N_FLOORS][2]bool, 16)
 
 	//HallCallAssigner til localELevator
 	assignerToLocalElev := make(chan [config.N_FLOORS][2]bool, 1)
