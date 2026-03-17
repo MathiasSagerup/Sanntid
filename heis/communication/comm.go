@@ -9,22 +9,22 @@ import (
 )
 
 type NetMsg struct {
-	FromID         				string
-	localState					worldview.PeerState
-	Backupworldview				map[string]worldview.PeerState  		//maps string ID of peer to their latest sent state
+	FromID          string
+	LocalState      worldview.PeerState
+	Backupworldview map[string]worldview.PeerState //maps string ID of peer to their latest sent state
 }
 
 type Communication struct {
-	myID                  string
-	bcastPeriod           time.Duration
-	timoutCheckPeriod     time.Duration
-	transmitToNetCh       chan NetMsg
-	receiveFromNetCh      chan NetMsg
-	localWorldViewCh      <-chan worldview.PeerState
-	peerIDIndex           map[string]int                                   	// maps peer ID to its correponding index in worldview.PeerStateChs and peersConnectedCh
-	PeerStateChs          [config.N_ELEVATORS - 1]chan worldview.PeerState 	// one channel per other elevator, forwarded to worldview
-	peersConnectedCh      chan [config.N_ELEVATORS - 1]bool
-	recoveredCabCallsCh   chan [config.N_FLOORS]bool							//Used during initialization to regain previous state from peers if we are recovering from a failure
+	myID                string
+	bcastPeriod         time.Duration
+	timoutCheckPeriod   time.Duration
+	transmitToNetCh     chan NetMsg
+	receiveFromNetCh    chan NetMsg
+	localWorldViewCh    <-chan worldview.PeerState
+	peerIDIndex         map[string]int                                   // maps peer ID to its correponding index in worldview.PeerStateChs and peersConnectedCh
+	PeerStateChs        [config.N_ELEVATORS - 1]chan worldview.PeerState // one channel per other elevator, forwarded to worldview
+	peersConnectedCh    chan [config.N_ELEVATORS - 1]bool
+	recoveredCabCallsCh chan [config.N_FLOORS]bool //Used during initialization to regain previous state from peers if we are recovering from a failure
 }
 
 func NewCommunicationModule(
@@ -38,16 +38,16 @@ func NewCommunicationModule(
 	//transmitEnable := make(chan bool)
 
 	c := &Communication{
-		myID:                  id,
-		localWorldViewCh:      worldviewToCommCh,
-		bcastPeriod:           15 * time.Millisecond, //TODO: Føler ikke denne er på riktig plass, flytte til config?
-		timoutCheckPeriod:     100 * time.Millisecond, //TODO: Føler ikke denne er på riktig plass, flytte til config?
-		transmitToNetCh:       make(chan NetMsg, 1),
-		receiveFromNetCh:      make(chan NetMsg, 1),
-		peerIDIndex:           make(map[string]int),
-		PeerStateChs:		   PeerStateChs,
-		peersConnectedCh:      peersConnectedCh,
-		recoveredCabCallsCh:   recoveredCabCallsCh,
+		myID:                id,
+		localWorldViewCh:    worldviewToCommCh,
+		bcastPeriod:         15 * time.Millisecond,  //TODO: Føler ikke denne er på riktig plass, flytte til config?
+		timoutCheckPeriod:   100 * time.Millisecond, //TODO: Føler ikke denne er på riktig plass, flytte til config?
+		transmitToNetCh:     make(chan NetMsg, 1),
+		receiveFromNetCh:    make(chan NetMsg, 1),
+		peerIDIndex:         make(map[string]int),
+		PeerStateChs:        PeerStateChs,
+		peersConnectedCh:    peersConnectedCh,
+		recoveredCabCallsCh: recoveredCabCallsCh,
 	}
 
 	go bcast.Transmitter(broadcastPort, c.transmitToNetCh)
@@ -69,9 +69,9 @@ func (c *Communication) run() {
 	connectedElevators := [config.N_ELEVATORS - 1]bool{}
 
 	outMsg := NetMsg{
-		FromID:        		c.myID,
-		localState:  		worldview.PeerState{},
-		Backupworldview: 	make(map[string]worldview.PeerState),
+		FromID:          c.myID,
+		LocalState:      worldview.PeerState{},
+		Backupworldview: make(map[string]worldview.PeerState),
 	}
 
 	lastPeerMsg := make(map[string]NetMsg) //map av nøkkelpar ID til NetMsg
@@ -80,7 +80,7 @@ func (c *Communication) run() {
 		select {
 
 		case updatedWorldview := <-c.localWorldViewCh:
-			outMsg.localState = updatedWorldview
+			outMsg.LocalState = updatedWorldview
 
 		case msg := <-c.receiveFromNetCh:
 
@@ -100,7 +100,7 @@ func (c *Communication) run() {
 			//Vi ønsker ikke å behandle meldinger som er identiske med den siste mottatte meldingen fra samme peer
 			if !isSameAsPrevious(lastPeerMsg, msg) {
 				lastPeerMsg[msg.FromID] = msg
-				outMsg.Backupworldview[msg.FromID] = msg.localState //Will be returned to the sending peer for backup
+				outMsg.Backupworldview[msg.FromID] = msg.LocalState //Will be returned to the sending peer for backup
 				c.sendToPeerStateChs(id_index, msg)
 
 				// Updating our recovery state with the latest from this peer
@@ -155,12 +155,12 @@ func (c *Communication) sendToPeersConnectedCh(connectedElevators [config.N_ELEV
 }
 
 func (c *Communication) sendToPeerStateChs(id_index int, msg NetMsg) {
-	fmt.Printf("[comm] forwarding state from %s (idx=%d) HallCalls=%v\n", msg.FromID, id_index, msg.localState.HallCalls)
+	fmt.Printf("[comm] forwarding state from %s (idx=%d) HallCalls=%v\n", msg.FromID, id_index, msg.LocalState.HallCalls)
 	select {
-	case c.PeerStateChs[id_index] <- msg.localState:
+	case c.PeerStateChs[id_index] <- msg.LocalState:
 	default:
 		<-c.PeerStateChs[id_index]
-		c.PeerStateChs[id_index] <- msg.localState
+		c.PeerStateChs[id_index] <- msg.LocalState
 	}
 }
 
@@ -188,5 +188,5 @@ func isSameAsPrevious(last map[string]NetMsg, msg NetMsg) bool {
 		//If no previous message from this peer, it's not the same
 		return false
 	}
-	return prev.localState == msg.localState
+	return prev.LocalState == msg.LocalState
 }

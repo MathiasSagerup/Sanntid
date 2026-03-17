@@ -1,16 +1,14 @@
 package worldview
 
 import (
-	//"fmt"
 	"fmt"
 	"heis/config"
 	"heis/driver"
-
-	//	"heis/hallCallsAssigner"
+	"heis/hallCallsAssigner"
 	"heis/localElevator"
-	//	"strconv"
 	"time"
 )
+
 
 type ElevatorBehaviour int
 
@@ -23,7 +21,7 @@ const (
 type elevatorID int
 
 type HallCallWithConfirmation struct {
-	state OrderState
+	state        OrderState
 	confirmation [config.N_ELEVATORS - 1]bool
 }
 
@@ -38,20 +36,7 @@ const (
 
 type PeerState struct {
 	LocalElevState localElevator.ElevState
-	HallCalls [config.N_FLOORS][2]OrderState	
-}
-
-type HRAInput struct {
-	HallRequests  	[config.N_FLOORS][2]bool
-	thisElevState 	HRAElevStateInput
-	otherElevStates []HRAElevStateInput 
-}
-
-type HRAElevStateInput struct{
-	Floor                 int
-	Dirn                  driver.MotorDirection
-	Behaviour             localElevator.ElevatorBehaviour
-	CabRequests           [config.N_FLOORS]bool
+	HallCalls      [config.N_FLOORS][2]OrderState
 }
 
 // World View Decider module ------------------------------------------------------------------------------------------
@@ -60,29 +45,28 @@ type WorldViewDecider struct {
 	localID string //TODO: Vurder om denne er nødvendig
 
 	//System state
-	hallCalls [config.N_FLOORS][2]HallCallWithConfirmation
-	thisElevState localElevator.ElevState
-	otherElevStates [config.N_ELEVATORS-1]localElevator.ElevState 	//Index corresponds to ElevID and are kept concistent
-	connectedElevators [config.N_ELEVATORS - 1]bool 		//Index corresponds to ElevID and are kept concistent
-	
+	hallCalls          [config.N_FLOORS][2]HallCallWithConfirmation
+	thisElevState      localElevator.ElevState
+	otherElevStates    [config.N_ELEVATORS - 1]localElevator.ElevState //Index corresponds to ElevID and are kept concistent
+	connectedElevators [config.N_ELEVATORS - 1]bool                    //Index corresponds to ElevID and are kept concistent
+
 	//Channels
-	messageFromLocalElevChannel <-chan localElevator.ElevState
+	messageFromLocalElevChannel  <-chan localElevator.ElevState
 	messageFromOtherElevChannels [config.N_ELEVATORS - 1]<-chan PeerState //Index corresponds to ElevID and are kept concistent
-	hallCallButtonChan <-chan driver.ButtonEvent
-	hallCallAssignerChan chan HRAInput
-	toCommCh chan PeerState
-	connectedElevatorsCh <-chan [config.N_ELEVATORS - 1]bool
+	hallCallButtonChan           <-chan driver.ButtonEvent
+	hallCallAssignerChan         chan hallCallsAssigner.HRAInput
+	toCommCh                     chan PeerState
+	connectedElevatorsCh         <-chan [config.N_ELEVATORS - 1]bool
 }
 
 func NewWorldViewModule(
 	messageFromOtherElevChannels [config.N_ELEVATORS - 1]<-chan PeerState,
-	hallCallAssignerChan chan HRAInput,
+	hallCallAssignerChan chan hallCallsAssigner.HRAInput,
 	driverToWorldviewChan <-chan driver.ButtonEvent,
 	toCommCh chan PeerState,
 	localElevCh <-chan localElevator.ElevState,
 	localID string,
 	connectedElevatorsCh <-chan [config.N_ELEVATORS - 1]bool,
-
 ) *WorldViewDecider {
 
 	w := &WorldViewDecider{
@@ -91,12 +75,11 @@ func NewWorldViewModule(
 		hallCallButtonChan:           driverToWorldviewChan,
 		toCommCh:                     toCommCh,
 		messageFromLocalElevChannel:  localElevCh,
-		connectedElevatorsCh:		  connectedElevatorsCh,
-
+		connectedElevatorsCh:         connectedElevatorsCh,
 		localID:                      localID, //TODO: Vurder om nødvendig
 		thisElevState:                localElevator.ElevState{},
 		otherElevStates:              [config.N_ELEVATORS - 1]localElevator.ElevState{},
-		connectedElevators:			  [config.N_ELEVATORS - 1]bool{},
+		connectedElevators:           [config.N_ELEVATORS - 1]bool{},
 	}
 
 	go w.loop()
@@ -110,7 +93,25 @@ func (w *WorldViewDecider) loop() {
 	for {
 		select {
 		case newElevState := <-w.messageFromLocalElevChannel:
+			prevBehaviour := w.thisElevState.Behaviour
 			w.thisElevState = newElevState
+
+			// When door opens, mark Confirmed hall calls at this floor as Completed
+			if newElevState.Behaviour == localElevator.ElevatorBehaviour(doorOpen) &&
+				prevBehaviour != localElevator.ElevatorBehaviour(doorOpen) {
+				hallCallsChanged := false
+				for btn := 0; btn < 2; btn++ {
+					if w.hallCalls[newElevState.Floor][btn].state == Confirmed {
+						w.hallCalls[newElevState.Floor][btn].state = Completed
+						hallCallsChanged = true
+					}
+				}
+				if hallCallsChanged {
+					w.sendUpdatedInformationToHallCallAssigner()
+					w.sendStateUpdateToCommunication()
+				}
+			}
+
 			w.sendUpdatedInformationToHallCallAssigner()
 			w.sendStateUpdateToCommunication()
 
@@ -118,11 +119,11 @@ func (w *WorldViewDecider) loop() {
 			hallCallsBeforeCheck := w.hallCalls
 
 			fmt.Println("[worldview] HallCallButton registered")
-			if hallButtonPressed.Button != driver.BT_Cab { //TODO: Sjekk med Jens hva denne gjør
+			if hallButtonPressed.Button != driver.BT_Cab {
 				if w.hallCalls[hallButtonPressed.Floor][hallButtonPressed.Button].state == NoOrder {
-					if w.getNumberOfConnectedPeers() == 0{
+					if w.getNumberOfConnectedPeers() == 0 {
 						w.hallCalls[hallButtonPressed.Floor][hallButtonPressed.Button].state = Confirmed
-						driver.SetButtonLamp(hallButtonPressed.Button, hallButtonPressed.Floor, true)	
+						driver.SetButtonLamp(hallButtonPressed.Button, hallButtonPressed.Floor, true)
 					} else {
 						w.hallCalls[hallButtonPressed.Floor][hallButtonPressed.Button].state = Unconfirmed
 					}
@@ -130,43 +131,39 @@ func (w *WorldViewDecider) loop() {
 			}
 
 			if hallCallsBeforeCheck != w.hallCalls {
+				fmt.Print("Update passed")
 				w.sendUpdatedInformationToHallCallAssigner()
 				w.sendStateUpdateToCommunication()
 			}
 
-
 		case <-checkMessagesFromOtherElevChannels.C:
-
-			//Check each channel that corresponds to an elevator that is currently connected
 			for elevID := 0; elevID < len(w.messageFromOtherElevChannels); elevID++ {
-				if w.connectedElevators[elevID] == true{
+				if w.connectedElevators[elevID] == true {
 					select {
 					case newPeerState := <-w.messageFromOtherElevChannels[elevID]:
-						
-						//Check state transition with new hallcalls
+						fmt.Println("HallCallsAreBeingChecked", newPeerState.HallCalls)
 						hallCallsBeforeCheck := w.hallCalls
 						w.updateHallCallsAndLights(newPeerState.HallCalls, elevID)
 						if hallCallsBeforeCheck != w.hallCalls {
 							w.sendUpdatedInformationToHallCallAssigner()
 							w.sendStateUpdateToCommunication()
 						}
-						
-						//Check local elev state transition from sender
+
 						if newPeerState.LocalElevState != w.otherElevStates[elevID] {
+							fmt.Println("HallCallsWereChanged")
 							w.otherElevStates[elevID] = newPeerState.LocalElevState
 							w.sendUpdatedInformationToHallCallAssigner()
 							w.sendStateUpdateToCommunication()
 						}
-					
+
 					default:
-						//No update from peer with this elevID
 					}
 				}
 			}
-		
-		case newConnectedElevators := <- w.connectedElevatorsCh:
+
+		case newConnectedElevators := <-w.connectedElevatorsCh:
 			w.connectedElevators = newConnectedElevators
-		
+			fmt.Println("[Worldview] Connected elevators updated", w.connectedElevators)
 		}
 	}
 }
@@ -197,24 +194,23 @@ func (w *WorldViewDecider) updateSpecifiedHallCallAndLight(incomingHallCall Orde
 		case Unconfirmed:
 			w.hallCalls[floor][hallBtn].confirmation[senderElevID] = true
 
-			//Check if all connected elevators now have confirmed for state transition
 			allConnectedElevatorsHaveConfirmed := true
 			for elevID := 0; elevID < len(w.connectedElevators); elevID++ {
-				if (w.connectedElevators[elevID] == true) && (w.hallCalls[floor][hallBtn].confirmation[elevID] == false){
+				if (w.connectedElevators[elevID] == true) && (w.hallCalls[floor][hallBtn].confirmation[elevID] == false) {
 					allConnectedElevatorsHaveConfirmed = false
 				}
 			}
 
 			if allConnectedElevatorsHaveConfirmed {
 				w.hallCalls[floor][hallBtn].state = Confirmed
-				w.hallCalls[floor][hallBtn].confirmation = [config.N_ELEVATORS - 1]bool{} //reset all confirmations to false after transition
-				driver.SetButtonLamp(hallBtn,floor,true)				
+				w.hallCalls[floor][hallBtn].confirmation = [config.N_ELEVATORS - 1]bool{}
+				driver.SetButtonLamp(hallBtn, floor, true)
 			}
 
 		case Confirmed:
 			w.hallCalls[floor][hallBtn].state = Confirmed
-			w.hallCalls[floor][hallBtn].confirmation = [config.N_ELEVATORS - 1]bool{} //reset all confirmations to false after transition
-			driver.SetButtonLamp(hallBtn,floor,true)
+			w.hallCalls[floor][hallBtn].confirmation = [config.N_ELEVATORS - 1]bool{}
+			driver.SetButtonLamp(hallBtn, floor, true)
 		default:
 			//TODO: Legg til warnings her
 		}
@@ -232,39 +228,38 @@ func (w *WorldViewDecider) updateSpecifiedHallCallAndLight(incomingHallCall Orde
 		case Completed:
 			w.hallCalls[floor][hallBtn].confirmation[senderElevID] = true
 
-			//Check if all connected elevators now have confirmed for state transition
 			allConnectedElevatorsHaveConfirmed := true
 			for elevID := 0; elevID < len(w.connectedElevators); elevID++ {
-				if (w.connectedElevators[elevID] == true) && (w.hallCalls[floor][hallBtn].confirmation[elevID] == false){
+				if (w.connectedElevators[elevID] == true) && (w.hallCalls[floor][hallBtn].confirmation[elevID] == false) {
 					allConnectedElevatorsHaveConfirmed = false
 				}
 			}
 
 			if allConnectedElevatorsHaveConfirmed {
 				w.hallCalls[floor][hallBtn].state = NoOrder
-				w.hallCalls[floor][hallBtn].confirmation = [config.N_ELEVATORS - 1]bool{} //reset all confirmations to false after transition
-				driver.SetButtonLamp(hallBtn,floor,false)				
+				w.hallCalls[floor][hallBtn].confirmation = [config.N_ELEVATORS - 1]bool{}
+				driver.SetButtonLamp(hallBtn, floor, false)
 			}
 
 		case NoOrder:
 			w.hallCalls[floor][hallBtn].state = NoOrder
-			driver.SetButtonLamp(hallBtn,floor,false)
+			driver.SetButtonLamp(hallBtn, floor, false)
 		}
 	}
 }
 
 func (w *WorldViewDecider) getHallCallsWithoutConfirmation() [config.N_FLOORS][2]OrderState {
 	hallCallsWithoutConfirmation := [config.N_FLOORS][2]OrderState{}
-	for floor:=0; floor<config.N_FLOORS; floor++{
+	for floor := 0; floor < config.N_FLOORS; floor++ {
 		hallCallsWithoutConfirmation[floor][0] = w.hallCalls[floor][0].state
 		hallCallsWithoutConfirmation[floor][1] = w.hallCalls[floor][1].state
 	}
 	return hallCallsWithoutConfirmation
 }
 
-func (w *WorldViewDecider) getNumberOfConnectedPeers() int{
+func (w *WorldViewDecider) getNumberOfConnectedPeers() int {
 	connectedPeers := 0
-	for elevID := 0; elevID < len(w.connectedElevators); elevID++{
+	for elevID := 0; elevID < len(w.connectedElevators); elevID++ {
 		if w.connectedElevators[elevID] == true {
 			connectedPeers++
 		}
@@ -274,17 +269,16 @@ func (w *WorldViewDecider) getNumberOfConnectedPeers() int{
 
 func (w *WorldViewDecider) sendStateUpdateToCommunication() {
 	input := PeerState{w.thisElevState, w.getHallCallsWithoutConfirmation()}
-	select{	
-		case w.toCommCh <- input:
-		default:
-			<- w.toCommCh
-			w.toCommCh <- input
+	select {
+	case w.toCommCh <- input:
+	default:
+		<-w.toCommCh
+		w.toCommCh <- input
 	}
 }
 
 //TODO: Sjekk at denne gir mening med nye structs
 func (w *WorldViewDecider) sendUpdatedInformationToHallCallAssigner() {
-	//Transform hallRequestStates to bools
 	hallRequestsInput := [config.N_FLOORS][2]bool{}
 
 	for floor := 0; floor < config.N_FLOORS; floor++ {
@@ -295,40 +289,36 @@ func (w *WorldViewDecider) sendUpdatedInformationToHallCallAssigner() {
 		}
 	}
 
-	//Make HRAElevStates from current ElevStates
-	thisElevInput := HRAElevStateInput{
-	    Floor: 			w.thisElevState.Floor,
-		Dirn: 			w.thisElevState.Dirn,
-		Behaviour: 		w.thisElevState.Behaviour,
-		CabRequests: 	w.thisElevState.CabRequests,
+	thisElevInput := hallCallsAssigner.HRAElevStateInput{
+		Floor:       w.thisElevState.Floor,
+		Dirn:        w.thisElevState.Dirn,
+		Behaviour:   w.thisElevState.Behaviour,
+		CabRequests: w.thisElevState.CabRequests,
 	}
 
-	otherElevStatesInput := []HRAElevStateInput{}
+	otherElevStatesInput := []hallCallsAssigner.HRAElevStateInput{}
 	for elevIndex := 0; elevIndex < config.N_ELEVATORS-1; elevIndex++ {
-		//We only pass on the elevator if it considers itself able to take orders, and is connected to network, and unobstructed
 		if w.otherElevStates[elevIndex].AbleToServiceRequests && w.connectedElevators[elevIndex] && !w.otherElevStates[elevIndex].Obstruction {
-			elevatorHRAState := HRAElevStateInput {
-				Floor: 			w.otherElevStates[elevIndex].Floor,
-				Dirn: 			w.otherElevStates[elevIndex].Dirn,
-				Behaviour: 		w.otherElevStates[elevIndex].Behaviour,
-				CabRequests: 	w.otherElevStates[elevIndex].CabRequests,
+			elevatorHRAState := hallCallsAssigner.HRAElevStateInput{
+				Floor:       w.otherElevStates[elevIndex].Floor,
+				Dirn:        w.otherElevStates[elevIndex].Dirn,
+				Behaviour:   w.otherElevStates[elevIndex].Behaviour,
+				CabRequests: w.otherElevStates[elevIndex].CabRequests,
 			}
 			otherElevStatesInput = append(otherElevStatesInput, elevatorHRAState)
 		}
 	}
 
-	//Collect and pass input to HallRequestAssigner channel
-	input := HRAInput{
-		HallRequests: hallRequestsInput,
-		thisElevState: thisElevInput,
-		otherElevStates: otherElevStatesInput,	
+	input := hallCallsAssigner.HRAInput{
+		HallRequests:    hallRequestsInput,
+		ThisElevState:   thisElevInput,
+		OtherElevStates: otherElevStatesInput,
 	}
 
-	select{	
-		case w.hallCallAssignerChan <- input:
-		default:
-			<- w.hallCallAssignerChan
-			w.hallCallAssignerChan <- input
+	select {
+	case w.hallCallAssignerChan <- input:
+	default:
+		<-w.hallCallAssignerChan
+		w.hallCallAssignerChan <- input
 	}
 }
-

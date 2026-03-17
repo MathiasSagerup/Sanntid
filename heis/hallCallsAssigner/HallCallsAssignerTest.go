@@ -14,13 +14,11 @@ func TestSingleElevatorHRA() {
 	const elevID = "test-elevator"
 
 	// Elevator starts idle at floor 0, no cab requests
-	states := map[string]HRAElevState{
-		elevID: {
-			Behaviour:   "idle",
-			Floor:       0,
-			Direction:   "stop",
-			CabRequests: []bool{false, false, false, false},
-		},
+	thisElev := HRAElevStateInput{
+		Behaviour:   0, // idle
+		Floor:       0,
+		Dirn:        0, // stop
+		CabRequests: [config.N_FLOORS]bool{},
 	}
 
 	// Hall requests: up at floor 1, up+down at floor 2, down at floor 3
@@ -31,8 +29,9 @@ func TestSingleElevatorHRA() {
 	hallRequests[3][1] = true // floor 3 down
 
 	input := HRAInput{
-		HallRequests: hallRequests,
-		States:       states,
+		HallRequests:    hallRequests,
+		ThisElevState:   thisElev,
+		OtherElevStates: []HRAElevStateInput{},
 	}
 
 	fmt.Printf("Input hall requests:\n")
@@ -40,7 +39,7 @@ func TestSingleElevatorHRA() {
 		fmt.Printf("  floor %d: up=%v down=%v\n", f, hallRequests[f][0], hallRequests[f][1])
 	}
 
-	result, err := assign(input)
+	result, err := assign(input, elevID)
 	if err != nil {
 		fmt.Printf("❌ FAIL: Assign() returned error: %v\n", err)
 		return
