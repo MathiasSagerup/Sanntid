@@ -255,7 +255,7 @@ func (l *localElevator) fsmOnReceivedHallCalls(newHallCalls [config.N_FLOORS][2]
 			l.startDoorTimer()
 			requestsClearAtCurrentFloor(l)
 		case moving:
-			l.startWatchdogTimer()
+			//l.startWatchdogTimer()
 			driver.SetMotorDirection(l.dirn)
 		case idle:
 			// nothing to do
@@ -277,7 +277,7 @@ func (l *localElevator) sendCompletedHallCallsToWorldView() {
 func (l *localElevator) fsmOnFloorArrival(newFloor int) {
 	l.floor = newFloor
 	driver.SetFloorIndicator(l.floor)
-	l.startWatchdogTimer()
+	//l.startWatchdogTimer()
 	l.ableToServiceRequests = true
 
 	switch l.behaviour {
@@ -321,7 +321,7 @@ func (l *localElevator) fsmOnRequestButtonPress(btnFloor int, btnType driver.But
 			l.startDoorTimer()
 			requestsClearAtCurrentFloor(l)
 		case moving:
-			l.startWatchdogTimer()
+			//l.startWatchdogTimer()
 			driver.SetMotorDirection(l.dirn)
 		case idle:
 			// nothing to do
@@ -345,7 +345,7 @@ func (l *localElevator) fsmOnDoorTimeout() {
 		case moving, idle:
 			driver.SetDoorOpenLamp(false)
 			driver.SetMotorDirection(l.dirn)
-			l.startWatchdogTimer()
+			//l.startWatchdogTimer()
 
 		}
 	}

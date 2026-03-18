@@ -120,7 +120,6 @@ func requestsShouldClearImmediately(e localElevator, btnFloor int, btnType drive
 	if e.floor == btnFloor {
 
 		if e.dirn == driver.MD_Up && btnType == driver.BT_HallUp {
-
 			return true
 
 		} else if e.dirn == driver.MD_Down && btnType == driver.BT_HallDown {

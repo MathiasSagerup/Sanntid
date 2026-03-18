@@ -111,7 +111,8 @@ func main() {
 		completedHallCallsCh,
 	)
 
-	localElevator.NewLocalElev(floorSensorChan,
+	localElevator.NewLocalElev(
+		floorSensorChan,
 		obstructionChan,
 		buttonChan,
 		elevStateToWorldview,
