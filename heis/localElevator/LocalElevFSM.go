@@ -160,15 +160,11 @@ func (l *localElevator) run() {
 			l.sendElevStateToWorldView()
 
 		case <-l.motorLossWatchdogCh:
-			fmt.Println("[localELev]MotorLoss watchdog timer ran out")
+
 			if l.behaviour == moving {
 				l.ableToServiceRequests = false
-				//should only be triggered if the elevator is moving.
-			} else {
-				l.ableToServiceRequests = true
-				l.elevStateToWorldview <- l.getElevState()
+				l.sendElevStateToWorldView()
 			}
-			l.sendElevStateToWorldView()
 		}
 	}
 }
@@ -240,8 +236,6 @@ func (l *localElevator) combineHallCallsAndCabCalls(newHallCalls [config.N_FLOOR
 
 func (l *localElevator) fsmOnReceivedHallCalls(newHallCalls [config.N_FLOORS][2]bool) {
 	l.combineHallCallsAndCabCalls(newHallCalls)
-	fmt.Println("[localElevator] starting watchdog timer")
-	l.startWatchdogTimer()
 
 	switch l.behaviour {
 
@@ -273,6 +267,7 @@ func (l *localElevator) fsmOnReceivedHallCalls(newHallCalls [config.N_FLOORS][2]
 			l.startDoorTimer()
 			requestsClearAtCurrentFloor(l)
 		case moving:
+			l.startWatchdogTimer()
 			driver.SetMotorDirection(l.dirn)
 		case idle:
 			// nothing to do
@@ -294,7 +289,6 @@ func (l *localElevator) sendCompletedHallCallsToWorldView() {
 func (l *localElevator) fsmOnFloorArrival(newFloor int) {
 	l.floor = newFloor
 	driver.SetFloorIndicator(l.floor)
-	fmt.Println("[localElevator] starting watchdog timer")
 	l.startWatchdogTimer()
 
 	switch l.behaviour {
@@ -312,8 +306,7 @@ func (l *localElevator) fsmOnFloorArrival(newFloor int) {
 
 // logikk for tilstandsendring
 func (l *localElevator) fsmOnRequestButtonPress(btnFloor int, btnType driver.ButtonType) {
-	l.startWatchdogTimer()
-	fmt.Println("[localElevator] starting watchdog timer")
+
 	switch l.behaviour {
 	case doorOpen:
 		if requestsShouldClearImmediately(*l, btnFloor, btnType) {
@@ -339,6 +332,7 @@ func (l *localElevator) fsmOnRequestButtonPress(btnFloor int, btnType driver.But
 			l.startDoorTimer()
 			requestsClearAtCurrentFloor(l)
 		case moving:
+			l.startWatchdogTimer()
 			driver.SetMotorDirection(l.dirn)
 		case idle:
 			// nothing to do
@@ -362,6 +356,7 @@ func (l *localElevator) fsmOnDoorTimeout() {
 		case moving, idle:
 			driver.SetDoorOpenLamp(false)
 			driver.SetMotorDirection(l.dirn)
+			l.startWatchdogTimer()
 
 		}
 	}
