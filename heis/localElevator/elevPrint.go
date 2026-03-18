@@ -2,6 +2,7 @@ package localElevator
 
 import (
 	"fmt"
+	"heis/config"
 	"heis/driver"
 )
 
@@ -31,10 +32,10 @@ func (e localElevator) Print() {
 	fmt.Println("  +--------------------+")
 	fmt.Println("  |  | up  | dn  | cab |")
 
-	for f := N_FLOORS - 1; f >= 0; f-- {
+	for f := config.N_FLOORS - 1; f >= 0; f-- {
 		fmt.Printf("  | %d", f)
-		for btn := 0; btn < N_BUTTONS; btn++ {
-			if (f == N_FLOORS-1 && btn == int(driver.BT_HallUp)) ||
+		for btn := 0; btn < config.N_BUTTONS; btn++ {
+			if (f == config.N_FLOORS-1 && btn == int(driver.BT_HallUp)) ||
 				(f == 0 && btn == int(driver.BT_HallDown)) {
 				fmt.Print("|     ")
 			} else if e.requests[f][btn] {

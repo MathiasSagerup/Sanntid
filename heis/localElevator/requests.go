@@ -2,14 +2,15 @@ package localElevator
 
 import (
 	"fmt"
+	"heis/config"
 	"heis/driver"
 )
 
 //modulen håndterer bestillinger for lokale heisen
 
 func requestsAbove(e localElevator) bool {
-	for f := e.floor + 1; f < N_FLOORS; f++ {
-		for btn := 0; btn < N_BUTTONS; btn++ {
+	for f := e.floor + 1; f < config.N_FLOORS; f++ {
+		for btn := 0; btn < config.N_BUTTONS; btn++ {
 			if e.requests[f][btn] {
 				return true
 			}
@@ -20,7 +21,7 @@ func requestsAbove(e localElevator) bool {
 
 func requestsBelow(e localElevator) bool {
 	for f := 0; f < e.floor; f++ {
-		for btn := 0; btn < N_BUTTONS; btn++ {
+		for btn := 0; btn < config.N_BUTTONS; btn++ {
 			if e.requests[f][btn] {
 				return true
 			}
@@ -30,7 +31,7 @@ func requestsBelow(e localElevator) bool {
 }
 
 func requestsHere(e localElevator) bool {
-	for btn := 0; btn < N_BUTTONS; btn++ {
+	for btn := 0; btn < config.N_BUTTONS; btn++ {
 		if e.requests[e.floor][btn] {
 			return true
 		}
@@ -119,13 +120,10 @@ func requestsShouldClearImmediately(e localElevator, btnFloor int, btnType drive
 	if e.floor == btnFloor {
 
 		if e.dirn == driver.MD_Up && btnType == driver.BT_HallUp {
-	
+
 			return true
 
 		} else if e.dirn == driver.MD_Down && btnType == driver.BT_HallDown {
-			return true
-
-		} else if e.dirn == driver.MD_Stop {
 			return true
 
 		} else if e.dirn == driver.MD_Stop {

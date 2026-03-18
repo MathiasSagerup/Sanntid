@@ -7,10 +7,6 @@ import (
 	"time"
 )
 
-const N_BUTTONS = 3
-const N_FLOORS = 4
-const doorOpenDuration = 3 * time.Second
-
 type ElevatorBehaviour int
 
 const (
@@ -28,7 +24,7 @@ type ElevState struct {
 	Floor                 int
 	Dirn                  driver.MotorDirection
 	Behaviour             ElevatorBehaviour
-	CabRequests           [N_FLOORS]bool
+	CabRequests           [config.N_FLOORS]bool
 	Obstruction           bool
 	AbleToServiceRequests bool
 }
@@ -36,45 +32,49 @@ type ElevState struct {
 type localElevator struct {
 
 	//input channels from driver:
-	floorSensorChan chan int
-	obstructionChan chan bool
-	buttonChan      chan driver.ButtonEvent
-	doorTimeoutChan chan bool
+	floorSensorChan     chan int
+	obstructionChan     chan bool
+	buttonChan          chan driver.ButtonEvent
+	doorTimeoutChan     chan bool
+	motorLossWatchdogCh chan bool
 
 	//internal states
 	floor                 int
 	dirn                  driver.MotorDirection
-	requests              [N_FLOORS][N_BUTTONS]bool
+	requests              [config.N_FLOORS][config.N_BUTTONS]bool
 	behaviour             ElevatorBehaviour
 	obstruction           bool
 	ableToServiceRequests bool
 	dirnBehaviourPair     dirnBehaviourPair
-	assignedHallCalls     [N_FLOORS][2]bool
-	completedHallCalls    [N_FLOORS][2]bool
+	assignedHallCalls     [config.N_FLOORS][2]bool
+	completedHallCalls    [config.N_FLOORS][2]bool
 
 	//Internal request channels (one per public method)
 	elevStateToWorldview chan ElevState
-	completedHallcallsCh chan [N_FLOORS][2]bool
+	completedHallcallsCh chan [config.N_FLOORS][2]bool
 
 	//Input channel from hallcallassigner
-	assignerToLocalElev chan [N_FLOORS][2]bool
+	assignerToLocalElev chan [config.N_FLOORS][2]bool
 }
 
 // å kjøre denne vil få heisen til å kjøre ned til en etasje, da vil localElevFSM
 // overta styring.
 
 // -------------param--*package --- instans av package ---
-func NewLocalElev(floorSensorChan chan int,
+func NewLocalElev(
+	floorSensorChan chan int,
 	obstructionChan chan bool,
 	buttonChan chan driver.ButtonEvent,
 	elevStateToWorldview chan ElevState,
-	assignerToLocalElev chan [N_FLOORS][2]bool,
-	completedHallCallsCh chan [N_FLOORS][2]bool,
-	initialCabCalls [N_FLOORS]bool,
+	assignerToLocalElev chan [config.N_FLOORS][2]bool,
+	completedHallCallsCh chan [config.N_FLOORS][2]bool,
+	initialCabCalls [config.N_FLOORS]bool,
 ) *localElevator {
 
 	l := &localElevator{
-		doorTimeoutChan:      make(chan bool, 1),
+		doorTimeoutChan:     make(chan bool, 1),
+		motorLossWatchdogCh: make(chan bool, 1),
+
 		floorSensorChan:      floorSensorChan,
 		obstructionChan:      obstructionChan,
 		buttonChan:           buttonChan,
@@ -159,14 +159,20 @@ func (l *localElevator) run() {
 			}
 			l.sendElevStateToWorldView()
 
+		case <-l.motorLossWatchdogCh:
+			if l.behaviour == moving {
+				l.ableToServiceRequests = false
+				//should only be triggered if the elevator is moving.
+			}
+			l.sendElevStateToWorldView()
 		}
 	}
 }
 
-func (l *localElevator) getCabCalls() [N_FLOORS]bool {
-	cabCalls := [N_FLOORS]bool{}
+func (l *localElevator) getCabCalls() [config.N_FLOORS]bool {
+	cabCalls := [config.N_FLOORS]bool{}
 
-	for floor := 0; floor < N_FLOORS; floor++ {
+	for floor := 0; floor < config.N_FLOORS; floor++ {
 		cabCalls[floor] = l.requests[floor][driver.BT_Cab]
 	}
 	return cabCalls
@@ -184,8 +190,8 @@ func (l *localElevator) getElevState() ElevState {
 	return state
 }
 
-func (l *localElevator) applyInitialRequests(initialCabCalls [N_FLOORS]bool) {
-	for floor := 0; floor < N_FLOORS; floor++ {
+func (l *localElevator) applyInitialRequests(initialCabCalls [config.N_FLOORS]bool) {
+	for floor := 0; floor < config.N_FLOORS; floor++ {
 		l.requests[floor][driver.BT_Cab] = initialCabCalls[floor]
 	}
 }
@@ -200,8 +206,8 @@ func (l *localElevator) sendElevStateToWorldView() {
 }
 
 func (l *localElevator) setCabLights() {
-	for floor := 0; floor < N_FLOORS; floor++ {
-		for btn := 0; btn < N_BUTTONS; btn++ {
+	for floor := 0; floor < config.N_FLOORS; floor++ {
+		for btn := 0; btn < config.N_BUTTONS; btn++ {
 			if btn == driver.BT_Cab {
 				driver.SetButtonLamp(driver.BT_Cab, floor, l.requests[floor][btn])
 			}
@@ -210,8 +216,8 @@ func (l *localElevator) setCabLights() {
 }
 
 func (l *localElevator) setHallCallLightsOff() {
-	for floor := 0; floor < N_FLOORS; floor++ {
-		for btn := 0; btn < N_BUTTONS; btn++ {
+	for floor := 0; floor < config.N_FLOORS; floor++ {
+		for btn := 0; btn < config.N_BUTTONS; btn++ {
 			if btn == driver.BT_HallDown || btn == driver.BT_HallUp {
 				driver.SetButtonLamp(driver.ButtonType(btn), floor, false)
 			}
@@ -219,10 +225,10 @@ func (l *localElevator) setHallCallLightsOff() {
 	}
 }
 
-func (l *localElevator) combineHallCallsAndCabCalls(newHallCalls [N_FLOORS][2]bool) {
+func (l *localElevator) combineHallCallsAndCabCalls(newHallCalls [config.N_FLOORS][2]bool) {
 
-	for floor := 0; floor < N_FLOORS; floor++ {
-		for btn := 0; btn < N_BUTTONS-1; btn++ {
+	for floor := 0; floor < config.N_FLOORS; floor++ {
+		for btn := 0; btn < config.N_BUTTONS-1; btn++ {
 			l.requests[floor][btn] = newHallCalls[floor][btn]
 		}
 	}
@@ -230,6 +236,7 @@ func (l *localElevator) combineHallCallsAndCabCalls(newHallCalls [N_FLOORS][2]bo
 
 func (l *localElevator) fsmOnReceivedHallCalls(newHallCalls [config.N_FLOORS][2]bool) {
 	l.combineHallCallsAndCabCalls(newHallCalls)
+	l.startWatchdogTimer()
 
 	switch l.behaviour {
 
@@ -275,13 +282,14 @@ func (l *localElevator) sendCompletedHallCallsToWorldView() {
 	default:
 		fmt.Println("[localElevator] Warning: completedHallCalls channel is full, skipping update")
 	}
-	l.completedHallCalls = [N_FLOORS][2]bool{}
+	l.completedHallCalls = [config.N_FLOORS][2]bool{}
 }
 
 // logikk for tilstandsendring i etasje
 func (l *localElevator) fsmOnFloorArrival(newFloor int) {
 	l.floor = newFloor
 	driver.SetFloorIndicator(l.floor)
+	l.startWatchdogTimer()
 
 	switch l.behaviour {
 	case moving:
@@ -298,6 +306,7 @@ func (l *localElevator) fsmOnFloorArrival(newFloor int) {
 
 // logikk for tilstandsendring
 func (l *localElevator) fsmOnRequestButtonPress(btnFloor int, btnType driver.ButtonType) {
+	l.startWatchdogTimer()
 	switch l.behaviour {
 	case doorOpen:
 		if requestsShouldClearImmediately(*l, btnFloor, btnType) {
@@ -352,7 +361,13 @@ func (l *localElevator) fsmOnDoorTimeout() {
 }
 
 func (l *localElevator) startDoorTimer() {
-	time.AfterFunc(doorOpenDuration, func() {
+	time.AfterFunc(config.DoorOpenDuration, func() {
 		l.doorTimeoutChan <- true
+	})
+}
+
+func (l *localElevator) startWatchdogTimer() {
+	time.AfterFunc(config.MotorLossDuration, func() {
+		l.motorLossWatchdogCh <- true
 	})
 }
