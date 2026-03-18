@@ -89,6 +89,8 @@ func NewWorldViewModule(
 		connectedElevators:			  [config.N_ELEVATORS - 1]bool{},
 	}
 
+	w.setHallCallLightsOff()
+
 	go w.loop()
 
 	return w
@@ -359,3 +361,12 @@ func (w *WorldViewDecider) sendUpdatedInformationToHallCallAssigner() {
 	}
 }
 
+func (w *WorldViewDecider) setHallCallLightsOff() {
+	for floor := 0; floor < config.N_FLOORS; floor++ {
+		for btn := 0; btn < config.N_BUTTONS; btn++ {
+			if btn == driver.BT_HallDown || btn == driver.BT_HallUp {
+				driver.SetButtonLamp(driver.ButtonType(btn), floor, false)
+			}
+		}
+	}
+}

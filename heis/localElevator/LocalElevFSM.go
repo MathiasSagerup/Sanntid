@@ -101,7 +101,6 @@ func NewLocalElev(
 	l.applyInitialRequests(initialCabCalls)
 	fmt.Println("initial requests:", l.requests)
 	l.setCabLights()
-	l.setHallCallLightsOff()
 	driver.SetFloorIndicator(l.floor)
 
 	l.ableToServiceRequests = true
@@ -126,14 +125,13 @@ func (l *localElevator) run() {
 			l.sendElevStateToWorldView()
 
 		case newBtn := <-l.buttonChan:
+			//We only want localElevator to handle cab calls, world view handles hall calls.
 			if newBtn.Button == driver.BT_Cab {
 				l.requests[newBtn.Floor][newBtn.Button] = true
 				l.fsmOnRequestButtonPress(newBtn.Floor, newBtn.Button)
-
 			}
 			l.sendElevStateToWorldView()
 
-			//HallButton handled by worldview
 		case newObstr := <-l.obstructionChan:
 			l.obstruction = newObstr
 
@@ -210,16 +208,6 @@ func (l *localElevator) setCabLights() {
 		for btn := 0; btn < config.N_BUTTONS; btn++ {
 			if btn == driver.BT_Cab {
 				driver.SetButtonLamp(driver.BT_Cab, floor, l.requests[floor][btn])
-			}
-		}
-	}
-}
-
-func (l *localElevator) setHallCallLightsOff() {
-	for floor := 0; floor < config.N_FLOORS; floor++ {
-		for btn := 0; btn < config.N_BUTTONS; btn++ {
-			if btn == driver.BT_HallDown || btn == driver.BT_HallUp {
-				driver.SetButtonLamp(driver.ButtonType(btn), floor, false)
 			}
 		}
 	}
