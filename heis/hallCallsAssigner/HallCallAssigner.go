@@ -52,7 +52,7 @@ func NewHallCallAssigner(InputChan chan HRAInput, OutputChan chan [config.N_FLOO
 	h := &HallCallAssigner{
 		HRAInputChan:  InputChan,
 		HRAOutputChan: OutputChan,
-		thisElevID:    "thisElev",
+		thisElevID:    "elev0",
 		hraExecutable: config.HallCallAssignerExec,
 	}
 
@@ -69,7 +69,7 @@ func (h *HallCallAssigner) run(){
 		case hraInput := <- h.HRAInputChan:
 		
 		inputMap := map[string]hraFormattedElevState{
-			h.thisElevID: hraFormattedElevState{
+			h.thisElevID: {
 				Behavior:       hraInput.ThisElevState.Behaviour.String(),
 				Floor:          hraInput.ThisElevState.Floor,
 				Direction:      hraInput.ThisElevState.Dirn.String(),
@@ -77,7 +77,7 @@ func (h *HallCallAssigner) run(){
 			},
 		}
 		
-		for otherElevIndex := 0; otherElevIndex < len(hraInput.OtherElevStates); otherElevIndex++ {
+		for otherElevIndex := 1; otherElevIndex <= len(hraInput.OtherElevStates); otherElevIndex++ {
 			inputMap["elev"+fmt.Sprint(otherElevIndex)] = hraFormattedElevState{
 				Behavior:       hraInput.OtherElevStates[otherElevIndex].Behaviour.String(),
 				Floor:          hraInput.OtherElevStates[otherElevIndex].Floor,
@@ -110,8 +110,9 @@ func (h *HallCallAssigner) run(){
 			fmt.Println("json.Unmarshal error: ", err)
 			return
 		}
-
+	
 		h.sendAssignedHallCallsToLocalElevator((*output)[h.thisElevID])
+		//fmt.Println(output)
 
 		}
 	}
