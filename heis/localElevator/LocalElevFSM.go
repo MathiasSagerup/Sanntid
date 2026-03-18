@@ -101,7 +101,7 @@ func NewLocalElev(floorSensorChan chan int,
 	//Aktiver initial cab calls
 	l.applyInitialRequests(initialCabCalls)
 	fmt.Println("initial requests:",l.requests)
-	l.setAllLights()
+	l.setCabLights()
 
 	//Send initialtilstand til world view
 	l.sendElevStateToWorldView()
@@ -198,10 +198,12 @@ func (l *localElevator) sendElevStateToWorldView() {
 	}
 }
 
-func (l *localElevator) setAllLights() {
+func (l *localElevator) setCabLights() {
 	for floor := 0; floor < N_FLOORS; floor++ {
 		for btn := 0; btn < N_BUTTONS; btn++ {
-			driver.SetButtonLamp(driver.ButtonType(btn), floor, l.requests[floor][btn])
+			if btn == driver.BT_Cab {
+			driver.SetButtonLamp(driver.BT_Cab, floor, l.requests[floor][btn])
+			}
 		}
 	}
 }
@@ -277,7 +279,7 @@ func (l *localElevator) fsmOnFloorArrival(newFloor int) {
 			driver.SetDoorOpenLamp(true)
 			requestsClearAtCurrentFloor(l)
 			l.startDoorTimer()
-			l.setAllLights()
+			l.setCabLights()
 			l.behaviour = doorOpen
 		}
 	}
@@ -315,7 +317,7 @@ func (l *localElevator) fsmOnRequestButtonPress(btnFloor int, btnType driver.But
 			// nothing to do
 		}
 	}
-	l.setAllLights()
+	l.setCabLights()
 }
 
 func (l *localElevator) fsmOnDoorTimeout() {
@@ -329,12 +331,13 @@ func (l *localElevator) fsmOnDoorTimeout() {
 		case doorOpen:
 			l.startDoorTimer()
 			requestsClearAtCurrentFloor(l)
-			l.setAllLights()
+			l.setCabLights()
 		case moving, idle:
 			driver.SetDoorOpenLamp(false)
 			driver.SetMotorDirection(l.dirn)
-		}
+		
 	}
+}
 }
 
 func (l *localElevator) startDoorTimer() {
