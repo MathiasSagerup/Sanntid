@@ -310,7 +310,7 @@ func (w *WorldViewDecider) sendUpdatedInformationToCommunication() {
 //TODO: Sjekk at denne gir mening med nye structs
 func (w *WorldViewDecider) sendUpdatedInformationToHallCallAssigner() {
 	//Transform hallRequestStates to bools
-	
+
 
 	hallRequestsInput := [config.N_FLOORS][2]bool{}
 
@@ -323,18 +323,18 @@ func (w *WorldViewDecider) sendUpdatedInformationToHallCallAssigner() {
 	}
 
 	//Make HRAElevStates from current ElevStates
-	thisElevInput := hallCallsAssigner.HRAElevStateInput{
+	thisElevInput := localElevator.ElevState{
 	    Floor: 			w.thisElevState.Floor,
 		Dirn: 			w.thisElevState.Dirn,
 		Behaviour: 		w.thisElevState.Behaviour,
 		CabRequests: 	w.thisElevState.CabRequests,
 	}
 
-	otherElevStatesInput := []hallCallsAssigner.HRAElevStateInput{}
+	otherElevStatesInput := []localElevator.ElevState{}
 	for elevIndex := 0; elevIndex < config.N_ELEVATORS-1; elevIndex++ {
 		//We only pass on the elevator if it considers itself able to take orders, and is connected to network, and unobstructed
 		if w.otherElevStates[elevIndex].AbleToServiceRequests && w.connectedElevators[elevIndex] && !w.otherElevStates[elevIndex].Obstruction {
-			elevatorHRAState := hallCallsAssigner.HRAElevStateInput {
+			elevatorHRAState := localElevator.ElevState {
 				Floor: 			w.otherElevStates[elevIndex].Floor,
 				Dirn: 			w.otherElevStates[elevIndex].Dirn,
 				Behaviour: 		w.otherElevStates[elevIndex].Behaviour,
