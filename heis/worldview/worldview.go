@@ -112,7 +112,7 @@ func (w *WorldViewDecider) loop() {
 			fmt.Println("[worldview] HallCallButton registered")
 			if hallButtonPressed.Button != driver.BT_Cab { //TODO: Sjekk med Jens hva denne gjør
 				if w.hallCalls[hallButtonPressed.Floor][hallButtonPressed.Button].state == NoOrder {
-					if w.getNumberOfConnectedPeers() == 0{
+					if w.getNumberOfConnectedPeers() == 0 {
 						w.hallCalls[hallButtonPressed.Floor][hallButtonPressed.Button].state = Confirmed
 						driver.SetButtonLamp(hallButtonPressed.Button, hallButtonPressed.Floor, true)	
 					} else {
