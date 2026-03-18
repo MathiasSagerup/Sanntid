@@ -290,6 +290,7 @@ func (l *localElevator) fsmOnFloorArrival(newFloor int) {
 	l.floor = newFloor
 	driver.SetFloorIndicator(l.floor)
 	l.startWatchdogTimer()
+	l.ableToServiceRequests = true
 
 	switch l.behaviour {
 	case moving:
