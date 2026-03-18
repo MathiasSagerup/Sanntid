@@ -77,8 +77,8 @@ func (h *HallCallAssigner) run(){
 			},
 		}
 		
-		for otherElevIndex := 1; otherElevIndex < (len(hraInput.OtherElevStates)+1); otherElevIndex++ {
-			inputMap["elev"+fmt.Sprint(otherElevIndex)] = hraFormattedElevState{
+		for otherElevIndex := 0; otherElevIndex < len(hraInput.OtherElevStates); otherElevIndex++ {
+			inputMap["elev"+fmt.Sprint(otherElevIndex+1)] = hraFormattedElevState{
 				Behavior:       hraInput.OtherElevStates[otherElevIndex].Behaviour.String(),
 				Floor:          hraInput.OtherElevStates[otherElevIndex].Floor,
 				Direction:      hraInput.OtherElevStates[otherElevIndex].Dirn.String(),
