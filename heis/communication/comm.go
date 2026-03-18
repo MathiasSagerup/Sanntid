@@ -24,11 +24,11 @@ type Communication struct {
 	transmitToNetCh       chan NetMsg
 	receiveFromNetCh      chan NetMsg
 	localWorldViewCh      <-chan model.PeerState//
-	peerIDIndex           map[string]int                                   	// maps peer ID to its correponding index in worldview.PeerStateChs and peersConnectedCh
+	peerIDIndex           map[string]int                                   	
 	//PeerStateChs          [config.N_ELEVATORS - 1]chan wordwiew.PeerState // one channel per other elevator, forwarded to worldview
-	peerStateChs          [config.N_ELEVATORS - 1]chan model.PeerState //liten boisktav, og modell
+	peerStateChs          [config.N_ELEVATORS - 1]chan model.PeerState 
 	peersConnectedCh      chan [config.N_ELEVATORS - 1]bool
-	recoveredCabCallsCh   chan [config.N_FLOORS]bool							//Used during initialization to regain previous state from peers if we are recovering from a failure
+	recoveredCabCallsCh   chan [config.N_FLOORS]bool							
 }
 
 func NewCommunicationModule(
@@ -39,13 +39,13 @@ func NewCommunicationModule(
 	recoveredCabCallsCh chan [config.N_FLOORS]bool,
 	peersConnectedCh chan [config.N_ELEVATORS - 1]bool,
 ) *Communication {
-	//transmitEnable := make(chan bool)
+
 
 	c := &Communication{
 		myID:                  id,
 		localWorldViewCh:      worldviewToCommCh,
-		bcastPeriod:           15 * time.Millisecond, //TODO: Føler ikke denne er på riktig plass, flytte til config?
-		timoutCheckPeriod:     100 * time.Millisecond, //TODO: Føler ikke denne er på riktig plass, flytte til config?
+		bcastPeriod:           15 * time.Millisecond, 
+		timoutCheckPeriod:     100 * time.Millisecond, 
 		transmitToNetCh:       make(chan NetMsg, 1),
 		receiveFromNetCh:      make(chan NetMsg, 1),
 		peerIDIndex:           make(map[string]int),
@@ -78,7 +78,7 @@ func (c *Communication) run() {
 		Backupworldview: 	make(map[string]worldview.PeerState),
 	}
 
-	lastPeerMsg := make(map[string]NetMsg) //map av nøkkelpar ID til NetMsg
+	lastPeerMsg := make(map[string]NetMsg)
 
 	for {
 		select {
@@ -88,12 +88,11 @@ func (c *Communication) run() {
 
 		case msg := <-c.receiveFromNetCh:
 
-			//Ikke gå videre med manglede ID eller meldinger fra oss selv
 			if msg.FromID == "" || msg.FromID == c.myID {
 				continue
 			}
 
-			//Registrer at vi har mottatt en melding fra denne peer
+	
 			id_index := c.getCurrentOrAssignNewPeerIndex(msg.FromID)
 			timeLastMessageRecieved[msg.FromID] = time.Now()
 			
@@ -102,13 +101,13 @@ func (c *Communication) run() {
 				c.sendToPeersConnectedCh(connectedElevators)
 			}
 
-			//Vi ønsker ikke å behandle meldinger som er identiske med den siste mottatte meldingen fra samme peer
+	
 			if !isSameAsPrevious(lastPeerMsg, msg) {
 				lastPeerMsg[msg.FromID] = msg
-				outMsg.Backupworldview[msg.FromID] = msg.LocalState //Will be returned to the sending peer for backup
+				outMsg.Backupworldview[msg.FromID] = msg.LocalState 
 				c.sendToPeerStateChs(id_index, msg)
 
-				// Updating our recovery state with the latest from this peer
+				//Denne delen er litt upresis hvorfor er der - det er kun ved oppdatart at localStateWasRecovered=false
 				recoveredState, localStateWasRecovered := msg.Backupworldview[c.myID]
 				if localStateWasRecovered {
 					select {
@@ -130,7 +129,7 @@ func (c *Communication) run() {
 		case <-checkElevatorTimeout.C:
 			connectedElevatorsFromLastCheck := connectedElevators
 
-			// Check which peers are currently timed out
+			
 			now := time.Now()
 			for peerID, lastTimeMessageRecieved := range timeLastMessageRecieved {
 				id_index := c.getCurrentOrAssignNewPeerIndex(peerID)
@@ -141,7 +140,7 @@ func (c *Communication) run() {
 				}
 			}
 
-			// Only send an update if a new elevator has timed out
+			
 			if connectedElevators != connectedElevatorsFromLastCheck {
 				c.sendToPeersConnectedCh(connectedElevators)
 			}
@@ -190,7 +189,7 @@ func (c *Communication) getCurrentOrAssignNewPeerIndex(id string) int {
 func isSameAsPrevious(last map[string]NetMsg, msg NetMsg) bool {
 	prev, ok := last[msg.FromID]
 	if !ok {
-		//If no previous message from this peer, it's not the same
+		
 		return false
 	}
 	return prev.LocalState == msg.LocalState

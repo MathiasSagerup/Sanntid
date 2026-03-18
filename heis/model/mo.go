@@ -1,5 +1,9 @@
 package model
 
+//her skal følgende ligge:
+//felles typer som brukes flere steder i systemet
+//kontrakter mellom moduler 
+
 import (
 	"heis/config"
 	"heis/driver"

@@ -20,14 +20,59 @@ main er oppkobling
 
 # Forslag til kodekvalitetsforbedringer
 
-## worldview
+## worldview/communication coupling
 Problem:
-- Høy coupling mot localElevator og driver
+- Høy coupling:
+    - Modulene bruker hverandres typer direkte i grensesnittene sine, i stedet for å møtes på nøytrale kontrakter
+    - eks: Modulene bruker hverandres typer direkte i grensesnittene sine, i stedet for å møtes på nøytrale kontrakter
+    - moduler blir avhengige av hverandre: endres lokal type i Elevator state vil nå ww svikte. Løsning er 
 
 Forslag:
-- Flytte ElevState til model
-- La worldview motta model.HallCallEvent i stedet for driver.ButtonEvent
+- model skal bare inneholde delte kontrakter mellom moduler
+- Hver modul skal fortsatt eie lokale tilstander. 
+    localElevator skal fortsatt eie sin interne state
+    driver skal fortsatt eie rå ButtonEvent
+    Altså skal de selv eie lokal informasjon, og lage snapshots av innhold andre trenger fra dem i en kontrakt i model
+        localelev lager selv en instans av model.ElevatorState og sender denne verdien ut 
+        Moduler skal eie data som kun skal gi mening for den. NetMsg er f.eks lokal 
+- main kobler moduler med kontrakt.
+    gjør om driver.ButtonEvent til model.HallCallEvent, som hentes fra ww
+    gjør om driver.ButtonEvent til model.PeerState, som hentes fra comm
+    gjør om driver.ButtonEvent til model.PeerState, som hentes fra comm
+    
+- Flytte ElevState, PeerState etc. til model, altså de kontraktene som er mellom moduler 
+- La worldview motta model.HallCallEvent i stedet for driver.ButtonEvent for å abstrahere. Model inneholder
+    ElevatorState
+    OrderState
+    PeerState
+    HallCallEvent
 
 Konsekvens:
 - Tydeligere kontrakter mellom moduler
 - Mindre spredning av endringer
+- vi trenger ikke å importere andre moduler. Main tar seg av dette
+
+driver
+   ↓
+driverButtonChan
+   ↓
+fanOut
+  ↙        ↘
+buttonChan   hallCallEventChan
+   ↓              ↓
+localElevator   worldview
+
+
+
+Alternativ 2: 
+
+Driver: leser harware, sender ut harwarehendlelser, skriver til hardware, tolker om knappetrykk er cc eller hc og sender videre på kanaler 
+Vi kan legge til logikk i driver som tolker hvilken type knapp som ble trykket og sender henseler til ww og legge
+ulempe: da blir driver ansvarlig for å forstå ting om arkitekturen i systsmet. 
+Fordel: ww og le mottar kun det de trenger, driver er nærmere logikken, main er ryddig
+
+Alternativ 3: 
+Driver: leser harware, sender ut harwarehendlelser, skriver til hardware.
+Main: er mellommann og skal hovedsaklig stå for initiering, sette opp det som trengs. 
+Vi kan legge til en enkel funksjon som tolker input og sender videre informasjon til ww og le
+Fordel: ww og le mottar kun det de trenger, driver holdes intern. 

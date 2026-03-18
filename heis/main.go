@@ -17,17 +17,7 @@ import (
 
 func main() {
 
-	//for å kjøre på fysik heis og sim
-	// ./SimElevatorServer --port randum num (e.g 16042) --id elevator-num (e.g elevator-1) og go run . --server localhost:16042 --id elevator-num
-	// i annen terminal elevatorserver
-	// go run . --server 
 
-	//for å kjøre på samme pc:
-	// ./SimElevatorServer --port 15657 og go run . --server localhost:15657 --id elevator-1
-	// ./SimElevatorServer --port 15658 og go run . --server localhost:15658 --id elevator-2
-
-	//uses the local ip address + an id given on the command line to
-	//create localID
 	serverAddr := flag.String("server", "localhost:15657", "Elevator server address")
 	idFlag := flag.String("id", "", "Elevator ID (optional)")
 	flag.Parse()
@@ -48,10 +38,10 @@ func main() {
 
 	driver.Init(*serverAddr, config.N_FLOORS)
 
-	//Her mottas en recoverd state om ønsket fra communication module
-	recoveredCabCallsCh := make(chan [config.N_FLOORS]bool, 1)
+	//KODEKVALITET: navngivning
+	////InitialCabCalls - kanal skal ha flyt av initial cabCalls 
+	recoveredCabCallsCh := make(chan [config.N_FLOORS]bool, 1) //kanal for reco
 
-	//sensor channels
 	floorSensorChan := make(chan int, 1)
 	obstructionChan := make(chan bool, 1)
 	stopBtnChan := make(chan bool, 1)
@@ -65,52 +55,54 @@ func main() {
 
 	//---------------
 
-	//localElevator til Worldview
-	elevStateToWorldview := make(chan localElevator.ElevState, 1)
 
-	//HallCallAssigner til localELevator
-	assignerToLocalElev := make(chan [config.N_FLOORS][2]bool, 1)
+	//KODEKVALITET: navngignine. Kanalnavn er tunge 
+	//navn skal beskrive hva man får ved å bruke den: assignerToLocalElev til assignedHallCalls
+	//unngå retning som To. Det viktige er betydning: worldviewToHallCallAssigner til .. og worldviewToCommuncation til peerStateUpdates
+	//Channels kan navgis som strømmer: assignedHallCalls, buttonEvents osv. Ikke bruk chs for det er stygg forkortelse 
+	//vær konsekvent på bruk: f.eks events 
 
-	//input kanal til hallCallsAssigner:
-	worldviewToHallCallAssigner := make(chan worldview.HRAInput, 1)
 
-	//worldview til communication:
-	worldviewToCommuncation := make(chan worldview.PeerState, 1)
-
-	//communication til worldview:
-	peersConnectedCh := make(chan [config.N_ELEVATORS-1]bool, 1)
-
-	peerStateChs := [config.N_ELEVATORS-1]chan worldview.PeerState{} //gis til communication
-	peerStateChsReadOnly := [config.N_ELEVATORS-1]<-chan worldview.PeerState{} //gis til worldview 
+	elevStateToWorldview := make(chan localElevator.ElevState, 1) //localElevatorState
+	assignerToLocalElev := make(chan [config.N_FLOORS][2]bool, 1)//assignedHallCalls
+	worldviewToHallCallAssigner := make(chan worldview.HRAInput, 1) //hallCallAssignerInput
+	worldviewToCommuncation := make(chan worldview.PeerState, 1) //peerStateUpdates
+	peersConnectedCh := make(chan [config.N_ELEVATORS-1]bool, 1) //connectedPeers
+	peerStateChs := [config.N_ELEVATORS-1]chan worldview.PeerState{} //PeerStatesChannels / peerStateOutputs
+	peerStateChsReadOnly := [config.N_ELEVATORS-1]<-chan worldview.PeerState{} //com-skriverettighet på peerStateOutputs, ww - leserettighet på peerStateOutputs
+	//men fokusere på implementasjon og er lang. peerStateInputs
 	for i := range peerStateChs {
 		peerStateChs[i] = make(chan worldview.PeerState, 1)
 		peerStateChsReadOnly[i] = peerStateChs[i]
 	}
 
-	//Aktiver driver polling
 
 
-	//KODEKVALITET ENDRING: 
+	//KODEKVALITET ENDRING: navnendring + legge til kanaler etter oversettelse i main . ufullført
 
 
 	//go driver.PollButtons(buttonChan)
 	//go driver.PollButtons(worldviewButtonChan)
 
-	driverButtonChan := make(chan driver.ButtonEvent, 1)
+	rawButtonEvents := make(chan driver.ButtonEvent, 1)
+	localButtonEvents := make(chan driver.ButtonEvent, 1)
+	hallCallEvents := make(chan model.HallCallEvent, 1)
+
+
+	rawButtonEvents := make(chan driver.ButtonEvent, 1)
 	go driver.PollButtons(driverButtonChan) //Vi henter ut herfra 
-	buttonChan := make(chan driver.ButtonEvent, 1) //det localelev mottar
-	hallCallEventChan := make(chan model.HallCallEvent, 1)//det wordwiew mottar
+	localButtonEvents := make(chan driver.ButtonEvent, 1) //localButtonEvents er bedr navn 
+	hallCallEvents := make(chan model.HallCallEvent, 1)//det wordwiew mottar
 	go fanOutButtons(driverButtonChan, buttonChan, hallCallEventChan) //tar inn driverButtonChan og formatere utverdier på buttonChan  og hallCallEventChan
-	
-	
 	
 	//-----------------------------
 	go driver.PollFloorSensor(floorSensorChan)
 	go driver.PollObstructionSwitch(obstructionChan)
-	go driver.PollStopButton(stopBtnChan)
+	go driver.PollStopButton(stopBtnChan) //DEN KAN FJERNES? 
 
 
-	communication.NewCommunicationModule(
+
+	communication.NewCommunicationModule( //endre navn her som sant over
 		id, 
 		config.BroadcastPort, 
 		worldviewToCommuncation, 
@@ -119,10 +111,11 @@ func main() {
 		peersConnectedCh,
 	)
 
-	//Initialiser moduler
+	//SetInitialCabCalls bør være funksjonavn- den skal retunrer initial cabCakks
+	//Men hvor settes denne til null standard? bør ikke det v'e her?
+	initialCabCalls := checkForBackupState(recoveredCabCallsCh) //checkForBackupState - den gjør mer enn å sjekke, den returner osv. getRecoveredCabCalls s
 
-	initialCabCalls := checkForBackupState(recoveredCabCallsCh)
-
+	//KODEKVALITET:endre navn som nevnt tildiger 
 	worldview.NewWorldViewModule(
 		peerStateChsReadOnly,
 		worldviewToHallCallAssigner,
@@ -133,23 +126,25 @@ func main() {
 		peersConnectedCh,
 	)
 
-	localElevator.NewLocalElev(floorSensorChan,
-		obstructionChan,
-		buttonChan,
-		elevStateToWorldview,
-		assignerToLocalElev,
+	//kalle denne NewLocalElevModule?
+	localElevator.NewLocalElev(
+		floorSensorChan, //byttes til floorUpdates
+		obstructionChan, //peerStateInputs
+		buttonChan, //	localButtonEvents
+		elevStateToWorldview, //localElevatorState
+		assignerToLocalElev, //assignedHallcalls
 		initialCabCalls,
 	)
 
-	//input: InputChan chan HRAInput, OutputChan chan [config.N_Floors][2]bool, ID string
-
-	//hallCallsAssigner.NewHallCallAssigner(worldviewToHallCallAssigner, assignerToLocalElev, id)
-	select {}
+	
+	select {} //hva er denne`?`
 }
 
-func checkForBackupState(recoverdCabCallsCh <-chan [config.N_FLOORS]bool) [config.N_FLOORS]bool {
+
+//obs over. Denne handler om init så bra her - samle i GetInitCabCalls? 
+func checkForBackupState(recoverdCabCallsCh <-chan [config.N_FLOORS]bool) [config.N_FLOORS]bool { //recoverdCabCalls, 
 	now := time.Now()
-	recoverdCabCalls := [config.N_FLOORS]bool{}
+	recoverdCabCalls := [config.N_FLOORS]bool{} //cabCalls
 	for {
 		if time.Since(now) > config.IntialStateCheckTime*time.Millisecond {
 			return recoverdCabCalls
