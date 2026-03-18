@@ -6,7 +6,7 @@ const (
 	N_BUTTONS             = 3    // HallUp, HallDown, Cab
 	PEER_TIMEOUT_DURATION = 1000 // milliseconds
 	DoorOpenDuration      = 3.0  // seconds
-	MotorLossDuration     = 5.0  //seconds
+	MotorLossDuration     = 10.0 //seconds
 
 	checkForInitialState = true
 	IntialStateCheckTime = 1000 // milliseconds
