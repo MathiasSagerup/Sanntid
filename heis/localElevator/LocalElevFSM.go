@@ -71,7 +71,7 @@ func NewLocalElev(floorSensorChan chan int,
 	assignerToLocalElev chan [N_FLOORS][2]bool,
 	completedHallCallsCh chan [N_FLOORS][2]bool,
 	initialCabCalls [N_FLOORS]bool,
-	)*localElevator {
+) *localElevator {
 
 	l := &localElevator{
 		doorTimeoutChan:      make(chan bool, 1),
@@ -96,12 +96,15 @@ func NewLocalElev(floorSensorChan chan int,
 	l.dirn = driver.MD_Stop
 	l.behaviour = idle
 	l.floor = driver.GetFloor()
-	l.ableToServiceRequests = true
 
 	//Aktiver initial cab calls
 	l.applyInitialRequests(initialCabCalls)
-	fmt.Println("initial requests:",l.requests)
+	fmt.Println("initial requests:", l.requests)
 	l.setCabLights()
+	l.setHallCallLightsOff()
+	driver.SetFloorIndicator(l.floor)
+
+	l.ableToServiceRequests = true
 
 	//Send initialtilstand til world view
 	l.sendElevStateToWorldView()
@@ -121,13 +124,12 @@ func (l *localElevator) run() {
 			l.floor = newFloor
 			l.fsmOnFloorArrival(l.floor)
 			l.sendElevStateToWorldView()
-			
 
 		case newBtn := <-l.buttonChan:
 			if newBtn.Button == driver.BT_Cab {
 				l.requests[newBtn.Floor][newBtn.Button] = true
 				l.fsmOnRequestButtonPress(newBtn.Floor, newBtn.Button)
-				
+
 			}
 			l.sendElevStateToWorldView()
 
@@ -156,7 +158,7 @@ func (l *localElevator) run() {
 
 			}
 			l.sendElevStateToWorldView()
-	
+
 		}
 	}
 }
@@ -164,7 +166,7 @@ func (l *localElevator) run() {
 func (l *localElevator) getCabCalls() [N_FLOORS]bool {
 	cabCalls := [N_FLOORS]bool{}
 
-	for floor:= 0; floor < N_FLOORS; floor++ {
+	for floor := 0; floor < N_FLOORS; floor++ {
 		cabCalls[floor] = l.requests[floor][driver.BT_Cab]
 	}
 	return cabCalls
@@ -188,7 +190,6 @@ func (l *localElevator) applyInitialRequests(initialCabCalls [N_FLOORS]bool) {
 	}
 }
 
-
 func (l *localElevator) sendElevStateToWorldView() {
 	select {
 	case l.elevStateToWorldview <- l.getElevState():
@@ -202,7 +203,17 @@ func (l *localElevator) setCabLights() {
 	for floor := 0; floor < N_FLOORS; floor++ {
 		for btn := 0; btn < N_BUTTONS; btn++ {
 			if btn == driver.BT_Cab {
-			driver.SetButtonLamp(driver.BT_Cab, floor, l.requests[floor][btn])
+				driver.SetButtonLamp(driver.BT_Cab, floor, l.requests[floor][btn])
+			}
+		}
+	}
+}
+
+func (l *localElevator) setHallCallLightsOff() {
+	for floor := 0; floor < N_FLOORS; floor++ {
+		for btn := 0; btn < N_BUTTONS; btn++ {
+			if btn == driver.BT_HallDown || btn == driver.BT_HallUp {
+				driver.SetButtonLamp(driver.ButtonType(btn), floor, false)
 			}
 		}
 	}
@@ -335,9 +346,9 @@ func (l *localElevator) fsmOnDoorTimeout() {
 		case moving, idle:
 			driver.SetDoorOpenLamp(false)
 			driver.SetMotorDirection(l.dirn)
-		
+
+		}
 	}
-}
 }
 
 func (l *localElevator) startDoorTimer() {
