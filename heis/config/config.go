@@ -8,7 +8,7 @@ const (
 	N_BUTTONS             = 3      // HallUp, HallDown, Cab
 	PEER_TIMEOUT_DURATION = 1000 
 	N_OTHER_ELEVATORS		= N_ELEVATORS - 1 
-	N_TRAVEL_DIR = 2
+	N_TRAVEL_DIRN = 2
 	DoorOpenDuration      = 3 * time.Second
 	MotorLossDuration     = 10 * time.Second
 
