@@ -38,8 +38,7 @@ func main() {
 	driver.Init(*serverAddr, config.N_FLOORS)
 
 	//Her mottas en recoverd state om ønsket fra communication module
-	//ENDRET NAVN
-	recoveredCabCalls := make(chan [config.N_FLOORS]bool, 1)//
+	//ENDRET NAVN og flyttet recoveredCabCalls := make(chan [config.N_FLOORS]bool, 1) til nærmere der den brukes 
 
 	//sensor channels
 	//ENDRET NAVN 
@@ -59,13 +58,14 @@ func main() {
 	peerStateUpdates := make(chan worldview.PeerState, 1)//ENDRET NAVN
 
 	//communication til worldview:
+	//HVA TENKER VI HER PÅ DENNE DELEN? 
 	connectedPeers := make(chan [config.N_ELEVATORS-1]bool, 1)//endret navn 
-	peersStateChannels := [config.N_ELEVATORS-1]chan worldview.PeerState{} //endret navn 
+	peersStateOutputs:= [config.N_ELEVATORS-1]chan worldview.PeerState{} //endret navn 
 	peerStateInputs := [config.N_ELEVATORS-1]<-chan worldview.PeerState{} //endret navn
 
-	for i := range peersStateChannels {
-		peersStateChannels[i] = make(chan worldview.PeerState, 1)
-		peerStateInputs[i] = peersStateChannels[i]
+	for i := range peersStateOutputs {
+		peersStateOutputs[i] = make(chan worldview.PeerState, 1)
+		peerStateInputs[i] = peersStateOutputs[i]
 	}
 
 	//Aktiver driver polling
@@ -86,7 +86,8 @@ func main() {
 
 	//Initialiser moduler
 
-	initialCabCalls := checkForBackupState(recoveredCabCalls)
+	recoveredCabCalls := make(chan [config.N_FLOORS]bool, 1)//config ved oppstart. Flyttet denne ned hit. 
+	initialCabCalls := loadRecoveredCabCalls(recoveredCabCalls) //endret navn 
 
 	worldview.NewWorldViewModule(
 		otherPeersStateReadOnlyChs,
@@ -112,18 +113,18 @@ func main() {
 	//input: InputChan chan HRAInput, OutputChan chan [config.N_Floors][2]bool, ID string
 
 	hallCallsAssigner.NewHallCallAssigner(hallcallassignerInput, assignedHallcalls)
-	select {}
+	select {}//HVA GJØR DENNE 
 }
 
-func checkForBackupState(recoverdCabCallsCh <-chan [config.N_FLOORS]bool) [config.N_FLOORS]bool {
-	now := time.Now()
-	recoverdCabCalls := [config.N_FLOORS]bool{}
+func loadRecoveredCabCalls(recoverdCabCalls <-chan [config.N_FLOORS]bool) [config.N_FLOORS]bool { //navnendring
+	start := time.Now()//navnendring
+	cabCalls := [config.N_FLOORS]bool{} //
 	for {
-		if time.Since(now) > config.IntialStateCheckTime*time.Millisecond {
-			return recoverdCabCalls
+		if time.Since(start) > config.IntialStateCheckTime*time.Millisecond {
+			return cabCalls
 		}
 		select {
-		case recoverdCabCalls = <-recoverdCabCallsCh:
+		case cabCalls = <-recoverdCabCalls:
 			fmt.Println("[main] Backup state received, starting with recovered state")
 		default:
 		}
