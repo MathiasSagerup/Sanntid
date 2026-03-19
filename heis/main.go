@@ -51,47 +51,48 @@ func main() {
 	recoveredCabCallsCh := make(chan [config.N_FLOORS]bool, 1)
 
 	//sensor channels
-	floorSensorChan := make(chan int, 1)
-	obstructionChan := make(chan bool, 1)
-	stopBtnChan := make(chan bool, 1)
-	buttonChan := make(chan driver.ButtonEvent, 1)
-	worldviewButtonChan := make(chan driver.ButtonEvent, 1)
+	floorSensorCh := make(chan int, 1)
+	obstructionCh := make(chan bool, 1)
+	stopBtnCh := make(chan bool, 1)
+	buttonCh := make(chan driver.ButtonEvent, 1)
+	worldviewbuttonCh := make(chan driver.ButtonEvent, 1)
 
 	//localElevator til Worldview
-	elevStateToWorldview := make(chan localElevator.ElevState, 1)
+	localElevatorStateCh := make(chan localElevator.ElevState, 1)
 	completedHallCallsCh := make(chan [config.N_FLOORS][2]bool, 16)
 
 	//HallCallAssigner til localELevator
-	assignerToLocalElev := make(chan [config.N_FLOORS][2]bool, 1)
+	assignedHallcallsCh := make(chan [config.N_FLOORS][2]bool, 1)
 
 	//input kanal til hallCallsAssigner:
-	worldviewToHallCallAssigner := make(chan hallCallsAssigner.HRAInput, 1)
+	hallcallassignerInputCh := make(chan hallCallsAssigner.HRAInput, 1)
 
 	//worldview til communication:
-	worldviewToCommuncation := make(chan worldview.PeerState, 1)
+	localPeerStateCh := make(chan worldview.PeerState, 1)
 
 	//communication til worldview:
 	peersConnectedCh := make(chan [config.N_ELEVATORS-1]bool, 1)
 
-	peerStateChs := [config.N_ELEVATORS-1]chan worldview.PeerState{} //gis til communication
-	peerStateChsReadOnly := [config.N_ELEVATORS-1]<-chan worldview.PeerState{} //gis til worldview 
-	for i := range peerStateChs {
-		peerStateChs[i] = make(chan worldview.PeerState, 1)
-		peerStateChsReadOnly[i] = peerStateChs[i]
+	otherPeersStateChs := [config.N_ELEVATORS-1]chan worldview.PeerState{}
+
+	otherPeersStateReadOnlyChs := [config.N_ELEVATORS-1]<-chan worldview.PeerState{}
+	for i := range otherPeersStateChs {
+		otherPeersStateChs[i] = make(chan worldview.PeerState, 1)
+		otherPeersStateReadOnlyChs[i] = otherPeersStateChs[i]
 	}
 
 	//Aktiver driver polling
-	go driver.PollButtons(buttonChan)
-	go driver.PollButtons(worldviewButtonChan)
-	go driver.PollFloorSensor(floorSensorChan)
-	go driver.PollObstructionSwitch(obstructionChan)
-	go driver.PollStopButton(stopBtnChan)
+	go driver.PollButtons(buttonCh)
+	go driver.PollButtons(worldviewbuttonCh)
+	go driver.PollFloorSensor(floorSensorCh)
+	go driver.PollObstructionSwitch(obstructionCh)
+	go driver.PollStopButton(stopBtnCh)
 
 	communication.NewCommunicationModule(
 		id, 
 		config.BroadcastPort, 
-		worldviewToCommuncation, 
-		peerStateChs, 
+		localPeerStateCh, 
+		otherPeersStateChs, 
 		recoveredCabCallsCh, 
 		peersConnectedCh,
 	)
@@ -101,29 +102,29 @@ func main() {
 	initialCabCalls := checkForBackupState(recoveredCabCallsCh)
 
 	worldview.NewWorldViewModule(
-		peerStateChsReadOnly,
-		worldviewToHallCallAssigner,
-		worldviewButtonChan,
-		worldviewToCommuncation,
-		elevStateToWorldview,
+		otherPeersStateReadOnlyChs,
+		hallcallassignerInputCh,
+		worldviewbuttonCh,
+		localPeerStateCh,
+		localElevatorStateCh,
 		id,
 		peersConnectedCh,
 		completedHallCallsCh,
 	)
 
 	localElevator.NewLocalElev(
-		floorSensorChan,
-		obstructionChan,
-		buttonChan,
-		elevStateToWorldview,
-		assignerToLocalElev,
+		floorSensorCh,
+		obstructionCh,
+		buttonCh,
+		localElevatorStateCh,
+		assignedHallcallsCh,
 		completedHallCallsCh,
 		initialCabCalls,
 	)
 
 	//input: InputChan chan HRAInput, OutputChan chan [config.N_Floors][2]bool, ID string
 
-	hallCallsAssigner.NewHallCallAssigner(worldviewToHallCallAssigner, assignerToLocalElev)
+	hallCallsAssigner.NewHallCallAssigner(hallcallassignerInputCh, assignedHallcallsCh)
 	select {}
 }
 

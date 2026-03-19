@@ -111,8 +111,7 @@ func (w *WorldViewDecider) loop() {
 		case hallButtonPressed := <-w.hallCallButtonChan:
 			hallCallsBeforeCheck := w.hallCalls
 
-			fmt.Println("[worldview] HallCallButton registered")
-			if hallButtonPressed.Button != driver.BT_Cab { //TODO: Sjekk med Jens hva denne gjør
+			if (hallButtonPressed.Button == driver.BT_HallDown)|| (hallButtonPressed.Button == driver.BT_HallUp) { //TODO: Sjekk med Jens hva denne gjør
 				if w.hallCalls[hallButtonPressed.Floor][hallButtonPressed.Button].state == NoOrder {
 					if w.getNumberOfConnectedPeers() == 0 {
 						w.hallCalls[hallButtonPressed.Floor][hallButtonPressed.Button].state = Confirmed
