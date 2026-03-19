@@ -79,7 +79,7 @@ func (w *WorldViewDecider) loop() {
 		case hallButtonPressed := <-w.hallCallButtonChan:
 			hallCallsBeforeCheck := w.hallCalls
 
-			if (hallButtonPressed.Button == driver.BT_HallDown)|| (hallButtonPressed.Button == driver.BT_HallUp) { //TODO: Sjekk med Jens hva denne gjør
+			if (hallButtonPressed.Button == driver.BT_HallDown)|| (hallButtonPressed.Button == driver.BT_HallUp) {
 				if w.hallCalls[hallButtonPressed.Floor][hallButtonPressed.Button].state == NoOrder {
 					if w.getNumberOfConnectedPeers() == 0 {
 						w.hallCalls[hallButtonPressed.Floor][hallButtonPressed.Button].state = Confirmed
@@ -117,7 +117,7 @@ func (w *WorldViewDecider) loop() {
 						if newPeerState.LocalElevState != w.otherElevStates[elevID] {
 							w.otherElevStates[elevID] = newPeerState.LocalElevState
 							w.sendUpdatedHallcallassignerInput()
-							w.sendUpdatedLocalPeerState() //TODO: Vurder om vi kan fjerne denne
+							w.sendUpdatedLocalPeerState()
 						}
 					
 					default:
@@ -128,6 +128,7 @@ func (w *WorldViewDecider) loop() {
 		
 		case newConnectedElevators := <- w.connectedElevatorsCh:
 			w.connectedElevators = newConnectedElevators
+			w.sendUpdatedHallcallassignerInput()
 		
 
 		case newCompletedHallCalls := <- w.completedHallCallsCh:
