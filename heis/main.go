@@ -38,7 +38,9 @@ func main() {
 	driver.Init(*serverAddr, config.N_FLOORS)
 
 	//Her mottas en recoverd state om ønsket fra communication module
-	//ENDRET NAVN og flyttet recoveredCabCalls := make(chan [config.N_FLOORS]bool, 1) til nærmere der den brukes 
+	//ENDRET NAVN
+
+	recoveredCabCalls := make(chan [config.N_FLOORS]bool, 1)//config ved oppstart. Flyttet denne ned hit. 
 
 	//sensor channels
 	//ENDRET NAVN 
@@ -47,30 +49,32 @@ func main() {
 	stopButtonEvents := make(chan bool, 1)//
 	//ENDRE DETTE? 
 	buttonEvents := make(chan driver.ButtonEvent, 1) //ENDRET NAVN
-	worldviewbuttonEvents := make(chan driver.ButtonEvent, 1) //HVA R DETTE? ENDRET NAVN 
+	worldviewButtonEvents := make(chan driver.ButtonEvent, 1) //HVA R DETTE? ENDRET NAVN 
 
 
 	//localElevator til Worldview
 	localElevatorState := make(chan localElevator.ElevState, 1)//
 	completedHallCalls := make(chan [config.N_FLOORS][2]bool, 16)//
-	assignedHallcalls := make(chan [config.N_FLOORS][2]bool, 1)//ENDRET NAVN
+	assignedHallCalls := make(chan [config.N_FLOORS][2]bool, 1)//ENDRET NAVN
 	hallcallassignerInput := make(chan hallCallsAssigner.HRAInput, 1)//ENDRET NAVN
-	peerStateUpdates := make(chan worldview.PeerState, 1)//ENDRET NAVN
+	localPeerStateUpdates := make(chan worldview.PeerState, 1)//ENDRET NAVN
 
 	//communication til worldview:
 	//HVA TENKER VI HER PÅ DENNE DELEN? 
 	connectedPeers := make(chan [config.N_ELEVATORS-1]bool, 1)//endret navn 
-	peersStateOutputs:= [config.N_ELEVATORS-1]chan worldview.PeerState{} //endret navn 
-	peerStateInputs := [config.N_ELEVATORS-1]<-chan worldview.PeerState{} //endret navn
 
-	for i := range peersStateOutputs {
-		peersStateOutputs[i] = make(chan worldview.PeerState, 1)
-		peerStateInputs[i] = peersStateOutputs[i]
+	otherPeersStateOutputs:= [config.N_ELEVATORS-1]chan worldview.PeerState{} //endret navn 
+	otherPeerStateInputs := [config.N_ELEVATORS-1]<-chan worldview.PeerState{} //endret navn
+
+
+	for i := range otherPeersStateOutputs {
+		otherPeersStateOutputs[i] = make(chan worldview.PeerState, 1)
+		otherPeerStateInputs[i] = otherPeersStateOutputs[i]
 	}
 
 	//Aktiver driver polling
 	go driver.PollButtons(buttonEvents)
-	go driver.PollButtons(worldviewbuttonEvents)
+	go driver.PollButtons(worldviewButtonEvents)
 	go driver.PollFloorSensor(floorEvents)
 	go driver.PollObstructionSwitch(obstructionEvents)
 	go driver.PollStopButton(stopButtonEvents)
@@ -78,22 +82,20 @@ func main() {
 	communication.NewCommunicationModule(
 		id, 
 		config.BroadcastPort, 
-		peerStateUpdates, 
-		peersStateChannels, 
+		localPeerStateUpdates, 
+		otherPeersStateOutputs, 
 		recoveredCabCalls, 
 		connectedPeers,
 	)
 
 	//Initialiser moduler
-
-	recoveredCabCalls := make(chan [config.N_FLOORS]bool, 1)//config ved oppstart. Flyttet denne ned hit. 
 	initialCabCalls := loadRecoveredCabCalls(recoveredCabCalls) //endret navn 
 
 	worldview.NewWorldViewModule(
-		otherPeersStateReadOnlyChs,
+		otherPeerStateInputs,
 		hallcallassignerInput,
-		worldviewbuttonEvents,
-		peerStateUpdates,
+		worldviewButtonEvents,
+		localPeerStateUpdates,
 		localElevatorState,
 		id,
 		connectedPeers,
@@ -101,19 +103,19 @@ func main() {
 	)
 
 	localElevator.NewLocalElev(
-		floorEvent,
-		obstructionEvent,
+		floorEvents,
+		obstructionEvents,
 		buttonEvents,
 		localElevatorState,
-		assignedHallcalls,
+		assignedHallCalls,
 		completedHallCalls,
 		initialCabCalls,
 	)
 
 	//input: InputChan chan HRAInput, OutputChan chan [config.N_Floors][2]bool, ID string
 
-	hallCallsAssigner.NewHallCallAssigner(hallcallassignerInput, assignedHallcalls)
-	select {}//HVA GJØR DENNE 
+	hallCallsAssigner.NewHallCallAssigner(hallcallassignerInput, assignedHallCalls)
+	select {}
 }
 
 func loadRecoveredCabCalls(recoverdCabCalls <-chan [config.N_FLOORS]bool) [config.N_FLOORS]bool { //navnendring
