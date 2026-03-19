@@ -131,13 +131,13 @@ func main() {
 
 func setRecoveredCabCalls(recoveredCabCallsCh <-chan [config.N_FLOORS]bool) [config.N_FLOORS]bool {
 	now := time.Now()
-	recoveredCabCallsCh := [config.N_FLOORS]bool{}
+	recoveredCabCalls := [config.N_FLOORS]bool{}
 	for {
 		if time.Since(now) > config.IntialStateCheckTime*time.Millisecond {
-			return recoveredCabCallsCh
+			return recoveredCabCalls
 		}
 		select {
-		case recoveredCabCallsCh = <-recoveredCabCallsCh:
+		case recoveredCabCalls = <-recoveredCabCallsCh:
 			fmt.Println("[main] Backup state received, starting with recovered state")
 		default:
 		}
