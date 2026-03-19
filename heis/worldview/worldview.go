@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-// WorldView  module ------------------------------------------------------------------------------------------
+
 
 type WorldView struct {
 	//System state
