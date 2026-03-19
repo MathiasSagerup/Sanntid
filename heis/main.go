@@ -50,43 +50,43 @@ func main() {
 	//Her mottas en recoverd state om ønsket fra communication module
 	recoveredCabCallsCh := make(chan [config.N_FLOORS]bool, 1)
 
-	//sensor channels
+	//sensor channel
 	floorSensorCh := make(chan int, 1)
 	obstructionCh := make(chan bool, 1)
-	stopBtnCh := make(chan bool, 1)
-	buttonCh := make(chan driver.ButtonEvent, 1)
-	worldviewbuttonCh := make(chan driver.ButtonEvent, 1)
+	buttonEventCh := make(chan driver.ButtonEvent, 1)
+	worldviewButtonEventCh := make(chan driver.ButtonEvent, 1)
 
 	//localElevator til Worldview
 	localElevatorStateCh := make(chan localElevator.ElevState, 1)
 	completedHallCallsCh := make(chan [config.N_FLOORS][2]bool, 16)
 
 	//HallCallAssigner til localELevator
-	assignedHallcallsCh := make(chan [config.N_FLOORS][2]bool, 1)
+	assignedHallCallsCh := make(chan [config.N_FLOORS][2]bool, 1)
 
 	//input kanal til hallCallsAssigner:
-	hallcallassignerInputCh := make(chan hallCallsAssigner.HRAInput, 1)
+	hallCallsAssignerInputCh := make(chan hallCallsAssigner.HRAInput, 1)
 
 	//worldview til communication:
 	localPeerStateCh := make(chan worldview.PeerState, 1)
 
 	//communication til worldview:
-	peersConnectedCh := make(chan [config.N_ELEVATORS-1]bool, 1)
+	peersConnectedCh := make(chan [config.N_OTHER_ELEVATORS]bool, 1)
 
-	otherPeersStateChs := [config.N_ELEVATORS-1]chan worldview.PeerState{}
+	//SE PÅ DENNE SENERE? 
 
-	otherPeersStateReadOnlyChs := [config.N_ELEVATORS-1]<-chan worldview.PeerState{}
+	otherPeersStateChs := [config.N_OTHER_ELEVATORS]chan worldview.PeerState{}
+
+	otherPeersStateInputChs := [config.N_OTHER_ELEVATORS]<-chan worldview.PeerState{}
 	for i := range otherPeersStateChs {
 		otherPeersStateChs[i] = make(chan worldview.PeerState, 1)
-		otherPeersStateReadOnlyChs[i] = otherPeersStateChs[i]
+		otherPeersStateInputChs[i] = otherPeersStateChs[i]
 	}
 
 	//Aktiver driver polling
-	go driver.PollButtons(buttonCh)
-	go driver.PollButtons(worldviewbuttonCh)
+	go driver.PollButtons(buttonEventCh)
+	go driver.PollButtons(worldviewButtonEventCh)
 	go driver.PollFloorSensor(floorSensorCh)
 	go driver.PollObstructionSwitch(obstructionCh)
-	go driver.PollStopButton(stopBtnCh)
 
 	communication.NewCommunicationModule(
 		id, 
@@ -99,12 +99,12 @@ func main() {
 
 	//Initialiser moduler
 
-	initialCabCalls := checkForBackupState(recoveredCabCallsCh)
+	initialCabCalls := setRecoveredCabCalls(recoveredCabCallsCh)
 
 	worldview.NewWorldViewModule(
-		otherPeersStateReadOnlyChs,
-		hallcallassignerInputCh,
-		worldviewbuttonCh,
+		otherPeersStateInputChs,
+		hallCallsAssignerInputCh,
+		worldviewButtonEventCh,
 		localPeerStateCh,
 		localElevatorStateCh,
 		id,
@@ -115,20 +115,20 @@ func main() {
 	localElevator.NewLocalElev(
 		floorSensorCh,
 		obstructionCh,
-		buttonCh,
+		buttonEventCh,
 		localElevatorStateCh,
-		assignedHallcallsCh,
+		assignedHallCallsCh,
 		completedHallCallsCh,
 		initialCabCalls,
 	)
 
 	//input: InputChan chan HRAInput, OutputChan chan [config.N_Floors][2]bool, ID string
 
-	hallCallsAssigner.NewHallCallAssigner(hallcallassignerInputCh, assignedHallcallsCh)
+	hallCallsAssigner.NewHallCallAssigner(hallCallsAssignerInputCh, assignedHallCallsCh)
 	select {}
 }
 
-func checkForBackupState(recoverdCabCallsCh <-chan [config.N_FLOORS]bool) [config.N_FLOORS]bool {
+func setRecoveredCabCalls(recoverdCabCallsCh <-chan [config.N_FLOORS]bool) [config.N_FLOORS]bool {
 	now := time.Now()
 	recoverdCabCalls := [config.N_FLOORS]bool{}
 	for {

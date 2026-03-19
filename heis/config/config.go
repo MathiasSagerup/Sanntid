@@ -3,10 +3,12 @@ package config
 import "time"
 
 const (
-	N_FLOORS              = 4
-	N_ELEVATORS           = 3
+	N_FLOORS				= 4
+	N_ELEVATORS				= 3
 	N_BUTTONS             = 3      // HallUp, HallDown, Cab
-	PEER_TIMEOUT_DURATION = 1000   // milliseconds
+	PEER_TIMEOUT_DURATION = 1000 
+	N_OTHER_ELEVATORS		= N_ELEVATORS - 1 
+	N_TRAVEL_DIR = 2
 	DoorOpenDuration      = 3 * time.Second
 	MotorLossDuration     = 10 * time.Second
 

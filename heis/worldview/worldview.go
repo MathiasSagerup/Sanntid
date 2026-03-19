@@ -16,45 +16,45 @@ import (
 
 // World View Decider module ------------------------------------------------------------------------------------------
 
-type WorldViewDecider struct {
+type WorldView struct {
 	//System state
-	hallCalls [config.N_FLOORS][2]HallCallWithConfirmation
-	thisElevState localElevator.ElevState
-	otherElevStates [config.N_ELEVATORS-1]localElevator.ElevState 			//Index corresponds to ElevID and are kept concistent
-	connectedElevators [config.N_ELEVATORS - 1]bool 						//Index corresponds to ElevID and are kept concistent
+	hallCalls 				[config.N_FLOORS][2]HallCallWithConfirmation
+	thisElevState 			localElevator.ElevState
+	otherElevStates 		[config.N_OTHER_ELEVATORS]localElevator.ElevState 			//Index corresponds to ElevID and are kept concistent
+	connectedElevators		[config.N_OTHER_ELEVATORS]bool 						//Index corresponds to ElevID and are kept concistent
 	
 	//Channels
-	messageFromLocalElevChannel <-chan localElevator.ElevState
-	messageFromOtherElevChannels [config.N_ELEVATORS - 1]<-chan PeerState 	//Index corresponds to ElevID and are kept concistent
-	hallCallButtonChan <-chan driver.ButtonEvent
-	hallCallAssignerChan chan hallCallsAssigner.HRAInput
-	toCommCh chan PeerState
-	connectedElevatorsCh <-chan [config.N_ELEVATORS - 1]bool
-	completedHallCallsCh <-chan [config.N_FLOORS][2]bool
+	localElevCh 			<-chan localElevator.ElevState
+	otherElevChs 			[config.N_OTHER_ELEVATORS]<-chan PeerState 	//Index corresponds to ElevID and are kept concistent
+	hallCallButtonCh 		<-chan driver.ButtonEvent
+	HCAInputCh 				chan hallCallsAssigner.HRAInput
+	localPeerStateCh 		chan PeerState
+	connectedElevatorsCh 	<-chan [config.N_OTHER_ELEVATORS]bool
+	completedHallCallsCh 	<-chan [config.N_FLOORS][2]bool
 }
 
 func NewWorldViewModule(
-	messageFromOtherElevChannels [config.N_ELEVATORS - 1]<-chan PeerState,
-	hallCallAssignerChan chan hallCallsAssigner.HRAInput,
-	driverToWorldviewChan <-chan driver.ButtonEvent,
-	toCommCh chan PeerState,
-	localElevCh <-chan localElevator.ElevState,
-	localID string,
-	connectedElevatorsCh <-chan [config.N_ELEVATORS - 1]bool,
-	completedHallCallsCh <-chan [config.N_FLOORS][2]bool,
-) *WorldViewDecider {
+	otherElevChs 			[config.N_OTHER_ELEVATORS]<-chan PeerState,
+	HCAInputCh 				chan hallCallsAssigner.HRAInput,
+	driverToWorldviewChan 	<-chan driver.ButtonEvent,
+	localPeerStateCh 		chan PeerState,
+	localElevCh 			<-chan localElevator.ElevState,
+	localID 				string,
+	connectedElevatorsCh 	<-chan [config.N_OTHER_ELEVATORS]bool,
+	completedHallCallsCh 	<-chan [config.N_FLOORS][2]bool,
+) *WorldView {
 
-	w := &WorldViewDecider{
-		messageFromOtherElevChannels: messageFromOtherElevChannels,
-		hallCallAssignerChan:         hallCallAssignerChan,
-		hallCallButtonChan:           driverToWorldviewChan,
-		toCommCh:                     toCommCh,
-		messageFromLocalElevChannel:  localElevCh,
-		connectedElevatorsCh:		  connectedElevatorsCh,
-		completedHallCallsCh:	      completedHallCallsCh,
-		thisElevState:                localElevator.ElevState{},
-		otherElevStates:              [config.N_ELEVATORS - 1]localElevator.ElevState{},
-		connectedElevators:			  [config.N_ELEVATORS - 1]bool{},
+	w := &WorldView{
+		otherElevChs:			otherElevChs,
+		HCAInputCh:				HCAInputCh,
+		hallCallButtonCh:		driverToWorldviewChan,
+		localPeerStateCh:		localPeerStateCh,
+		localElevCh:			localElevCh,
+		connectedElevatorsCh:	connectedElevatorsCh,
+		completedHallCallsCh:	completedHallCallsCh,
+		thisElevState:			localElevator.ElevState{},
+		otherElevStates:		[config.N_OTHER_ELEVATORS]localElevator.ElevState{},
+		connectedElevators:		[config.N_OTHER_ELEVATORS]bool{},
 	}
 
 	w.setHallCallLightsOff()
@@ -64,19 +64,19 @@ func NewWorldViewModule(
 	return w
 }
 
-func (w *WorldViewDecider) loop() {
+func (w *WorldView) loop() {
 	checkMessagesFromOtherElevChannelsTick := time.NewTicker(time.Millisecond * 10)
 
 	for {
 		select {
-		case newElevState := <-w.messageFromLocalElevChannel:
+		case newElevState := <-w.localElevCh:
 			if w.thisElevState != newElevState {
 				w.thisElevState = newElevState
 				w.sendUpdatedHallcallassignerInput()
 				w.sendUpdatedLocalPeerState()
 			}
 
-		case hallButtonPressed := <-w.hallCallButtonChan:
+		case hallButtonPressed := <-w.hallCallButtonCh:
 			hallCallsBeforeCheck := w.hallCalls
 
 			if (hallButtonPressed.Button == driver.BT_HallDown)|| (hallButtonPressed.Button == driver.BT_HallUp) {
@@ -99,10 +99,10 @@ func (w *WorldViewDecider) loop() {
 		case <-checkMessagesFromOtherElevChannelsTick.C:
 
 			//Check each channel that corresponds to an elevator that is currently connected
-			for elevID := 0; elevID < len(w.messageFromOtherElevChannels); elevID++ {
+			for elevID := 0; elevID < len(w.otherElevChs); elevID++ {
 				if w.connectedElevators[elevID] == true{
 					select {
-					case newPeerState := <-w.messageFromOtherElevChannels[elevID]:
+					case newPeerState := <-w.otherElevChs[elevID]:
 						
 						//Compare incoming hallcalls with current hallcalls and update if needed
 						hallCallsBeforeCheck := w.hallCalls
@@ -151,18 +151,18 @@ func (w *WorldViewDecider) loop() {
 	}
 }
 
-func (w *WorldViewDecider) sendUpdatedLocalPeerState() {
+func (w *WorldView) sendUpdatedLocalPeerState() {
 	fmt.Printf("[worldview] Current hallcalls are: %v\n", w.hallCalls)
 	input := PeerState{w.thisElevState, w.getHallCallsWithoutConfirmation()}
 	select{	
-		case w.toCommCh <- input:
+		case w.localPeerStateCh <- input:
 		default:
-			<- w.toCommCh
-			w.toCommCh <- input
+			<- w.localPeerStateCh
+			w.localPeerStateCh <- input
 	}
 }
 
-func (w *WorldViewDecider) sendUpdatedHallcallassignerInput() {
+func (w *WorldView) sendUpdatedHallcallassignerInput() {
 	//Transform hallRequestStates to bools
 	hallRequestsInput := [config.N_FLOORS][2]bool{}
 
@@ -204,9 +204,9 @@ func (w *WorldViewDecider) sendUpdatedHallcallassignerInput() {
 	}
 
 	select{	
-		case w.hallCallAssignerChan <- input:
+		case w.HCAInputCh <- input:
 		default:
-			<- w.hallCallAssignerChan
-			w.hallCallAssignerChan <- input
+			<- w.HCAInputCh
+			w.HCAInputCh <- input
 	}
 }

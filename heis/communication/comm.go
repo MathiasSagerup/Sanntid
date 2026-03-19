@@ -158,7 +158,6 @@ func (c *Communication) sendToPeersConnectedCh(connectedElevators [config.N_ELEV
 }
 
 func (c *Communication) sendToPeerStateChs(id_index int, msg NetMsg) {
-	//fmt.Printf("[comm] forwarding state from %s (idx=%d) HallCalls=%v\n", msg.FromID, id_index, msg.LocalState.HallCalls)
 	select {
 	case c.PeerStateChs[id_index] <- msg.LocalState:
 	default:
@@ -188,7 +187,6 @@ func (c *Communication) getCurrentOrAssignNewPeerIndex(id string) int {
 func isSameAsPrevious(last map[string]NetMsg, msg NetMsg) bool {
 	prev, ok := last[msg.FromID]
 	if !ok {
-		//If no previous message from this peer, it's not the same
 		return false
 	}
 	return prev.LocalState == msg.LocalState
