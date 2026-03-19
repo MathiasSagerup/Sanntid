@@ -7,11 +7,11 @@ import (
 	"time"
 )
 
-const _pollRate = 20 * time.Millisecond //Sjekker sensorer hvert 20 millisekund
+const _pollRate = 20 * time.Millisecond
 
 var _initialized bool = false
 var _numFloors int = 4
-var _mtx sync.Mutex //Mutex for synkronisering av heis driver
+var _mtx sync.Mutex
 var _conn net.Conn
 
 type MotorDirection int
@@ -41,9 +41,9 @@ func Init(addr string, numFloors int) {
 		return
 	}
 	_numFloors = numFloors
-	_mtx = sync.Mutex{} //sørger for at kun 1 goroutine kan prøve å initialisere heisen om gangen.
+	_mtx = sync.Mutex{}
 	var err error
-	_conn, err = net.Dial("tcp", addr) //Bruker tcp for å  kommunisere med lokale heisens hardware
+	_conn, err = net.Dial("tcp", addr) 
 	if err != nil {
 		panic(err.Error())
 	}
@@ -84,7 +84,7 @@ func PollButtons(receiver chan<- ButtonEvent) {
 			}
 		}
 	}
-} //funksjon som sjekker om knapper blir trykket på.
+}
 
 func PollFloorSensor(receiver chan<- int) {
 	prev := -1
@@ -96,7 +96,7 @@ func PollFloorSensor(receiver chan<- int) {
 		}
 		prev = v
 	}
-} //sjekker hvilken etasje heisen er i.
+}
 
 func PollStopButton(receiver chan<- bool) {
 	prev := false
@@ -108,7 +108,7 @@ func PollStopButton(receiver chan<- bool) {
 		}
 		prev = v
 	}
-} //sjekker stop knapp.
+} 
 
 func PollObstructionSwitch(receiver chan<- bool) {
 	prev := false
@@ -120,12 +120,12 @@ func PollObstructionSwitch(receiver chan<- bool) {
 		}
 		prev = v
 	}
-} //sjekker obstruksjonsknapp
+}
 
 func GetButton(button ButtonType, floor int) bool {
 	a := read([4]byte{6, byte(button), byte(floor), 0})
 	return toBool(a[1])
-} //returnerer om knappen spesifisert i input er på eller av. (trykket eller ikke)
+} 
 
 func GetFloor() int {
 	a := read([4]byte{7, 0, 0, 0})
@@ -134,17 +134,17 @@ func GetFloor() int {
 	} else {
 		return -1
 	}
-} //verdi fra sensor
+} 
 
 func GetStop() bool {
 	a := read([4]byte{8, 0, 0, 0})
 	return toBool(a[1])
-} //verdi fra stopppknapp
+}
 
 func GetObstruction() bool {
 	a := read([4]byte{9, 0, 0, 0})
 	return toBool(a[1])
-} //verdi fra obstruksjonsknapp/sensor
+}
 
 func read(in [4]byte) [4]byte {
 	_mtx.Lock()
@@ -162,7 +162,7 @@ func read(in [4]byte) [4]byte {
 	}
 
 	return out
-} //funksjonen leser fra elevator server, altså sensor informasjonen. Hvilke knapper er trykket, hvilken etasje etc. brukes i de andre funksjonenene
+}
 
 func write(in [4]byte) {
 	_mtx.Lock()
@@ -172,7 +172,7 @@ func write(in [4]byte) {
 	if err != nil {
 		panic("Lost connection to Elevator Server")
 	}
-} //skriv til heis
+}
 
 func toByte(a bool) byte {
 	var b byte = 0

@@ -1,6 +1,7 @@
 package hallCallsAssigner
 
-/*module formats input to binary hall request assigner". Sends assigned hallCalls to localElevators*/
+//This module utilizes the HallRequestAssigner which was handed out.
+//It takes in inputs given with the HRAIput type, and passes its output as assigned hallcalls, at the given channels at initialization.
 
 import (
 	"encoding/json"
@@ -20,8 +21,8 @@ type hraFormattedElevState struct {
 }
 
 type hraFormattedInput struct {
-	HallRequests [config.N_FLOORS][config.N_TRAVEL_DIRN]bool         `json:"hallRequests"`
-	States       map[string]hraFormattedElevState `json:"states"`
+	HallRequests [config.N_FLOORS][config.N_TRAVEL_DIRN]bool        `json:"hallRequests"`
+	States       map[string]hraFormattedElevState 					`json:"states"`
 }
 
 type HRAInput struct {
@@ -31,10 +32,8 @@ type HRAInput struct {
 }
 
 type HallCallAssigner struct {
-	//inptu channel from worldview
+	//Channels
 	HRAInputChan chan HRAInput
-
-	//output channel to localElevator
 	HRAOutputChan chan [config.N_FLOORS][config.N_TRAVEL_DIRN]bool
 
 	//internalStates
@@ -104,14 +103,12 @@ func (h *HallCallAssigner) run() {
 				return
 			}
 
-			h.sendAssignedHallCallsToLocalElevator((*output)[h.thisElevID])
-			//fmt.Println(output)
-
+			h.sendAssignedHallcalls((*output)[h.thisElevID])
 		}
 	}
 }
 
-func (h *HallCallAssigner) sendAssignedHallCallsToLocalElevator(hallCalls [config.N_FLOORS][config.N_TRAVEL_DIRN]bool) {
+func (h *HallCallAssigner) sendAssignedHallcalls(hallCalls [config.N_FLOORS][config.N_TRAVEL_DIRN]bool) {
 	select {
 	case h.HRAOutputChan <- hallCalls:
 	default:

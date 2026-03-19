@@ -6,7 +6,6 @@ package worldview
 //The module passes on relevant information to the HallRequestAssigner and Communication module through the given channels on initialization of WorldViewDecider
 
 import (
-	"fmt"
 	"heis/config"
 	"heis/driver"
 	"heis/hallCallsAssigner"
@@ -26,7 +25,7 @@ type WorldView struct {
 	//Channels
 	localElevCh 			<-chan localElevator.ElevState
 	otherElevChs 			[config.N_OTHER_ELEVATORS]<-chan PeerState 	//Index corresponds to ElevID and are kept concistent
-	hallCallButtonCh 		<-chan driver.ButtonEvent
+	buttonPressedCh 		<-chan driver.ButtonEvent
 	HCAInputCh 				chan hallCallsAssigner.HRAInput
 	localPeerStateCh 		chan PeerState
 	connectedElevatorsCh 	<-chan [config.N_OTHER_ELEVATORS]bool
@@ -47,7 +46,7 @@ func NewWorldViewModule(
 	w := &WorldView{
 		otherElevChs:			otherElevChs,
 		HCAInputCh:				HCAInputCh,
-		hallCallButtonCh:		driverToWorldviewChan,
+		buttonPressedCh:		driverToWorldviewChan,
 		localPeerStateCh:		localPeerStateCh,
 		localElevCh:			localElevCh,
 		connectedElevatorsCh:	connectedElevatorsCh,
@@ -59,12 +58,12 @@ func NewWorldViewModule(
 
 	w.setHallCallLightsOff()
 
-	go w.loop()
+	go w.run()
 
 	return w
 }
 
-func (w *WorldView) loop() {
+func (w *WorldView) run() {
 	peerPollTicker := time.NewTicker(time.Millisecond * 10)
 
 	for {
@@ -76,11 +75,10 @@ func (w *WorldView) loop() {
 				w.sendLocalPeerState()
 			}
 
-		//JUSTER SÅNN AT DET KUN ER HALLCALLS OSM KOMMER PÅ HALLCALLSBUTTON CH - I DRIVER? 
-		case hallButtonPressed := <-w.hallCallButtonCh:
+		case buttonPressed := <-w.buttonPressedCh:
 			hallCallsBeforeCheck := w.hallCalls
-			floor := hallButtonPressed.Floor
-			button := hallButtonPressed.Button
+			floor := buttonPressed.Floor
+			button := buttonPressed.Button
 
 			if (button == driver.BT_HallDown)||(button== driver.BT_HallUp) {
 
@@ -103,22 +101,18 @@ func (w *WorldView) loop() {
 
 		case <-peerPollTicker.C:
 
-			//Check each channel that corresponds to an elevator that is currently connected
 			for elevID := range w.otherElevChs {
-				if w.connectedElevators[elevID]{
+				if w.connectedElevators[elevID]{ //Elevators that are not connected should not send information
 					select {
 					case newPeerState := <-w.otherElevChs[elevID]:
 						
-						//Compare incoming hallcalls with current hallcalls and update if needed
 						hallCallsBeforeCheck := w.hallCalls
 						w.updateHallCallsAndLights(newPeerState.HallCalls, elevID)
 						if hallCallsBeforeCheck != w.hallCalls {
-							fmt.Println("[worldview] recieved hallorders:", w.getHallCallsWithoutConfirmation())
 							w.sendHallCallAssignerInput()
 							w.sendLocalPeerState()
 						}
 						
-						//Check local elev state transition from sender
 						if newPeerState.LocalElevState != w.otherElevStates[elevID] {
 							w.otherElevStates[elevID] = newPeerState.LocalElevState
 							w.sendHallCallAssignerInput()
@@ -134,7 +128,6 @@ func (w *WorldView) loop() {
 		case newConnectedElevators := <- w.connectedElevatorsCh:
 			w.connectedElevators = newConnectedElevators
 			w.sendHallCallAssignerInput()
-		
 
 		case newCompletedHallCalls := <- w.completedHallCallsCh:
 			for floor := 0; floor < config.N_FLOORS; floor++ {
@@ -166,7 +159,6 @@ func (w *WorldView) isAloneOnNetwork() bool {
 }
 
 func (w *WorldView) sendLocalPeerState() {
-	fmt.Printf("[worldview] Current hallcalls are: %v\n", w.hallCalls)
 	input := PeerState{w.thisElevState, w.getHallCallsWithoutConfirmation()}
 	select{	
 		case w.localPeerStateCh <- input:
@@ -188,7 +180,6 @@ func (w *WorldView) sendHallCallAssignerInput() {
 		}
 	}
 
-	//Make HRAElevStates from current ElevStates
 	thisElevInput := localElevator.ElevState{
 	    Floor: 			w.thisElevState.Floor,
 		Dirn: 			w.thisElevState.Dirn,
@@ -210,7 +201,6 @@ func (w *WorldView) sendHallCallAssignerInput() {
 		}
 	}
 
-	//Collect and pass input to HallRequestAssigner channel
 	input := hallCallsAssigner.HRAInput{
 		HallRequests: hallRequestsInput,
 		ThisElevState: thisElevInput,

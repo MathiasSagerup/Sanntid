@@ -1,2 +1,0 @@
-Denne skal kun ta imot meldinger og sende videre meldinger fra nettverk 
-innholder lavnivå funkjsonalitet 

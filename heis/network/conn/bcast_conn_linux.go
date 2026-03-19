@@ -9,7 +9,6 @@ import (
 	"syscall"
 )
 
-//transmitter skriver til og receiver leser fra UDP. Åpner for å bruke write to og read from
 
 func DialBroadcastUDP(port int) net.PacketConn {
 	s, err := syscall.Socket(syscall.AF_INET, syscall.SOCK_DGRAM, syscall.IPPROTO_UDP)

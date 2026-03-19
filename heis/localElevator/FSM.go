@@ -32,11 +32,11 @@ type ElevState struct {
 type localElevator struct {
 
 	//input channels from driver:
-	floorSensorChan     chan int
-	obstructionChan     chan bool
-	buttonChan          chan driver.ButtonEvent
-	doorTimeoutChan     chan bool
-	motorLossWatchdogCh chan bool
+	floorSensorCh     	chan int
+	obstructionCh     	chan bool
+	buttonCh          	chan driver.ButtonEvent
+	doorTimeoutCh     	chan bool
+	motorLossTimeoutCh	chan bool
 
 	//internal states
 	floor                 int
@@ -46,69 +46,57 @@ type localElevator struct {
 	obstruction           bool
 	ableToServiceRequests bool
 	dirnBehaviourPair     dirnBehaviourPair
-	assignedHallCalls     [config.N_FLOORS][2]bool
-	completedHallCalls    [config.N_FLOORS][2]bool
+	assignedHallCalls     [config.N_FLOORS][config.N_TRAVEL_DIRN]bool
+	completedHallCalls    [config.N_FLOORS][config.N_TRAVEL_DIRN]bool
 
-	//Internal request channels (one per public method)
-	elevStateToWorldview chan ElevState
-	completedHallcallsCh chan [config.N_FLOORS][2]bool
-
-	//Input channel from hallcallassigner
-	assignerToLocalElev chan [config.N_FLOORS][2]bool
+	//Input/output channels
+	localElevStateCh chan ElevState
+	completedHallCallsCh chan [config.N_FLOORS][config.N_TRAVEL_DIRN]bool
+	assignedHallCallsCh chan [config.N_FLOORS][config.N_TRAVEL_DIRN]bool
 }
 
-// å kjøre denne vil få heisen til å kjøre ned til en etasje, da vil localElevFSM
-// overta styring.
-
-// -------------param--*package --- instans av package ---
 func NewLocalElev(
-	floorSensorChan chan int,
-	obstructionChan chan bool,
-	buttonChan chan driver.ButtonEvent,
-	elevStateToWorldview chan ElevState,
-	assignerToLocalElev chan [config.N_FLOORS][2]bool,
-	completedHallCallsCh chan [config.N_FLOORS][2]bool,
+	floorSensorCh chan int,
+	obstructionCh chan bool,
+	buttonCh chan driver.ButtonEvent,
+	localElevStateCh chan ElevState,
+	assignedHallCallsCh chan [config.N_FLOORS][config.N_TRAVEL_DIRN]bool,
+	completedHallCallsCh chan [config.N_FLOORS][config.N_TRAVEL_DIRN]bool,
 	initialCabCalls [config.N_FLOORS]bool,
 ) *localElevator {
 
 	l := &localElevator{
-		doorTimeoutChan:     make(chan bool, 1),
-		motorLossWatchdogCh: make(chan bool, 1),
-
-		floorSensorChan:      floorSensorChan,
-		obstructionChan:      obstructionChan,
-		buttonChan:           buttonChan,
-		elevStateToWorldview: elevStateToWorldview,
-		assignerToLocalElev:  assignerToLocalElev,
-		completedHallcallsCh: completedHallCallsCh,
+		doorTimeoutCh:     		make(chan bool, 1),
+		motorLossTimeoutCh:	 	make(chan bool, 1),
+		floorSensorCh:      	floorSensorCh,
+		obstructionCh:      	obstructionCh,
+		buttonCh:           	buttonCh,
+		localElevStateCh: 		localElevStateCh,
+		assignedHallCallsCh:  	assignedHallCallsCh,
+		completedHallCallsCh: 	completedHallCallsCh,
 	}
 
-	//initialiser heis, kjør ned til nærmeste etasje
-	if driver.GetFloor() == -1 {
+	//Initialize elevator to defined state
+	if driver.GetFloor() == -1 { 	// -1 indicates between floors
 		driver.SetMotorDirection(driver.MD_Down)
 		l.dirn = driver.MD_Down
 		l.behaviour = moving
-		<-l.floorSensorChan
+		<-l.floorSensorCh
 	}
 
-	//sett til idle etter nådd nærmeste etasje og hent definert tilstand
 	driver.SetMotorDirection(driver.MD_Stop)
 	l.dirn = driver.MD_Stop
 	l.behaviour = idle
 	l.floor = driver.GetFloor()
 
-	//Aktiver initial cab calls
 	l.applyInitialRequests(initialCabCalls)
-	fmt.Println("initial requests:", l.requests)
 	l.setCabLights()
 	driver.SetFloorIndicator(l.floor)
 
 	l.ableToServiceRequests = true
 
-	//Send initialtilstand til world view
-	l.sendElevStateToWorldView()
+	l.sendlocalElevStateCh()
 
-	//opprett oppdateringsloop
 	go l.run()
 
 	return l
@@ -119,20 +107,19 @@ func (l *localElevator) run() {
 	for {
 		select {
 
-		case newFloor := <-l.floorSensorChan:
+		case newFloor := <-l.floorSensorCh:
 			l.floor = newFloor
 			l.fsmOnFloorArrival(l.floor)
-			l.sendElevStateToWorldView()
+			l.sendlocalElevStateCh()
 
-		case newBtn := <-l.buttonChan:
-			//We only want localElevator to handle cab calls, world view handles hall calls.
+		case newBtn := <-l.buttonCh:
 			if newBtn.Button == driver.BT_Cab {
 				l.requests[newBtn.Floor][newBtn.Button] = true
 				l.fsmOnRequestButtonPress(newBtn.Floor, newBtn.Button)
 			}
-			l.sendElevStateToWorldView()
+			l.sendlocalElevStateCh()
 
-		case newObstr := <-l.obstructionChan:
+		case newObstr := <-l.obstructionCh:
 			l.obstruction = newObstr
 
 			if l.obstruction == true {
@@ -140,14 +127,13 @@ func (l *localElevator) run() {
 			} else {
 				l.ableToServiceRequests = true
 			}
-			l.sendElevStateToWorldView()
+			l.sendlocalElevStateCh()
 
-		case newHallCalls := <-l.assignerToLocalElev:
-			fmt.Println("[localElevator] received new hall calls from assigner: ", newHallCalls)
+		case newHallCalls := <-l.assignedHallCallsCh:
 			l.fsmOnReceivedHallCalls(newHallCalls)
-			l.sendElevStateToWorldView()
+			l.sendlocalElevStateCh()
 
-		case <-l.doorTimeoutChan:
+		case <-l.doorTimeoutCh:
 			if !l.obstruction {
 				l.fsmOnDoorTimeout()
 
@@ -155,13 +141,13 @@ func (l *localElevator) run() {
 				l.startDoorTimer()
 
 			}
-			l.sendElevStateToWorldView()
+			l.sendlocalElevStateCh()
 
-		case <-l.motorLossWatchdogCh:
+		case <-l.motorLossTimeoutCh:
 
 			if l.behaviour == moving {
 				l.ableToServiceRequests = false
-				l.sendElevStateToWorldView()
+				l.sendlocalElevStateCh()
 			}
 		}
 	}
@@ -194,12 +180,12 @@ func (l *localElevator) applyInitialRequests(initialCabCalls [config.N_FLOORS]bo
 	}
 }
 
-func (l *localElevator) sendElevStateToWorldView() {
+func (l *localElevator) sendlocalElevStateCh() {
 	select {
-	case l.elevStateToWorldview <- l.getElevState():
+	case l.localElevStateCh <- l.getElevState():
 	default:
-		<-l.elevStateToWorldview
-		l.elevStateToWorldview <- l.getElevState()
+		<-l.localElevStateCh
+		l.localElevStateCh <- l.getElevState()
 	}
 }
 
@@ -213,7 +199,7 @@ func (l *localElevator) setCabLights() {
 	}
 }
 
-func (l *localElevator) combineHallCallsAndCabCalls(newHallCalls [config.N_FLOORS][2]bool) {
+func (l *localElevator) combineHallCallsAndCabCalls(newHallCalls [config.N_FLOORS][config.N_TRAVEL_DIRN]bool) {
 
 	for floor := 0; floor < config.N_FLOORS; floor++ {
 		for btn := 0; btn < config.N_BUTTONS-1; btn++ {
@@ -222,7 +208,7 @@ func (l *localElevator) combineHallCallsAndCabCalls(newHallCalls [config.N_FLOOR
 	}
 }
 
-func (l *localElevator) fsmOnReceivedHallCalls(newHallCalls [config.N_FLOORS][2]bool) {
+func (l *localElevator) fsmOnReceivedHallCalls(newHallCalls [config.N_FLOORS][config.N_TRAVEL_DIRN]bool) {
 	l.combineHallCallsAndCabCalls(newHallCalls)
 
 	switch l.behaviour {
@@ -237,12 +223,10 @@ func (l *localElevator) fsmOnReceivedHallCalls(newHallCalls [config.N_FLOORS][2]
 			l.completedHallCalls[l.floor][driver.BT_HallDown] = true
 			l.sendCompletedHallCallsToWorldView()
 			l.startDoorTimer()
-		} else {
-			//do nothing
-		}
+		} 
 
 	case moving:
-		//do nothing, handled by fsmOnFloorArrival
+		//do nothing, fsmOnFloorArrival handles state transition
 
 	case idle:
 		pair := requestsChooseDirection(*l)
@@ -266,14 +250,13 @@ func (l *localElevator) fsmOnReceivedHallCalls(newHallCalls [config.N_FLOORS][2]
 
 func (l *localElevator) sendCompletedHallCallsToWorldView() {
 	select {
-	case l.completedHallcallsCh <- l.completedHallCalls:
+	case l.completedHallCallsCh <- l.completedHallCalls:
 	default:
 		fmt.Println("[localElevator] Warning: completedHallCalls channel is full, skipping update")
 	}
-	l.completedHallCalls = [config.N_FLOORS][2]bool{}
+	l.completedHallCalls = [config.N_FLOORS][config.N_TRAVEL_DIRN]bool{}
 }
 
-// logikk for tilstandsendring i etasje
 func (l *localElevator) fsmOnFloorArrival(newFloor int) {
 	l.floor = newFloor
 	driver.SetFloorIndicator(l.floor)
@@ -293,7 +276,6 @@ func (l *localElevator) fsmOnFloorArrival(newFloor int) {
 	}
 }
 
-// logikk for tilstandsendring
 func (l *localElevator) fsmOnRequestButtonPress(btnFloor int, btnType driver.ButtonType) {
 
 	switch l.behaviour {
@@ -353,12 +335,12 @@ func (l *localElevator) fsmOnDoorTimeout() {
 
 func (l *localElevator) startDoorTimer() {
 	time.AfterFunc(config.DoorOpenDuration,func() {
-		l.doorTimeoutChan <- true 
+		l.doorTimeoutCh <- true 
 	})
 }
 
 func (l *localElevator) startWatchdogTimer() {
 	time.AfterFunc(config.MotorLossDuration,func() {
-		l.motorLossWatchdogCh <- true
+		l.motorLossTimeoutCh	<- true
 	})
 }

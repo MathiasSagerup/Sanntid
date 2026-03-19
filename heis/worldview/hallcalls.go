@@ -60,6 +60,7 @@ func (w *WorldView) updateHallCallAndLight(incomingHallCall OrderState, floor in
 			fmt.Print("[worldview] Unexpected transition, current hallcall is: ", w.hallCalls[floor][hallBtn].state, "but received: ", incomingHallCall, "floor: ", floor, "direction: ", hallBtn)
 		}
 
+
 	case Unconfirmed:
 		switch incomingHallCall {
 		case Unconfirmed:
@@ -75,21 +76,21 @@ func (w *WorldView) updateHallCallAndLight(incomingHallCall OrderState, floor in
 
 			if allConnectedElevatorsHaveConfirmed {
 				w.hallCalls[floor][hallBtn].state = Confirmed
-				w.hallCalls[floor][hallBtn].confirmation = [config.N_ELEVATORS - 1]bool{} //reset all confirmations to false after transition
+				w.hallCalls[floor][hallBtn].confirmation = [config.N_OTHER_ELEVATORS]bool{} //reset all confirmations to false after transition
 				driver.SetButtonLamp(hallBtn,floor,true)				
 			}
 
 		case Confirmed:
 			w.hallCalls[floor][hallBtn].state = Confirmed
-			w.hallCalls[floor][hallBtn].confirmation = [config.N_ELEVATORS - 1]bool{} //reset all confirmations to false after transition
+			w.hallCalls[floor][hallBtn].confirmation = [config.N_OTHER_ELEVATORS]bool{} //reset all confirmations to false after transition
 			driver.SetButtonLamp(hallBtn,floor,true)
 		
 		case Completed:
 			w.hallCalls[floor][hallBtn].state = Completed
-			w.hallCalls[floor][hallBtn].confirmation = [config.N_ELEVATORS - 1]bool{} //reset all confirmations to false after transition
+			w.hallCalls[floor][hallBtn].confirmation = [config.N_OTHER_ELEVATORS]bool{} //reset all confirmations to false after transition
 			driver.SetButtonLamp(hallBtn,floor,true)
 		default:
-			fmt.Print("[worldview] Unexpected transition, current hallcall is: ", w.hallCalls[floor][hallBtn].state, "but received: ", incomingHallCall, "floor: ", floor, "direction: ", hallBtn)
+			fmt.Print("[worldview] Warning: Unexpected transition, current hallcall is: ", w.hallCalls[floor][hallBtn].state, "but received: ", incomingHallCall, "floor: ", floor, "direction: ", hallBtn)
 		}
 
 	case Confirmed:
@@ -99,7 +100,7 @@ func (w *WorldView) updateHallCallAndLight(incomingHallCall OrderState, floor in
 		case Completed:
 			w.hallCalls[floor][hallBtn].state = Completed
 		default:
-			fmt.Print("[worldview] Unexpected transition, current hallcall is: ", w.hallCalls[floor][hallBtn].state, "but received: ", incomingHallCall, "floor: ", floor, "direction: ", hallBtn)
+			fmt.Print("[worldview] Warning: Unexpected transition, current hallcall is: ", w.hallCalls[floor][hallBtn].state, "but received: ", incomingHallCall, "floor: ", floor, "direction: ", hallBtn)
 		}
 
 	case Completed:
@@ -117,17 +118,17 @@ func (w *WorldView) updateHallCallAndLight(incomingHallCall OrderState, floor in
 
 			if allConnectedElevatorsHaveConfirmed {
 				w.hallCalls[floor][hallBtn].state = NoOrder
-				w.hallCalls[floor][hallBtn].confirmation = [config.N_ELEVATORS - 1]bool{} //reset all confirmations to false after transition
+				w.hallCalls[floor][hallBtn].confirmation = [config.N_OTHER_ELEVATORS]bool{} //reset all confirmations to false after transition
 				driver.SetButtonLamp(hallBtn,floor,false)				
 			}
 
 		case NoOrder:
 			w.hallCalls[floor][hallBtn].state = NoOrder
-			w.hallCalls[floor][hallBtn].confirmation = [config.N_ELEVATORS - 1]bool{} //reset all confirmations to false after transition
+			w.hallCalls[floor][hallBtn].confirmation = [config.N_OTHER_ELEVATORS]bool{} //reset all confirmations to false after transition
 			driver.SetButtonLamp(hallBtn,floor,false)
 		
 		default:
-			fmt.Print("[worldview] Unexpected transition, current hallcall is: ", w.hallCalls[floor][hallBtn].state, "but received: ", incomingHallCall, "floor: ", floor, "direction: ", hallBtn)
+			fmt.Print("[worldview] Warning: Unexpected transition, current hallcall is: ", w.hallCalls[floor][hallBtn].state, "but received: ", incomingHallCall, "floor: ", floor, "direction: ", hallBtn)
 		}
 	}
 }

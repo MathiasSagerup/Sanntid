@@ -6,7 +6,7 @@ const (
 	N_FLOORS				= 4
 	N_ELEVATORS				= 3
 	N_BUTTONS             	= 3      // HallUp, HallDown, Cab
-	PEER_TIMEOUT_DURATION 	= 1000 
+	PEER_TIMEOUT_DURATION_MS 	= 1000 
 	N_OTHER_ELEVATORS		= N_ELEVATORS - 1 
 	N_TRAVEL_DIRN			= 2
 	DoorOpenDuration      	= 3 * time.Second
