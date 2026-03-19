@@ -79,8 +79,8 @@ func (w *WorldView) loop() {
 		//JUSTER SÅNN AT DET KUN ER HALLCALLS OSM KOMMER PÅ HALLCALLSBUTTON CH - I DRIVER? 
 		case hallButtonPressed := <-w.hallCallButtonCh:
 			hallCallsBeforeCheck := w.hallCalls
-			floor = hallButtonPressed.Floor
-			button = hallButtonPressed.Button
+			floor := hallButtonPressed.Floor
+			button := hallButtonPressed.Button
 
 			if (button == driver.BT_HallDown)||(button== driver.BT_HallUp) {
 
@@ -141,7 +141,7 @@ func (w *WorldView) loop() {
 				for dirn := 0; dirn < config.N_TRAVEL_DIRN; dirn++ {
 
 					if (newCompletedHallCalls[floor][dirn]) && (w.hallCalls[floor][dirn].state == Confirmed){
-						if isAloneOnNetwork(){
+						if w.isAloneOnNetwork(){
 							w.hallCalls[floor][dirn].state = NoOrder
 							driver.SetButtonLamp(driver.ButtonType(dirn), floor, false)
 						} else {
@@ -158,7 +158,7 @@ func (w *WorldView) loop() {
 }
 
 
-func (w *Worldview) isAloneOnNetwork() bool {
+func (w *WorldView) isAloneOnNetwork() bool {
 	if w.getNumberOfConnectedPeers() == 0 {
 		return true
 	}
