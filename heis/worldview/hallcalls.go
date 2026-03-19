@@ -37,7 +37,7 @@ func (w *WorldView) setHallCallLightsOff() {
 	}
 }
 
-func (w *WorldView) updateHallCallsAndLights(incomingHallCalls [config.N_FLOORS][N_TRAVEL_DIRN]OrderState, senderElevID int) {
+func (w *WorldView) updateHallCallsAndLights(incomingHallCalls [config.N_FLOORS][config.N_TRAVEL_DIRN]OrderState, senderElevID int) {
 	for floor := 0; floor < config.N_FLOORS; floor++ {
 		for dirn := 0; dirn < config.N_TRAVEL_DIRN; dirn++ {
 			w.updateHallCallAndLight(incomingHallCalls[floor][dirn], floor, driver.ButtonType(dirn), senderElevID)

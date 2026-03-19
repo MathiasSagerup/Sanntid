@@ -10,7 +10,7 @@ type PeerState struct {
 	HallCalls [config.N_FLOORS][config.N_TRAVEL_DIRN]OrderState	
 }
 
-func (w *WorldViewDecider) getNumberOfConnectedPeers() int{
+func (w *WorldView) getNumberOfConnectedPeers() int{
 	connectedPeers := 0
 	for elevID := 0; elevID < len(w.connectedElevators); elevID++{
 		if w.connectedElevators[elevID]{
