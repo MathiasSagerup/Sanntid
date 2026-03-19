@@ -1,19 +1,16 @@
 package hallCallsAssigner
 
+/*module formats input to binary hall request assigner". Sends assigned hallCalls to localElevators*/
+
 import (
 	"encoding/json"
 	"fmt"
 	"heis/config"
-
-	//"heis/driver"
 	"heis/localElevator"
 	"os/exec"
-	//"runtime"
-	//"strconv"
+	
 )
 
-// Struct members must be public in order to be accessible by json.Marshal/.Unmarshal
-// This means they must start with a capital letter, so we need to use field renaming struct tags to make them camelCase
 
 type hraFormattedElevState struct {
 	Behavior    string                `json:"behaviour"`
@@ -23,12 +20,12 @@ type hraFormattedElevState struct {
 }
 
 type hraFormattedInput struct {
-	HallRequests [config.N_FLOORS][2]bool         `json:"hallRequests"`
+	HallRequests [config.N_FLOORS][config.N_TRAVEL_DIRN]bool         `json:"hallRequests"`
 	States       map[string]hraFormattedElevState `json:"states"`
 }
 
 type HRAInput struct {
-	HallRequests    [config.N_FLOORS][2]bool
+	HallRequests    [config.N_FLOORS][config.N_TRAVEL_DIRN]bool
 	ThisElevState   localElevator.ElevState
 	OtherElevStates []localElevator.ElevState
 }
@@ -38,14 +35,14 @@ type HallCallAssigner struct {
 	HRAInputChan chan HRAInput
 
 	//output channel to localElevator
-	HRAOutputChan chan [config.N_FLOORS][2]bool
+	HRAOutputChan chan [config.N_FLOORS][config.N_TRAVEL_DIRN]bool
 
 	//internalStates
 	thisElevID    string
 	hraExecutable string
 }
 
-func NewHallCallAssigner(InputChan chan HRAInput, OutputChan chan [config.N_FLOORS][2]bool) *HallCallAssigner {
+func NewHallCallAssigner(InputChan chan HRAInput, OutputChan chan [config.N_FLOORS][config.N_TRAVEL_DIRN]bool) *HallCallAssigner {
 
 	h := &HallCallAssigner{
 		HRAInputChan:  InputChan,
@@ -114,7 +111,7 @@ func (h *HallCallAssigner) run() {
 	}
 }
 
-func (h *HallCallAssigner) sendAssignedHallCallsToLocalElevator(hallCalls [config.N_FLOORS][2]bool) {
+func (h *HallCallAssigner) sendAssignedHallCallsToLocalElevator(hallCalls [config.N_FLOORS][config.N_TRAVEL_DIRN]bool) {
 	select {
 	case h.HRAOutputChan <- hallCalls:
 	default:
