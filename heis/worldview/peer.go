@@ -7,13 +7,13 @@ import (
 
 type PeerState struct {
 	LocalElevState localElevator.ElevState
-	HallCalls [config.N_FLOORS][2]OrderState	
+	HallCalls [config.N_FLOORS][config.N_TRAVEL_DIRN]OrderState	
 }
 
 func (w *WorldViewDecider) getNumberOfConnectedPeers() int{
 	connectedPeers := 0
 	for elevID := 0; elevID < len(w.connectedElevators); elevID++{
-		if w.connectedElevators[elevID] == true {
+		if w.connectedElevators[elevID]{
 			connectedPeers++
 		}
 	}
