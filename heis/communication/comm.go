@@ -8,6 +8,8 @@ import (
 	"time"
 )
 
+
+
 type NetMsg struct {
 	FromID         				string
 	LocalState					worldview.PeerState
