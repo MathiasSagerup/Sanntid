@@ -27,6 +27,7 @@ func main() {
 
 	//uses the local ip address + an id given on the command line to
 	//create localID
+
 	serverAddr := flag.String("server", "localhost:15657", "Elevator server address")
 	idFlag := flag.String("id", "", "Elevator ID (optional)")
 	flag.Parse()
@@ -128,15 +129,15 @@ func main() {
 	select {}
 }
 
-func setRecoveredCabCalls(recoverdCabCallsCh <-chan [config.N_FLOORS]bool) [config.N_FLOORS]bool {
+func setRecoveredCabCalls(recoveredCabCallsCh <-chan [config.N_FLOORS]bool) [config.N_FLOORS]bool {
 	now := time.Now()
-	recoverdCabCalls := [config.N_FLOORS]bool{}
+	recoveredCabCallsCh := [config.N_FLOORS]bool{}
 	for {
 		if time.Since(now) > config.IntialStateCheckTime*time.Millisecond {
-			return recoverdCabCalls
+			return recoveredCabCallsCh
 		}
 		select {
-		case recoverdCabCalls = <-recoverdCabCallsCh:
+		case recoveredCabCallsCh = <-recoveredCabCallsCh:
 			fmt.Println("[main] Backup state received, starting with recovered state")
 		default:
 		}
