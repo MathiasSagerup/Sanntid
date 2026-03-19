@@ -20,7 +20,7 @@ const (
 	Completed
 )
 
-func (w *WorldViewDecider) getHallCallsWithoutConfirmation() [config.N_FLOORS][config.N_TRAVEL_DIRN]OrderState {
+func (w *WorldView) getHallCallsWithoutConfirmation() [config.N_FLOORS][config.N_TRAVEL_DIRN]OrderState {
 	hallCallsWithoutConfirmation := [config.N_FLOORS][config.N_TRAVEL_DIRN]OrderState{}
 	for floor:=0; floor<config.N_FLOORS; floor++{
 		hallCallsWithoutConfirmation[floor][driver.BT_HallUp] = w.hallCalls[floor][driver.BT_HallUp].state
@@ -29,7 +29,7 @@ func (w *WorldViewDecider) getHallCallsWithoutConfirmation() [config.N_FLOORS][c
 	return hallCallsWithoutConfirmation
 }
 
-func (w *WorldViewDecider) setHallCallLightsOff() {
+func (w *WorldView) setHallCallLightsOff() {
 	for floor := 0; floor < config.N_FLOORS; floor++ {
 			for dirn:= 0; dirn < config.N_TRAVEL_DIRN; dirn++ {
 			driver.SetButtonLamp(driver.ButtonType(dirn), floor, false)
@@ -37,7 +37,7 @@ func (w *WorldViewDecider) setHallCallLightsOff() {
 	}
 }
 
-func (w *WorldViewDecider) updateHallCallsAndLights(incomingHallCalls [config.N_FLOORS][N_TRAVEL_DIRN]OrderState, senderElevID int) {
+func (w *WorldView) updateHallCallsAndLights(incomingHallCalls [config.N_FLOORS][N_TRAVEL_DIRN]OrderState, senderElevID int) {
 	for floor := 0; floor < config.N_FLOORS; floor++ {
 		for dirn := 0; dirn < config.N_TRAVEL_DIRN; dirn++ {
 			w.updateHallCallAndLight(incomingHallCalls[floor][dirn], floor, driver.ButtonType(dirn), senderElevID)
@@ -45,7 +45,7 @@ func (w *WorldViewDecider) updateHallCallsAndLights(incomingHallCalls [config.N_
 	}
 }
 
-func (w *WorldViewDecider) updateHallCallAndLight(incomingHallCall OrderState, floor int, hallBtn driver.ButtonType, senderElevID int) {
+func (w *WorldView) updateHallCallAndLight(incomingHallCall OrderState, floor int, hallBtn driver.ButtonType, senderElevID int) {
 	localHallCall := w.hallCalls[floor][hallBtn]
 
 	switch localHallCall.state {

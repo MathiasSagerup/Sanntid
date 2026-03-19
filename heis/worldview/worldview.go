@@ -72,7 +72,7 @@ func (w *WorldView) loop() {
 		case newElevState := <-w.localElevCh:
 			if w.thisElevState != newElevState {
 				w.thisElevState = newElevState
-				w.sendHallcallassignerInput()
+				w.sendHallCallAssignerInput()
 				w.sendLocalPeerState()
 			}
 
