@@ -46,7 +46,7 @@ func (w *WorldView) updateHallCallsAndLights(incomingHallCalls [config.N_FLOORS]
 }
 
 func (w *WorldView) updateHallCallAndLight(incomingHallCall OrderState, floor int, hallBtn driver.ButtonType, senderElevID int) {
-	localHallCall := w.hallCalls[floor][hallBtn]
+	localHallCall := &w.hallCalls[floor][hallBtn]
 
 	switch localHallCall.state {
 	case NoOrder:

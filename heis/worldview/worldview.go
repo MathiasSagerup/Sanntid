@@ -178,7 +178,7 @@ func (w *WorldView) sendLocalPeerState() {
 
 func (w *WorldView) sendHallCallAssignerInput() {
 	//Transform hallRequestStates to bools
-	hallRequestsInput := [config.N_FLOORS][2]bool{}
+	hallRequestsInput := [config.N_FLOORS][config.N_TRAVEL_DIRN]bool{}
 
 	for floor := 0; floor < config.N_FLOORS; floor++ {
 		for dirn := 0; dirn < config.N_TRAVEL_DIRN; dirn++ {

@@ -49,9 +49,6 @@ type localElevator struct {
 	assignedHallCalls     [config.N_FLOORS][2]bool
 	completedHallCalls    [config.N_FLOORS][2]bool
 
-	doorTimer *time.Timer
-	watchdogTimer *time.Timer
-
 	//Internal request channels (one per public method)
 	elevStateToWorldview chan ElevState
 	completedHallcallsCh chan [config.N_FLOORS][2]bool
@@ -355,20 +352,13 @@ func (l *localElevator) fsmOnDoorTimeout() {
 }
 
 func (l *localElevator) startDoorTimer() {
-	if l.doorTimer !=nil {
-		l.doorTimer.Stop()
-	}
-	l.doorTimer=time.AfterFunc(config.DoorOpenDuration,func() {
+	time.AfterFunc(config.DoorOpenDuration,func() {
 		l.doorTimeoutChan <- true 
 	})
 }
 
 func (l *localElevator) startWatchdogTimer() {
-	if l.watchdogTimer != nil {
-		l.watchdogTimer.Stop()
-	}
-
-	l.watchdogTimer = time.AfterFunc(config.MotorLossDuration, func() {
+	time.AfterFunc(config.MotorLossDuration,func() {
 		l.motorLossWatchdogCh <- true
 	})
 }
