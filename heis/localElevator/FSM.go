@@ -239,7 +239,7 @@ func (l *localElevator) fsmOnReceivedHallCalls(newHallCalls [config.N_FLOORS][co
 			l.startDoorTimer()
 			requestsClearAtCurrentFloor(l)
 		case moving:
-			l.startWatchdogTimer()
+			l.startMotorLossTimer()
 			driver.SetMotorDirection(l.dirn)
 		case idle:
 			// nothing to do
@@ -260,7 +260,7 @@ func (l *localElevator) sendCompletedHallCallsToWorldView() {
 func (l *localElevator) fsmOnFloorArrival(newFloor int) {
 	l.floor = newFloor
 	driver.SetFloorIndicator(l.floor)
-	l.startWatchdogTimer()
+	l.startMotorLossTimer()
 	l.ableToServiceRequests = true
 
 	switch l.behaviour {
@@ -303,7 +303,7 @@ func (l *localElevator) fsmOnRequestButtonPress(btnFloor int, btnType driver.But
 			l.startDoorTimer()
 			requestsClearAtCurrentFloor(l)
 		case moving:
-			l.startWatchdogTimer()
+			l.startMotorLossTimer()
 			driver.SetMotorDirection(l.dirn)
 		case idle:
 			// nothing to do
@@ -327,7 +327,7 @@ func (l *localElevator) fsmOnDoorTimeout() {
 		case moving, idle:
 			driver.SetDoorOpenLamp(false)
 			driver.SetMotorDirection(l.dirn)
-			l.startWatchdogTimer()
+			l.startMotorLossTimer()
 
 		}
 	}
@@ -339,8 +339,21 @@ func (l *localElevator) startDoorTimer() {
 	})
 }
 
-func (l *localElevator) startWatchdogTimer() {
+func (l *localElevator) startMotorLossTimer() {
 	time.AfterFunc(config.MotorLossDuration,func() {
 		l.motorLossTimeoutCh	<- true
 	})
+}
+
+func(eb ElevatorBehaviour) String() string {
+	switch eb {
+	case moving:
+		return "moving"
+	case idle:
+		return "idle"
+	case doorOpen:
+		return "doorOpen"
+	default:
+		return "undefined"
+	}
 }
