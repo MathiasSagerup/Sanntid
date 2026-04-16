@@ -4,75 +4,101 @@ import (
 	"fmt"
 	"log"
 	"net"
-	"time"
 	"sync"
+	"time"
 )
 
 func findAddress() *net.UDPAddr {
 	udpNullAdresse := net.UDPAddr{IP: net.IPv4zero, Port: 30000}
 	buffer := make([]byte, 1024)
 
-	udpConnection , err := net.ListenUDP("udp4", &udpNullAdresse)
+	fmt.Println("Starting to listen for server broadcast on port 30000...")
+
+	udpConnection, err := net.ListenUDP("udp4", &udpNullAdresse)
 	defer udpConnection.Close()
-	
-	length, serverAddress, err := udpConnection.ReadFromUDP(buffer)
 
-	fmt.Println("Message:", string(buffer[:length]))
-
-	if err!=nil{
+	if err != nil {
 		log.Fatal(err)
 	}
+
+	fmt.Println("Listening... waiting for broadcast message...")
+	length, serverAddress, err := udpConnection.ReadFromUDP(buffer)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println("Server IP found:", serverAddress.String())
+	fmt.Println("Message:", string(buffer[:length]))
 
 	return serverAddress
 }
 
-func sendMessage(){
-	serverSendConnection, err := net.Dial("udp", "10.100.23.11:20011")
-	if err!=nil{
+func sendMessage(serverAddr *net.UDPAddr) {
+	// Use workspace number n for port 20000 + n
+	// Default to 11 for testing, but you can change this
+	n := 11
+
+	serverSendConnection, err := net.Dial("udp", fmt.Sprintf("%s:%d", serverAddr.IP.String(), 20000+n))
+	if err != nil {
 		log.Fatalln(err)
 	}
 	defer serverSendConnection.Close()
-	
-	_, err = serverSendConnection.Write([]byte("Hello World!"))
-	if err!=nil{
-		log.Fatalln(err)
+
+	for i := 0; i < 5; i++ {
+		_, err = serverSendConnection.Write([]byte("Hello World!"))
+		if err != nil {
+			log.Fatalln(err)
+		}
+		fmt.Println("Message sent")
+		time.Sleep(100 * time.Millisecond) // Be nice to the network
 	}
-	fmt.Println(("Message sent"))
 }
 
-func printResponse(){
-	udpNullAdresse := net.UDPAddr{IP: net.IPv4zero, Port: 20011}
-	listenConnection , err := net.ListenUDP("udp4", &udpNullAdresse)
+func printResponse(n int) {
+	// Listen on port 20000 + n for responses
+	udpListenAdresse := net.UDPAddr{IP: net.IPv4zero, Port: 20000 + n}
+	listenConnection, err := net.ListenUDP("udp4", &udpListenAdresse)
 	defer listenConnection.Close()
-	if err!=nil{
+	if err != nil {
 		log.Fatal(err)
 	}
 
-	buffer := make([]byte, 1024)
-	listenConnection.SetDeadline(time.Now().Add(5*time.Second))
-	for{
-		length , err := listenConnection.Read(buffer)
+	fmt.Printf("Listening for responses on port %d\n", 20000+n)
 
-		if err!=nil{
+	buffer := make([]byte, 1024)
+	listenConnection.SetDeadline(time.Now().Add(10 * time.Second))
+	for {
+		length, err := listenConnection.Read(buffer)
+
+		if err != nil {
 			log.Fatalln(err)
 		}
-		fmt.Println("Message:", string(buffer[:length]))
+		fmt.Println("Response:", string(buffer[:length]))
 	}
 }
 
-func main(){
-	//findAddress()
-	//ServerAddr := net.UDPAddr{IP: serverBroadcastAddress.IP, Port: 20011}
-	//SendAddr := net.UDPAddr{IP: net.ParseIP("10.100.23.21"), Port: 2321}
+func main() {
+	n := 11 // Change this to your workspace number
+
+	// First, find the server address by listening to port 30000
+	serverAddr := findAddress()
+
 	wg := sync.WaitGroup{}
 	wg.Add(2)
-	go func(){
+
+	go func() {
 		defer wg.Done()
-		printResponse()
+		printResponse(n)
 	}()
-	go func(){
+
+	// Give the listener a moment to start before sending
+	time.Sleep(100 * time.Millisecond)
+
+	go func() {
 		defer wg.Done()
-		sendMessage()
+		sendMessage(serverAddr)
 	}()
+
 	wg.Wait()
 }
