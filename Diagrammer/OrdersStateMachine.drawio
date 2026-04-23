@@ -1,66 +1,117 @@
-<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:147.0) Gecko/20100101 Firefox/147.0" version="29.3.6">
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:147.0) Gecko/20100101 Firefox/147.0">
   <diagram name="Page-1" id="bd83a815-5ea8-2e97-e5ec-87c9f400f2fa">
-    <mxGraphModel dx="1613" dy="887" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1.5" pageWidth="1169" pageHeight="826" background="none" math="0" shadow="0">
+    <mxGraphModel dx="1372" dy="743" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1.5" pageWidth="1169" pageHeight="826" background="none" math="0" shadow="0">
       <root>
         <mxCell id="0" style=";html=1;" />
         <mxCell id="1" parent="0" style=";html=1;" />
-        <mxCell id="ZbFQtOwtKNGaY78NjgSl-5" edge="1" parent="1" source="ZbFQtOwtKNGaY78NjgSl-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="ZbFQtOwtKNGaY78NjgSl-2">
+        <mxCell id="ZbFQtOwtKNGaY78NjgSl-5" edge="1" parent="1" source="ZbFQtOwtKNGaY78NjgSl-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="ZbFQtOwtKNGaY78NjgSl-2">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="ZbFQtOwtKNGaY78NjgSl-17" edge="1" parent="1" source="ZbFQtOwtKNGaY78NjgSl-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;">
-          <mxGeometry relative="1" as="geometry">
-            <mxPoint x="230" y="960" as="targetPoint" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="ZbFQtOwtKNGaY78NjgSl-1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" value="&lt;div&gt;&lt;b&gt;False&lt;/b&gt;&lt;/div&gt;(order does not excist)" vertex="1">
-          <mxGeometry height="60" width="120" x="170" y="1030" as="geometry" />
-        </mxCell>
-        <mxCell id="ZbFQtOwtKNGaY78NjgSl-6" edge="1" parent="1" source="ZbFQtOwtKNGaY78NjgSl-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="ZbFQtOwtKNGaY78NjgSl-3">
+        <mxCell id="slcQIB_xAJk_PBkLsQMa-6" edge="1" parent="1" source="ZbFQtOwtKNGaY78NjgSl-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontColor=#FF6666;fillColor=#f8cecc;strokeColor=#b85450;" target="ZbFQtOwtKNGaY78NjgSl-16">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="ZbFQtOwtKNGaY78NjgSl-13" edge="1" parent="1" source="ZbFQtOwtKNGaY78NjgSl-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=1;entryDx=0;entryDy=0;entryPerimeter=0;fillColor=#dae8fc;strokeColor=#6c8ebf;" target="ZbFQtOwtKNGaY78NjgSl-14">
-          <mxGeometry relative="1" as="geometry">
-            <mxPoint x="565" y="970" as="targetPoint" />
+        <mxCell id="slcQIB_xAJk_PBkLsQMa-7" connectable="0" parent="slcQIB_xAJk_PBkLsQMa-6" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="output" vertex="1">
+          <mxGeometry relative="1" x="0.0194" y="-1" as="geometry">
+            <mxPoint as="offset" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="ZbFQtOwtKNGaY78NjgSl-2" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" value="&lt;div&gt;&lt;b&gt;True&lt;/b&gt;&lt;/div&gt;(Order is active, waiting for execution)" vertex="1">
-          <mxGeometry height="60" width="120" x="505" y="1030" as="geometry" />
-        </mxCell>
-        <mxCell id="ZbFQtOwtKNGaY78NjgSl-7" edge="1" parent="1" source="ZbFQtOwtKNGaY78NjgSl-3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" target="ZbFQtOwtKNGaY78NjgSl-1">
+        <mxCell id="slcQIB_xAJk_PBkLsQMa-18" edge="1" parent="1" source="ZbFQtOwtKNGaY78NjgSl-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;dashed=1;" target="slcQIB_xAJk_PBkLsQMa-2">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="1290" y="1060" />
-              <mxPoint x="1290" y="1210" />
-              <mxPoint x="70" y="1210" />
-              <mxPoint x="70" y="1060" />
+              <mxPoint x="170" y="633" />
+              <mxPoint x="170" y="950" />
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="ZbFQtOwtKNGaY78NjgSl-19" edge="1" parent="1" source="ZbFQtOwtKNGaY78NjgSl-3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;">
-          <mxGeometry relative="1" as="geometry">
-            <mxPoint x="929.9999999999995" y="960" as="targetPoint" />
+        <mxCell id="ZbFQtOwtKNGaY78NjgSl-1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" value="&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;&lt;b&gt;NoOrder&lt;/b&gt;&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="60" width="120" x="340" y="602.5" as="geometry" />
+        </mxCell>
+        <mxCell id="slcQIB_xAJk_PBkLsQMa-3" edge="1" parent="1" source="ZbFQtOwtKNGaY78NjgSl-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="slcQIB_xAJk_PBkLsQMa-2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="slcQIB_xAJk_PBkLsQMa-8" edge="1" parent="1" source="ZbFQtOwtKNGaY78NjgSl-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fillColor=#f8cecc;strokeColor=#b85450;" target="ZbFQtOwtKNGaY78NjgSl-14">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="slcQIB_xAJk_PBkLsQMa-9" connectable="0" parent="slcQIB_xAJk_PBkLsQMa-8" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="output" vertex="1">
+          <mxGeometry relative="1" x="-0.1056" y="3" as="geometry">
+            <mxPoint as="offset" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="ZbFQtOwtKNGaY78NjgSl-3" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" value="&lt;div&gt;&lt;b&gt;Completed&lt;/b&gt;&lt;/div&gt;(Some elevator has completed the order)" vertex="1">
-          <mxGeometry height="60" width="120" x="870" y="1030" as="geometry" />
+        <mxCell id="slcQIB_xAJk_PBkLsQMa-20" edge="1" parent="1" source="ZbFQtOwtKNGaY78NjgSl-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;dashed=1;" target="ZbFQtOwtKNGaY78NjgSl-3">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="200" y="790" />
+              <mxPoint x="200" y="1110" />
+            </Array>
+          </mxGeometry>
         </mxCell>
-        <mxCell id="ZbFQtOwtKNGaY78NjgSl-8" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Recieved state &quot;True&quot; from another elevator for given order" vertex="1">
-          <mxGeometry height="30" width="180" x="300" y="1070" as="geometry" />
+        <mxCell id="ZbFQtOwtKNGaY78NjgSl-2" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" value="&lt;div&gt;&lt;b&gt;Unconfirmed&lt;/b&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="60" width="120" x="340" y="760" as="geometry" />
         </mxCell>
-        <mxCell id="ZbFQtOwtKNGaY78NjgSl-10" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="&lt;div&gt;Recieved state &quot;Completed&quot; from another elevator for given order&lt;/div&gt;&lt;div&gt;&lt;b&gt;or&lt;/b&gt;&lt;/div&gt;&lt;div&gt;this elevator completed the given order&lt;/div&gt;" vertex="1">
-          <mxGeometry height="70" width="180" x="645" y="1070" as="geometry" />
+        <mxCell id="ZbFQtOwtKNGaY78NjgSl-7" edge="1" parent="1" source="ZbFQtOwtKNGaY78NjgSl-3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" target="ZbFQtOwtKNGaY78NjgSl-1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="400" y="1220" />
+              <mxPoint x="110" y="1220" />
+              <mxPoint x="110" y="560" />
+              <mxPoint x="400" y="560" />
+            </Array>
+          </mxGeometry>
         </mxCell>
-        <mxCell id="ZbFQtOwtKNGaY78NjgSl-12" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="&lt;div&gt;Recieved state &quot;Completed from all other alive elevators for given order&quot;&lt;/div&gt;&lt;div&gt;&lt;b&gt;or&lt;/b&gt;&lt;/div&gt;&lt;div&gt;Recieved state &quot;False&quot; from another elevator for given order&lt;/div&gt;" vertex="1">
-          <mxGeometry height="70" width="260" x="1000" y="1070" as="geometry" />
+        <mxCell id="slcQIB_xAJk_PBkLsQMa-5" edge="1" parent="1" source="ZbFQtOwtKNGaY78NjgSl-3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fillColor=#f8cecc;strokeColor=#b85450;" target="ZbFQtOwtKNGaY78NjgSl-18">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="ZbFQtOwtKNGaY78NjgSl-14" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="&lt;div&gt;Set corresponding order light on&lt;/div&gt;&lt;div&gt;&lt;b&gt;and&lt;/b&gt;&lt;/div&gt;&lt;div&gt;pass this order as true to order hallRequestAssigner&lt;/div&gt;" vertex="1">
-          <mxGeometry height="90" width="160" x="485" y="870" as="geometry" />
+        <mxCell id="slcQIB_xAJk_PBkLsQMa-10" connectable="0" parent="slcQIB_xAJk_PBkLsQMa-5" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="output" vertex="1">
+          <mxGeometry relative="1" x="0.4827" y="2" as="geometry">
+            <mxPoint x="-75" y="-3" as="offset" />
+          </mxGeometry>
         </mxCell>
-        <mxCell id="ZbFQtOwtKNGaY78NjgSl-16" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="&lt;div&gt;Set corresponding order light off&lt;/div&gt;&lt;div&gt;&lt;b&gt;and&lt;/b&gt;&lt;/div&gt;&lt;div&gt;pass this order as false to order hallRequestAssigner&lt;/div&gt;" vertex="1">
-          <mxGeometry height="90" width="160" x="150" y="860" as="geometry" />
+        <mxCell id="ZbFQtOwtKNGaY78NjgSl-3" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" value="&lt;div&gt;&lt;b&gt;Completed&lt;/b&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="60" width="120" x="340" y="1080" as="geometry" />
         </mxCell>
-        <mxCell id="ZbFQtOwtKNGaY78NjgSl-18" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="&lt;div&gt;Set corresponding order light off&lt;/div&gt;&lt;div&gt;&lt;b&gt;and&lt;/b&gt;&lt;/div&gt;&lt;div&gt;pass this order as false to order hallRequestAssigner&lt;/div&gt;" vertex="1">
-          <mxGeometry height="90" width="160" x="850" y="860" as="geometry" />
+        <mxCell id="ZbFQtOwtKNGaY78NjgSl-8" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;rounded=0;" value="Recieved state &quot;Confirmed&quot; from another peer&lt;div&gt;&lt;b&gt;or&lt;/b&gt;&lt;/div&gt;&lt;div&gt;recieved state &quot;Unconfirmed&quot; from all other currently connected peers&lt;/div&gt;" vertex="1">
+          <mxGeometry height="70" width="251" x="402" y="835" as="geometry" />
+        </mxCell>
+        <mxCell id="ZbFQtOwtKNGaY78NjgSl-10" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;rounded=0;" value="&lt;div&gt;Recieved state &quot;Completed&quot; from another peer&lt;/div&gt;&lt;div&gt;&lt;b&gt;or&lt;/b&gt;&lt;/div&gt;&lt;div&gt;this elevator completed the given order&lt;/div&gt;" vertex="1">
+          <mxGeometry height="70" width="280" x="400" y="990" as="geometry" />
+        </mxCell>
+        <mxCell id="ZbFQtOwtKNGaY78NjgSl-14" parent="1" style="text;html=1;whiteSpace=wrap;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontColor=#FF6666;" value="&lt;div&gt;Set corresponding order light off&lt;/div&gt;&lt;div&gt;&lt;b&gt;and&lt;/b&gt;&lt;/div&gt;&lt;div&gt;pass this order as false to hallRequestAssigner&lt;/div&gt;" vertex="1">
+          <mxGeometry height="55" width="220" x="680" y="760" as="geometry" />
+        </mxCell>
+        <mxCell id="ZbFQtOwtKNGaY78NjgSl-16" parent="1" style="text;html=1;whiteSpace=wrap;align=center;verticalAlign=middle;rounded=0;fillColor=none;fontColor=#FF6666;" value="&lt;div&gt;Set corresponding order light off&lt;/div&gt;&lt;div&gt;&lt;b&gt;and&lt;/b&gt;&lt;/div&gt;&lt;div&gt;pass this order as false to order hallRequestAssigner&lt;/div&gt;" vertex="1">
+          <mxGeometry height="45" width="200" x="680" y="610" as="geometry" />
+        </mxCell>
+        <mxCell id="ZbFQtOwtKNGaY78NjgSl-18" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontColor=#FF6666;" value="&lt;div&gt;Set corresponding order light off&lt;/div&gt;&lt;div&gt;&lt;b&gt;and&lt;/b&gt;&lt;/div&gt;&lt;div&gt;pass this order as false to order hallRequestAssigner&lt;/div&gt;" vertex="1">
+          <mxGeometry height="45" width="180" x="710" y="1087.5" as="geometry" />
+        </mxCell>
+        <mxCell id="slcQIB_xAJk_PBkLsQMa-4" edge="1" parent="1" source="slcQIB_xAJk_PBkLsQMa-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="ZbFQtOwtKNGaY78NjgSl-3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="slcQIB_xAJk_PBkLsQMa-12" edge="1" parent="1" source="slcQIB_xAJk_PBkLsQMa-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fillColor=#f8cecc;strokeColor=#b85450;" target="slcQIB_xAJk_PBkLsQMa-11">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="slcQIB_xAJk_PBkLsQMa-13" connectable="0" parent="slcQIB_xAJk_PBkLsQMa-12" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="output" vertex="1">
+          <mxGeometry relative="1" x="-0.171" y="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="slcQIB_xAJk_PBkLsQMa-2" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="&lt;div&gt;&lt;b&gt;Confirmed&lt;/b&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="60" width="120" x="340" y="920" as="geometry" />
+        </mxCell>
+        <mxCell id="slcQIB_xAJk_PBkLsQMa-11" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontColor=#FF6666;" value="&lt;div&gt;Set corresponding order light on&lt;/div&gt;&lt;div&gt;&lt;b&gt;and&lt;/b&gt;&lt;/div&gt;&lt;div&gt;pass this order as true to order hallRequestAssigner&lt;/div&gt;" vertex="1">
+          <mxGeometry height="55" width="220" x="690" y="922.5" as="geometry" />
+        </mxCell>
+        <mxCell id="slcQIB_xAJk_PBkLsQMa-15" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;rounded=0;" value="Driver signals that the hallcall button was pressed locally&lt;div&gt;&lt;b&gt;or&lt;/b&gt;&lt;/div&gt;&lt;div&gt;recieved state &quot;Unconfirmed&quot; from another peer&lt;/div&gt;" vertex="1">
+          <mxGeometry height="70" width="251" x="402" y="672" as="geometry" />
+        </mxCell>
+        <mxCell id="slcQIB_xAJk_PBkLsQMa-16" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;rounded=0;" value="Recieved state &quot;False&quot; from another peer&lt;div&gt;&lt;b&gt;or&lt;/b&gt;&lt;/div&gt;&lt;div&gt;recieved state &quot;Confirmed&quot; from all other currently connected peers&lt;/div&gt;" vertex="1">
+          <mxGeometry height="70" width="251" x="402" y="1150" as="geometry" />
+        </mxCell>
+        <mxCell id="slcQIB_xAJk_PBkLsQMa-19" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;rounded=0;" value="Recieved state &quot;Confirmed&quot; from another peer" vertex="1">
+          <mxGeometry height="70" width="90" x="170" y="640" as="geometry" />
+        </mxCell>
+        <mxCell id="slcQIB_xAJk_PBkLsQMa-21" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;rounded=0;" value="Recieved state &quot;Completed&quot; from another peer" vertex="1">
+          <mxGeometry height="70" width="90" x="200" y="800" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
