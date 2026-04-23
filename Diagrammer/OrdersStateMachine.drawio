@@ -1,6 +1,6 @@
 <mxfile host="app.diagrams.net" agent="Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:147.0) Gecko/20100101 Firefox/147.0">
   <diagram name="Page-1" id="bd83a815-5ea8-2e97-e5ec-87c9f400f2fa">
-    <mxGraphModel dx="1372" dy="743" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1.5" pageWidth="1169" pageHeight="826" background="none" math="0" shadow="0">
+    <mxGraphModel dx="1614" dy="874" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1.5" pageWidth="1169" pageHeight="826" background="none" math="0" shadow="0">
       <root>
         <mxCell id="0" style=";html=1;" />
         <mxCell id="1" parent="0" style=";html=1;" />
@@ -69,20 +69,20 @@
         <mxCell id="ZbFQtOwtKNGaY78NjgSl-3" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" value="&lt;div&gt;&lt;b&gt;Completed&lt;/b&gt;&lt;/div&gt;" vertex="1">
           <mxGeometry height="60" width="120" x="340" y="1080" as="geometry" />
         </mxCell>
-        <mxCell id="ZbFQtOwtKNGaY78NjgSl-8" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;rounded=0;" value="Recieved state &quot;Confirmed&quot; from another peer&lt;div&gt;&lt;b&gt;or&lt;/b&gt;&lt;/div&gt;&lt;div&gt;recieved state &quot;Unconfirmed&quot; from all other currently connected peers&lt;/div&gt;" vertex="1">
+        <mxCell id="ZbFQtOwtKNGaY78NjgSl-8" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;rounded=0;" value="Recieved &quot;Confirmed&quot; from another peer&lt;div&gt;&lt;b&gt;or&lt;/b&gt;&lt;/div&gt;&lt;div&gt;recieved &quot;Unconfirmed&quot; from all other currently connected peers&lt;/div&gt;" vertex="1">
           <mxGeometry height="70" width="251" x="402" y="835" as="geometry" />
         </mxCell>
-        <mxCell id="ZbFQtOwtKNGaY78NjgSl-10" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;rounded=0;" value="&lt;div&gt;Recieved state &quot;Completed&quot; from another peer&lt;/div&gt;&lt;div&gt;&lt;b&gt;or&lt;/b&gt;&lt;/div&gt;&lt;div&gt;this elevator completed the given order&lt;/div&gt;" vertex="1">
+        <mxCell id="ZbFQtOwtKNGaY78NjgSl-10" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;rounded=0;" value="&lt;div&gt;Recieved &quot;Completed&quot; from another peer&lt;/div&gt;&lt;div&gt;&lt;b&gt;or&lt;/b&gt;&lt;/div&gt;&lt;div&gt;order was completed locally&lt;/div&gt;" vertex="1">
           <mxGeometry height="70" width="280" x="400" y="990" as="geometry" />
         </mxCell>
-        <mxCell id="ZbFQtOwtKNGaY78NjgSl-14" parent="1" style="text;html=1;whiteSpace=wrap;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontColor=#FF6666;" value="&lt;div&gt;Set corresponding order light off&lt;/div&gt;&lt;div&gt;&lt;b&gt;and&lt;/b&gt;&lt;/div&gt;&lt;div&gt;pass this order as false to hallRequestAssigner&lt;/div&gt;" vertex="1">
-          <mxGeometry height="55" width="220" x="680" y="760" as="geometry" />
+        <mxCell id="ZbFQtOwtKNGaY78NjgSl-14" parent="1" style="text;html=1;whiteSpace=wrap;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontColor=#FF6666;" value="&lt;div&gt;Set light off&lt;/div&gt;&lt;div&gt;&lt;b&gt;and&lt;/b&gt;&lt;/div&gt;&lt;div&gt;pass order as false to hallRequestAssigner&lt;/div&gt;" vertex="1">
+          <mxGeometry height="55" width="250" x="680" y="760" as="geometry" />
         </mxCell>
-        <mxCell id="ZbFQtOwtKNGaY78NjgSl-16" parent="1" style="text;html=1;whiteSpace=wrap;align=center;verticalAlign=middle;rounded=0;fillColor=none;fontColor=#FF6666;" value="&lt;div&gt;Set corresponding order light off&lt;/div&gt;&lt;div&gt;&lt;b&gt;and&lt;/b&gt;&lt;/div&gt;&lt;div&gt;pass this order as false to order hallRequestAssigner&lt;/div&gt;" vertex="1">
-          <mxGeometry height="45" width="200" x="680" y="610" as="geometry" />
+        <mxCell id="ZbFQtOwtKNGaY78NjgSl-16" parent="1" style="text;html=1;whiteSpace=wrap;align=center;verticalAlign=middle;rounded=0;fillColor=none;fontColor=#FF6666;" value="&lt;div&gt;Set light off&lt;/div&gt;&lt;div&gt;&lt;b&gt;and&lt;/b&gt;&lt;/div&gt;&lt;div&gt;pass order as false to hallRequestAssigner&lt;/div&gt;" vertex="1">
+          <mxGeometry height="45" width="240" x="680" y="610" as="geometry" />
         </mxCell>
-        <mxCell id="ZbFQtOwtKNGaY78NjgSl-18" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontColor=#FF6666;" value="&lt;div&gt;Set corresponding order light off&lt;/div&gt;&lt;div&gt;&lt;b&gt;and&lt;/b&gt;&lt;/div&gt;&lt;div&gt;pass this order as false to order hallRequestAssigner&lt;/div&gt;" vertex="1">
-          <mxGeometry height="45" width="180" x="710" y="1087.5" as="geometry" />
+        <mxCell id="ZbFQtOwtKNGaY78NjgSl-18" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontColor=#FF6666;" value="&lt;div&gt;Set light on&lt;/div&gt;&lt;div&gt;&lt;b&gt;and&lt;/b&gt;&lt;/div&gt;&lt;div&gt;pass order as false to hallRequestAssigner&lt;/div&gt;" vertex="1">
+          <mxGeometry height="45" width="270" x="680" y="1087.5" as="geometry" />
         </mxCell>
         <mxCell id="slcQIB_xAJk_PBkLsQMa-4" edge="1" parent="1" source="slcQIB_xAJk_PBkLsQMa-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="ZbFQtOwtKNGaY78NjgSl-3">
           <mxGeometry relative="1" as="geometry" />
@@ -98,20 +98,26 @@
         <mxCell id="slcQIB_xAJk_PBkLsQMa-2" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="&lt;div&gt;&lt;b&gt;Confirmed&lt;/b&gt;&lt;/div&gt;" vertex="1">
           <mxGeometry height="60" width="120" x="340" y="920" as="geometry" />
         </mxCell>
-        <mxCell id="slcQIB_xAJk_PBkLsQMa-11" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontColor=#FF6666;" value="&lt;div&gt;Set corresponding order light on&lt;/div&gt;&lt;div&gt;&lt;b&gt;and&lt;/b&gt;&lt;/div&gt;&lt;div&gt;pass this order as true to order hallRequestAssigner&lt;/div&gt;" vertex="1">
-          <mxGeometry height="55" width="220" x="690" y="922.5" as="geometry" />
+        <mxCell id="slcQIB_xAJk_PBkLsQMa-11" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontColor=#FF6666;" value="&lt;div&gt;Set light on&lt;/div&gt;&lt;div&gt;&lt;b&gt;and&lt;/b&gt;&lt;/div&gt;&lt;div&gt;pass order as true to order hallRequestAssigner&lt;/div&gt;" vertex="1">
+          <mxGeometry height="55" width="280" x="680" y="922.5" as="geometry" />
         </mxCell>
-        <mxCell id="slcQIB_xAJk_PBkLsQMa-15" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;rounded=0;" value="Driver signals that the hallcall button was pressed locally&lt;div&gt;&lt;b&gt;or&lt;/b&gt;&lt;/div&gt;&lt;div&gt;recieved state &quot;Unconfirmed&quot; from another peer&lt;/div&gt;" vertex="1">
+        <mxCell id="slcQIB_xAJk_PBkLsQMa-15" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;rounded=0;" value="Button was pressed locally&lt;div&gt;&lt;b&gt;or&lt;/b&gt;&lt;/div&gt;&lt;div&gt;recieved &quot;Unconfirmed&quot; from another peer&lt;/div&gt;" vertex="1">
           <mxGeometry height="70" width="251" x="402" y="672" as="geometry" />
         </mxCell>
-        <mxCell id="slcQIB_xAJk_PBkLsQMa-16" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;rounded=0;" value="Recieved state &quot;False&quot; from another peer&lt;div&gt;&lt;b&gt;or&lt;/b&gt;&lt;/div&gt;&lt;div&gt;recieved state &quot;Confirmed&quot; from all other currently connected peers&lt;/div&gt;" vertex="1">
+        <mxCell id="slcQIB_xAJk_PBkLsQMa-16" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;rounded=0;" value="Recieved &quot;False&quot; from another peer&lt;div&gt;&lt;b&gt;or&lt;/b&gt;&lt;/div&gt;&lt;div&gt;recieved &quot;Confirmed&quot; from all other currently connected peers&lt;/div&gt;" vertex="1">
           <mxGeometry height="70" width="251" x="402" y="1150" as="geometry" />
         </mxCell>
-        <mxCell id="slcQIB_xAJk_PBkLsQMa-19" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;rounded=0;" value="Recieved state &quot;Confirmed&quot; from another peer" vertex="1">
-          <mxGeometry height="70" width="90" x="170" y="640" as="geometry" />
+        <mxCell id="slcQIB_xAJk_PBkLsQMa-19" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;rounded=0;" value="Recieved &quot;Confirmed&quot; from another peer" vertex="1">
+          <mxGeometry height="70" width="130" x="170" y="620" as="geometry" />
         </mxCell>
-        <mxCell id="slcQIB_xAJk_PBkLsQMa-21" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;rounded=0;" value="Recieved state &quot;Completed&quot; from another peer" vertex="1">
-          <mxGeometry height="70" width="90" x="200" y="800" as="geometry" />
+        <mxCell id="slcQIB_xAJk_PBkLsQMa-21" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;rounded=0;" value="Recieved &quot;Completed&quot; from another peer" vertex="1">
+          <mxGeometry height="70" width="130" x="200" y="774" as="geometry" />
+        </mxCell>
+        <mxCell id="slcQIB_xAJk_PBkLsQMa-24" edge="1" parent="1" source="slcQIB_xAJk_PBkLsQMa-23" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="ZbFQtOwtKNGaY78NjgSl-1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="slcQIB_xAJk_PBkLsQMa-23" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#000000;" value="" vertex="1">
+          <mxGeometry height="30" width="30" x="385" y="500" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
