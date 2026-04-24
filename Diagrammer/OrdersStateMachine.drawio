@@ -1,6 +1,6 @@
 <mxfile host="app.diagrams.net" agent="Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:147.0) Gecko/20100101 Firefox/147.0">
   <diagram name="Page-1" id="bd83a815-5ea8-2e97-e5ec-87c9f400f2fa">
-    <mxGraphModel dx="1614" dy="874" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1.5" pageWidth="1169" pageHeight="826" background="none" math="0" shadow="0">
+    <mxGraphModel dx="1408" dy="889" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1.5" pageWidth="1169" pageHeight="826" background="none" math="0" shadow="0">
       <root>
         <mxCell id="0" style=";html=1;" />
         <mxCell id="1" parent="0" style=";html=1;" />
@@ -15,11 +15,11 @@
             <mxPoint as="offset" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="slcQIB_xAJk_PBkLsQMa-18" edge="1" parent="1" source="ZbFQtOwtKNGaY78NjgSl-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;dashed=1;" target="slcQIB_xAJk_PBkLsQMa-2">
+        <mxCell id="slcQIB_xAJk_PBkLsQMa-18" edge="1" parent="1" source="ZbFQtOwtKNGaY78NjgSl-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=-0.002;entryY=0.356;entryDx=0;entryDy=0;dashed=1;entryPerimeter=0;" target="slcQIB_xAJk_PBkLsQMa-2">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="170" y="633" />
-              <mxPoint x="170" y="950" />
+              <mxPoint x="110" y="632.5" />
+              <mxPoint x="110" y="942" />
             </Array>
           </mxGeometry>
         </mxCell>
@@ -40,8 +40,8 @@
         <mxCell id="slcQIB_xAJk_PBkLsQMa-20" edge="1" parent="1" source="ZbFQtOwtKNGaY78NjgSl-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;dashed=1;" target="ZbFQtOwtKNGaY78NjgSl-3">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="200" y="790" />
-              <mxPoint x="200" y="1110" />
+              <mxPoint x="120" y="790" />
+              <mxPoint x="120" y="1110" />
             </Array>
           </mxGeometry>
         </mxCell>
@@ -51,9 +51,9 @@
         <mxCell id="ZbFQtOwtKNGaY78NjgSl-7" edge="1" parent="1" source="ZbFQtOwtKNGaY78NjgSl-3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" target="ZbFQtOwtKNGaY78NjgSl-1">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="400" y="1220" />
-              <mxPoint x="110" y="1220" />
-              <mxPoint x="110" y="560" />
+              <mxPoint x="400" y="1150" />
+              <mxPoint x="30" y="1150" />
+              <mxPoint x="30" y="560" />
               <mxPoint x="400" y="560" />
             </Array>
           </mxGeometry>
@@ -105,13 +105,13 @@
           <mxGeometry height="70" width="251" x="402" y="672" as="geometry" />
         </mxCell>
         <mxCell id="slcQIB_xAJk_PBkLsQMa-16" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;rounded=0;" value="Recieved &quot;False&quot; from another peer&lt;div&gt;&lt;b&gt;or&lt;/b&gt;&lt;/div&gt;&lt;div&gt;recieved &quot;Confirmed&quot; from all other currently connected peers&lt;/div&gt;" vertex="1">
-          <mxGeometry height="70" width="251" x="402" y="1150" as="geometry" />
+          <mxGeometry height="70" width="251" x="134" y="1150" as="geometry" />
         </mxCell>
         <mxCell id="slcQIB_xAJk_PBkLsQMa-19" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;rounded=0;" value="Recieved &quot;Confirmed&quot; from another peer" vertex="1">
-          <mxGeometry height="70" width="130" x="170" y="620" as="geometry" />
+          <mxGeometry height="70" width="130" x="210" y="620" as="geometry" />
         </mxCell>
         <mxCell id="slcQIB_xAJk_PBkLsQMa-21" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;rounded=0;" value="Recieved &quot;Completed&quot; from another peer" vertex="1">
-          <mxGeometry height="70" width="130" x="200" y="774" as="geometry" />
+          <mxGeometry height="70" width="130" x="210" y="774" as="geometry" />
         </mxCell>
         <mxCell id="slcQIB_xAJk_PBkLsQMa-24" edge="1" parent="1" source="slcQIB_xAJk_PBkLsQMa-23" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="ZbFQtOwtKNGaY78NjgSl-1">
           <mxGeometry relative="1" as="geometry" />
