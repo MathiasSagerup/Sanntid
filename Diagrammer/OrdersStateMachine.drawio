@@ -1,6 +1,6 @@
 <mxfile host="app.diagrams.net" agent="Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:147.0) Gecko/20100101 Firefox/147.0">
   <diagram name="Page-1" id="bd83a815-5ea8-2e97-e5ec-87c9f400f2fa">
-    <mxGraphModel dx="1408" dy="889" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1.5" pageWidth="1169" pageHeight="826" background="none" math="0" shadow="0">
+    <mxGraphModel dx="1313" dy="723" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1.5" pageWidth="1169" pageHeight="826" background="none" math="0" shadow="0">
       <root>
         <mxCell id="0" style=";html=1;" />
         <mxCell id="1" parent="0" style=";html=1;" />
@@ -75,14 +75,14 @@
         <mxCell id="ZbFQtOwtKNGaY78NjgSl-10" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;rounded=0;" value="&lt;div&gt;Recieved &quot;Completed&quot; from another peer&lt;/div&gt;&lt;div&gt;&lt;b&gt;or&lt;/b&gt;&lt;/div&gt;&lt;div&gt;order was completed locally&lt;/div&gt;" vertex="1">
           <mxGeometry height="70" width="280" x="400" y="990" as="geometry" />
         </mxCell>
-        <mxCell id="ZbFQtOwtKNGaY78NjgSl-14" parent="1" style="text;html=1;whiteSpace=wrap;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontColor=#FF6666;" value="&lt;div&gt;Set light off&lt;/div&gt;&lt;div&gt;&lt;b&gt;and&lt;/b&gt;&lt;/div&gt;&lt;div&gt;pass order as false to hallRequestAssigner&lt;/div&gt;" vertex="1">
-          <mxGeometry height="55" width="250" x="680" y="760" as="geometry" />
+        <mxCell id="ZbFQtOwtKNGaY78NjgSl-14" parent="1" style="text;html=1;whiteSpace=wrap;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontColor=#FF6666;" value="&lt;div&gt;Set light off&lt;/div&gt;&lt;div&gt;&lt;b&gt;and&lt;/b&gt;&lt;/div&gt;&lt;div&gt;pass order as false to&amp;nbsp;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(255, 102, 102), rgb(224, 93, 93));&quot;&gt;HallCallAssigner&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="55" width="220" x="680" y="760" as="geometry" />
         </mxCell>
-        <mxCell id="ZbFQtOwtKNGaY78NjgSl-16" parent="1" style="text;html=1;whiteSpace=wrap;align=center;verticalAlign=middle;rounded=0;fillColor=none;fontColor=#FF6666;" value="&lt;div&gt;Set light off&lt;/div&gt;&lt;div&gt;&lt;b&gt;and&lt;/b&gt;&lt;/div&gt;&lt;div&gt;pass order as false to hallRequestAssigner&lt;/div&gt;" vertex="1">
-          <mxGeometry height="45" width="240" x="680" y="610" as="geometry" />
+        <mxCell id="ZbFQtOwtKNGaY78NjgSl-16" parent="1" style="text;html=1;whiteSpace=wrap;align=center;verticalAlign=middle;rounded=0;fillColor=none;fontColor=#FF6666;" value="&lt;div&gt;Set light off&lt;/div&gt;&lt;div&gt;&lt;b&gt;and&lt;/b&gt;&lt;/div&gt;&lt;div&gt;pass order as false to HallCallAssigner&lt;/div&gt;" vertex="1">
+          <mxGeometry height="45" width="210" x="680" y="610" as="geometry" />
         </mxCell>
-        <mxCell id="ZbFQtOwtKNGaY78NjgSl-18" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontColor=#FF6666;" value="&lt;div&gt;Set light on&lt;/div&gt;&lt;div&gt;&lt;b&gt;and&lt;/b&gt;&lt;/div&gt;&lt;div&gt;pass order as false to hallRequestAssigner&lt;/div&gt;" vertex="1">
-          <mxGeometry height="45" width="270" x="680" y="1087.5" as="geometry" />
+        <mxCell id="ZbFQtOwtKNGaY78NjgSl-18" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontColor=#FF6666;" value="&lt;div&gt;Set light on&lt;/div&gt;&lt;div&gt;&lt;b&gt;and&lt;/b&gt;&lt;/div&gt;&lt;div&gt;pass order as false to&amp;nbsp;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(255, 102, 102), rgb(224, 93, 93));&quot;&gt;HallCallAssigner&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="45" width="220" x="680" y="1087.5" as="geometry" />
         </mxCell>
         <mxCell id="slcQIB_xAJk_PBkLsQMa-4" edge="1" parent="1" source="slcQIB_xAJk_PBkLsQMa-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="ZbFQtOwtKNGaY78NjgSl-3">
           <mxGeometry relative="1" as="geometry" />
@@ -98,8 +98,8 @@
         <mxCell id="slcQIB_xAJk_PBkLsQMa-2" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="&lt;div&gt;&lt;b&gt;Confirmed&lt;/b&gt;&lt;/div&gt;" vertex="1">
           <mxGeometry height="60" width="120" x="340" y="920" as="geometry" />
         </mxCell>
-        <mxCell id="slcQIB_xAJk_PBkLsQMa-11" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontColor=#FF6666;" value="&lt;div&gt;Set light on&lt;/div&gt;&lt;div&gt;&lt;b&gt;and&lt;/b&gt;&lt;/div&gt;&lt;div&gt;pass order as true to order hallRequestAssigner&lt;/div&gt;" vertex="1">
-          <mxGeometry height="55" width="280" x="680" y="922.5" as="geometry" />
+        <mxCell id="slcQIB_xAJk_PBkLsQMa-11" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontColor=#FF6666;" value="&lt;div&gt;Set light on&lt;/div&gt;&lt;div&gt;&lt;b&gt;and&lt;/b&gt;&lt;/div&gt;&lt;div&gt;pass order as true to order&amp;nbsp;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(255, 102, 102), rgb(224, 93, 93));&quot;&gt;HallCallAssigner&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="55" width="240" x="680" y="922.5" as="geometry" />
         </mxCell>
         <mxCell id="slcQIB_xAJk_PBkLsQMa-15" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;rounded=0;" value="Button was pressed locally&lt;div&gt;&lt;b&gt;or&lt;/b&gt;&lt;/div&gt;&lt;div&gt;recieved &quot;Unconfirmed&quot; from another peer&lt;/div&gt;" vertex="1">
           <mxGeometry height="70" width="251" x="402" y="672" as="geometry" />
