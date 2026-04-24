@@ -1,10 +1,10 @@
 <mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36">
   <diagram id="C5RBs43oDa-KdzZeNtuy" name="Page-1">
-    <mxGraphModel dx="1873" dy="958" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="1726" dy="1156" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="WIyWlLk6GJQsqaUBKTNV-0" />
         <mxCell id="WIyWlLk6GJQsqaUBKTNV-1" parent="WIyWlLk6GJQsqaUBKTNV-0" />
-        <mxCell id="zkfFHV4jXpPFQw0GAbJ--0" parent="WIyWlLk6GJQsqaUBKTNV-1" style="swimlane;fontStyle=2;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeLast=0;collapsible=1;marginBottom=0;rounded=0;shadow=0;strokeWidth=1;" value="Driver (I/O)" vertex="1">
+        <mxCell id="zkfFHV4jXpPFQw0GAbJ--0" parent="WIyWlLk6GJQsqaUBKTNV-1" style="swimlane;fontStyle=2;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeLast=0;collapsible=1;marginBottom=0;rounded=0;shadow=0;strokeWidth=1;fillColor=#76608a;fontColor=#ffffff;strokeColor=#432D57;" value="Driver (I/O)" vertex="1">
           <mxGeometry height="480" width="400" x="520" y="890" as="geometry">
             <mxRectangle height="26" width="160" x="230" y="140" as="alternateBounds" />
           </mxGeometry>
@@ -18,7 +18,7 @@
         <mxCell id="wlXcXkAmzBoVZriTr6Ep-5" parent="zkfFHV4jXpPFQw0GAbJ--0" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=13;" value="+ Init(addr string, numFloors int)&#xa;+ SetMotorDirection(dir MotorDirection)&#xa;+ SetButtonLamp(button ButtonType, floor int, value bool)&#xa;+ SetFloorIndicator(floor int)&#xa;+ SetDoorOpenLamp(value bool)&#xa;+ SetStopLamp(value bool)&#xa;+ PollButtons(receiver chan&lt;- ButtonEvent)&#xa;+ PollFloorSensor(receiver chan&lt;- int)&#xa;+ PollStopButton(receiver chan&lt;- bool)&#xa;+ PollObstructionSwitch(receiver chan&lt;- bool)&#xa;+ GetButton(button ButtonType, floor int) bool&#xa;+ GetFloor() int&#xa;+ GetStop() bool&#xa;+ GetObstruction() bool&#xa;+String() string&#xa;- read(in [4]byte) [4]byte&#xa;- write(in [4]byte)&#xa;- toByte(a bool) byte&#xa;- toBool(a byte) bool&#xa;&#xa;&#xa;&#xa;" vertex="1">
           <mxGeometry height="320" width="400" y="160" as="geometry" />
         </mxCell>
-        <mxCell id="zkfFHV4jXpPFQw0GAbJ--17" parent="WIyWlLk6GJQsqaUBKTNV-1" style="swimlane;fontStyle=0;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeLast=0;collapsible=1;marginBottom=0;rounded=0;shadow=0;strokeWidth=1;" value="localElevator" vertex="1">
+        <mxCell id="zkfFHV4jXpPFQw0GAbJ--17" parent="WIyWlLk6GJQsqaUBKTNV-1" style="swimlane;fontStyle=0;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeLast=0;collapsible=1;marginBottom=0;rounded=0;shadow=0;strokeWidth=1;fillColor=#76608a;fontColor=#ffffff;strokeColor=#432D57;" value="localElevator" vertex="1">
           <mxGeometry height="630" width="400" x="520" y="240" as="geometry">
             <mxRectangle height="26" width="160" x="550" y="140" as="alternateBounds" />
           </mxGeometry>
@@ -32,7 +32,7 @@
         <mxCell id="wlXcXkAmzBoVZriTr6Ep-51" parent="zkfFHV4jXpPFQw0GAbJ--17" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;fontSize=13;" value="+ NewLocalElevator()&#xa;- run()&#xa;- getCabCalls()&#xa;- getElevState()&#xa;- applyInitialRequests(initialCabCalls)&#xa;- sendlocalElevStateCh()&#xa;- setCabLights()&#xa;- ombineHallCallsAndCabCalls(newHallCalls[N_FLOORS][N_DIRN] bool)&#xa;- startDoorTimer()&#xa;- startMotorLossTimer(&#xa;- sendCompletedHallCallsToWorldView()&#xa;- String()&#xa;&#xa;- fsmOnReceivedHallCalls(newHallCalls [N_FLOORS][N_DIRN] bool)&#xa;- fsmOnFloorArrival(newFloor)&#xa;- fsmOnDoorTimeout()&#xa;- fsmOnRequestButtonPress(btnFloor, btnType)&#xa;&#xa;&#xa;" vertex="1">
           <mxGeometry height="282" width="400" y="348" as="geometry" />
         </mxCell>
-        <mxCell id="wlXcXkAmzBoVZriTr6Ep-15" parent="WIyWlLk6GJQsqaUBKTNV-1" style="swimlane;fontStyle=0;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeLast=0;collapsible=1;marginBottom=0;rounded=0;shadow=0;strokeWidth=1;" value="Communication" vertex="1">
+        <mxCell id="wlXcXkAmzBoVZriTr6Ep-15" parent="WIyWlLk6GJQsqaUBKTNV-1" style="swimlane;fontStyle=0;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeLast=0;collapsible=1;marginBottom=0;rounded=0;shadow=0;strokeWidth=1;fillColor=#76608a;fontColor=#ffffff;strokeColor=#432D57;" value="Communication" vertex="1">
           <mxGeometry height="440" width="400" x="17" y="520" as="geometry">
             <mxRectangle height="26" width="160" x="130" y="380" as="alternateBounds" />
           </mxGeometry>
@@ -46,7 +46,7 @@
         <mxCell id="wlXcXkAmzBoVZriTr6Ep-19" parent="wlXcXkAmzBoVZriTr6Ep-15" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontStyle=0;fontSize=13;" value="+ NewCommunicationModule()&#xa;- run()&#xa;- sendToPeersConnectedCh(connectedElevators&#xa; [config.N_ELEVATORS - 1]bool)&#xa;- sendToPeerStateChs(id_index int, msg NetMsg) &#xa;- getCurrentOrAssignNewPeerIndex(id string) &#xa;- isSameAsPrevious(last map[string]NetMsg, msg NetMsg)  &#xa;" vertex="1">
           <mxGeometry height="126" width="400" y="314" as="geometry" />
         </mxCell>
-        <mxCell id="wlXcXkAmzBoVZriTr6Ep-55" parent="WIyWlLk6GJQsqaUBKTNV-1" style="swimlane;fontStyle=0;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeLast=0;collapsible=1;marginBottom=0;rounded=0;shadow=0;strokeWidth=1;" value="Worldview" vertex="1">
+        <mxCell id="wlXcXkAmzBoVZriTr6Ep-55" parent="WIyWlLk6GJQsqaUBKTNV-1" style="swimlane;fontStyle=0;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeLast=0;collapsible=1;marginBottom=0;rounded=0;shadow=0;strokeWidth=1;fillColor=#76608a;strokeColor=#432D57;fontColor=#ffffff;" value="Worldview" vertex="1">
           <mxGeometry height="490" width="480" x="17" y="10" as="geometry">
             <mxRectangle height="26" width="160" x="130" y="380" as="alternateBounds" />
           </mxGeometry>
@@ -63,7 +63,7 @@
         <mxCell id="Jkd6_5mS_ep-imIERq6E-4" edge="1" parent="WIyWlLk6GJQsqaUBKTNV-1" source="sAvcMRzD1i1hYOLoFmbC-0" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endArrow=none;endFill=0;" target="zkfFHV4jXpPFQw0GAbJ--17">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="sAvcMRzD1i1hYOLoFmbC-0" parent="WIyWlLk6GJQsqaUBKTNV-1" style="swimlane;fontStyle=0;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeLast=0;collapsible=1;marginBottom=0;rounded=0;shadow=0;strokeWidth=1;" value="HallCallAssigner" vertex="1">
+        <mxCell id="sAvcMRzD1i1hYOLoFmbC-0" parent="WIyWlLk6GJQsqaUBKTNV-1" style="swimlane;fontStyle=0;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeLast=0;collapsible=1;marginBottom=0;rounded=0;shadow=0;strokeWidth=1;fillColor=#76608a;fontColor=#ffffff;strokeColor=#432D57;" value="HallCallAssigner" vertex="1">
           <mxGeometry height="220" width="393" x="527" y="10" as="geometry">
             <mxRectangle height="26" width="160" x="550" y="140" as="alternateBounds" />
           </mxGeometry>
@@ -82,7 +82,7 @@
             <mxPoint x="260" y="1000" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="sAvcMRzD1i1hYOLoFmbC-12" parent="WIyWlLk6GJQsqaUBKTNV-1" style="swimlane;fontStyle=0;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeLast=0;collapsible=1;marginBottom=0;rounded=0;shadow=0;strokeWidth=1;" value="Network" vertex="1">
+        <mxCell id="sAvcMRzD1i1hYOLoFmbC-12" parent="WIyWlLk6GJQsqaUBKTNV-1" style="swimlane;fontStyle=0;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeLast=0;collapsible=1;marginBottom=0;rounded=0;shadow=0;strokeWidth=1;fillColor=#76608a;fontColor=#ffffff;strokeColor=#432D57;" value="Network" vertex="1">
           <mxGeometry height="260" width="373" x="17" y="980" as="geometry">
             <mxRectangle height="26" width="160" x="550" y="140" as="alternateBounds" />
           </mxGeometry>
