@@ -1,9 +1,36 @@
 <mxfile host="app.diagrams.net">
   <diagram name="Page-1" id="SXBVvX90SNVGIdg-5NVA">
-    <mxGraphModel>
+    <mxGraphModel dx="1030" dy="527" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
+        <mxCell id="2S2kqum6cujMq5C-x2YF-1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="" vertex="1">
+          <mxGeometry height="70" width="310" x="30" y="10" as="geometry" />
+        </mxCell>
+        <mxCell id="2S2kqum6cujMq5C-x2YF-2" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="" vertex="1">
+          <mxGeometry height="130" width="390" x="350" y="10" as="geometry" />
+        </mxCell>
+        <mxCell id="2S2kqum6cujMq5C-x2YF-3" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="" vertex="1">
+          <mxGeometry height="70" width="280" x="30" y="90" as="geometry" />
+        </mxCell>
+        <mxCell id="2S2kqum6cujMq5C-x2YF-4" parent="1" style="rounded=1;whiteSpace=wrap;html=1;align=left;" value="&amp;nbsp;NetMsg {&lt;br&gt;&amp;nbsp; &amp;nbsp; FromID&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;&amp;nbsp;string&lt;br&gt;&amp;nbsp; &amp;nbsp; LocalState&amp;nbsp; &amp;nbsp; &amp;nbsp; &lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;&amp;nbsp;PeerState&lt;br&gt;&amp;nbsp; &amp;nbsp; BackupPeerState map[string] PeerState&lt;br&gt;&amp;nbsp;}" vertex="1">
+          <mxGeometry height="80" width="240" x="350" y="160" as="geometry" />
+        </mxCell>
+        <mxCell id="2S2kqum6cujMq5C-x2YF-5" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;rounded=0;" value="&lt;div&gt;PeerState {&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; LocalElevState&amp;nbsp; ElevState&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; HallCalls&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; [N_FLOORS][N_DIRN] OrderState&lt;/div&gt;&lt;div&gt;}&lt;/div&gt;" vertex="1">
+          <mxGeometry height="70" width="300" x="40" y="10" as="geometry" />
+        </mxCell>
+        <mxCell id="2S2kqum6cujMq5C-x2YF-6" parent="1" style="text;whiteSpace=wrap;" value="ElevState {&#xa;    Floor                               int&#xa;    Dirn                                MotorDirection     &#xa;    Behaviour                       ElevatorBehaviour     &#xa;    CabRequests                 [N_FLOORS] bool&#xa;    Obstruction                     bool&#xa;    AbleToServiceRequests bool&#xa;}" vertex="1">
+          <mxGeometry height="140" width="410" x="360" y="10" as="geometry" />
+        </mxCell>
+        <mxCell id="2S2kqum6cujMq5C-x2YF-8" parent="1" style="text;whiteSpace=wrap;" value="HallCallWithConfirmation {&#xa;    state              OrderState          &#xa;    confirmation  [N_OTHER_ELEVATORS] bool&#xa;}&#xa;" vertex="1">
+          <mxGeometry height="80" width="280" x="40" y="90" as="geometry" />
+        </mxCell>
+        <mxCell id="2S2kqum6cujMq5C-x2YF-11" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="" vertex="1">
+          <mxGeometry height="100" width="120" x="105" y="170" as="geometry" />
+        </mxCell>
+        <mxCell id="2S2kqum6cujMq5C-x2YF-10" parent="1" style="text;whiteSpace=wrap;" value="OrderState (&#xa;    NoOrder         = 0&#xa;    Unconfirmed  = 1&#xa;    Confirmed      = 2&#xa;    Completed     = 3&#xa;)" vertex="1">
+          <mxGeometry height="95" width="120" x="110" y="170" as="geometry" />
+        </mxCell>
       </root>
     </mxGraphModel>
   </diagram>
