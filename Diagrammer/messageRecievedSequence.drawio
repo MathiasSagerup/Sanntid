@@ -1,6 +1,6 @@
 <mxfile host="app.diagrams.net">
   <diagram name="Page-1" id="hIFxeAx1mI7HlYyIv0qf">
-    <mxGraphModel dx="1017" dy="642" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="3300" pageHeight="4681" math="0" shadow="0">
+    <mxGraphModel dx="1726" dy="1156" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="3300" pageHeight="4681" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -120,8 +120,8 @@
         <mxCell id="TCPoPMlyjCu2HKXSq5b4-38" parent="1" style="swimlane;startSize=0;" value="" vertex="1">
           <mxGeometry height="414" width="495" x="275" y="386" as="geometry" />
         </mxCell>
-        <mxCell id="TCPoPMlyjCu2HKXSq5b4-39" parent="TCPoPMlyjCu2HKXSq5b4-38" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontStyle=1" value="If: Message is not our own, and the message is not a duplicate of the last message from this peer" vertex="1">
-          <mxGeometry height="71" width="194" x="6" y="-8" as="geometry" />
+        <mxCell id="TCPoPMlyjCu2HKXSq5b4-39" parent="TCPoPMlyjCu2HKXSq5b4-38" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontStyle=1" value="If: Sender is another peer, &lt;u&gt;and &lt;/u&gt;the message is not a duplicate of the last message from this peer" vertex="1">
+          <mxGeometry height="71" width="214" x="2" y="-8" as="geometry" />
         </mxCell>
         <mxCell id="Jx6f1GYHgJDynoEfVLjK-8" parent="TCPoPMlyjCu2HKXSq5b4-38" style="swimlane;startSize=0;" value="" vertex="1">
           <mxGeometry height="70" width="460" x="12" y="69" as="geometry" />
@@ -132,7 +132,7 @@
         <mxCell id="TCPoPMlyjCu2HKXSq5b4-28" parent="Jx6f1GYHgJDynoEfVLjK-8" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontSize=13;" value="&lt;span style=&quot;background-color: rgb(255, 255, 255);&quot;&gt;&lt;font&gt;connectedElevators[sender_ID] = true&lt;/font&gt;&lt;/span&gt;" vertex="1">
           <mxGeometry height="30" width="237.5" x="212.5" y="4" as="geometry" />
         </mxCell>
-        <mxCell id="TCPoPMlyjCu2HKXSq5b4-45" parent="TCPoPMlyjCu2HKXSq5b4-38" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontSize=13;" value="&lt;font&gt;A backup for the senders elev state is stored to be sendt in future outgoiong messages for cab call recovery&lt;/font&gt;" vertex="1">
+        <mxCell id="TCPoPMlyjCu2HKXSq5b4-45" parent="TCPoPMlyjCu2HKXSq5b4-38" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontSize=13;" value="&lt;font&gt;A backup for the senders elev state is stored to be sent in future outgoiong messages. This is for cab call recovery.&lt;/font&gt;" vertex="1">
           <mxGeometry height="56" width="255" x="225" y="170" as="geometry" />
         </mxCell>
         <mxCell id="TCPoPMlyjCu2HKXSq5b4-41" parent="1" style="swimlane;startSize=0;" value="" vertex="1">
@@ -151,10 +151,10 @@
         <mxCell id="TCPoPMlyjCu2HKXSq5b4-44" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="This channel might be read from main during program initialization" vertex="1">
           <mxGeometry height="130" width="80" x="110" y="688.5" as="geometry" />
         </mxCell>
-        <mxCell id="TCPoPMlyjCu2HKXSq5b4-46" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.424;entryY=0.037;entryDx=0;entryDy=0;entryPerimeter=0;" target="TCPoPMlyjCu2HKXSq5b4-36">
+        <mxCell id="TCPoPMlyjCu2HKXSq5b4-46" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.424;entryY=0.037;entryDx=0;entryDy=0;entryPerimeter=0;">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="501" y="657" as="sourcePoint" />
-            <mxPoint x="793.5" y="656.75" as="targetPoint" />
+            <mxPoint x="499" y="657" as="sourcePoint" />
+            <mxPoint x="967.7400000000002" y="657.837" as="targetPoint" />
           </mxGeometry>
         </mxCell>
         <mxCell id="TCPoPMlyjCu2HKXSq5b4-47" connectable="0" parent="TCPoPMlyjCu2HKXSq5b4-46" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=13;" value="newPeerState -&amp;gt;" vertex="1">
