@@ -1,125 +1,92 @@
 <mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36">
   <diagram id="C5RBs43oDa-KdzZeNtuy" name="Page-1">
-    <mxGraphModel dx="2289" dy="1171" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="1873" dy="958" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="WIyWlLk6GJQsqaUBKTNV-0" />
         <mxCell id="WIyWlLk6GJQsqaUBKTNV-1" parent="WIyWlLk6GJQsqaUBKTNV-0" />
         <mxCell id="zkfFHV4jXpPFQw0GAbJ--0" parent="WIyWlLk6GJQsqaUBKTNV-1" style="swimlane;fontStyle=2;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeLast=0;collapsible=1;marginBottom=0;rounded=0;shadow=0;strokeWidth=1;" value="Driver (I/O)" vertex="1">
-          <mxGeometry height="500" width="350" x="870" y="740" as="geometry">
+          <mxGeometry height="520" width="350" x="860" y="710" as="geometry">
             <mxRectangle height="26" width="160" x="230" y="140" as="alternateBounds" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="wlXcXkAmzBoVZriTr6Ep-2" parent="zkfFHV4jXpPFQw0GAbJ--0" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="+ MotorDirection int&#xa;+ButtonType&#xa;+ButtonEvent&#xa;&#xa;-  _conn net.Conn&#xa;- _mtx sync.Mutex&#xa;- const _pollRate = 20 * time.Millisecond&#xa;-  _initialized bool" vertex="1">
+        <mxCell id="wlXcXkAmzBoVZriTr6Ep-2" parent="zkfFHV4jXpPFQw0GAbJ--0" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=13;" value="+ MotorDirection int&#xa;+ButtonType&#xa;+ButtonEvent&#xa;&#xa;-  _conn net.Conn&#xa;- _mtx sync.Mutex&#xa;- const _pollRate = 20 * time.Millisecond&#xa;-  _initialized bool" vertex="1">
           <mxGeometry height="134" width="350" y="26" as="geometry" />
         </mxCell>
         <mxCell id="wlXcXkAmzBoVZriTr6Ep-6" parent="zkfFHV4jXpPFQw0GAbJ--0" style="line;html=1;strokeWidth=1;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;" value="" vertex="1">
           <mxGeometry height="10" width="350" y="160" as="geometry" />
         </mxCell>
-        <mxCell id="wlXcXkAmzBoVZriTr6Ep-5" parent="zkfFHV4jXpPFQw0GAbJ--0" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="+ Init(addr string, numFloors int)&#xa;+ SetMotorDirection(dir MotorDirection)&#xa;+ SetButtonLamp(button ButtonType, floor int, value bool)&#xa;+ SetFloorIndicator(floor int)&#xa;+ SetDoorOpenLamp(value bool)&#xa;+ SetStopLamp(value bool)&#xa;+ PollButtons(receiver chan&lt;- ButtonEvent)&#xa;+ PollFloorSensor(receiver chan&lt;- int)&#xa;+ PollStopButton(receiver chan&lt;- bool)&#xa;+ PollObstructionSwitch(receiver chan&lt;- bool)&#xa;+ GetButton(button ButtonType, floor int) bool&#xa;+ GetFloor() int&#xa;+ GetStop() bool&#xa;+ GetObstruction() bool&#xa;+String() string&#xa;&#xa;&#xa;- read(in [4]byte) [4]byte&#xa;- write(in [4]byte)&#xa;- toByte(a bool) byte&#xa;- toBool(a byte) bool&#xa;&#xa;&#xa;&#xa;" vertex="1">
-          <mxGeometry height="330" width="350" y="170" as="geometry" />
+        <mxCell id="wlXcXkAmzBoVZriTr6Ep-5" parent="zkfFHV4jXpPFQw0GAbJ--0" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=13;" value="+ Init(addr string, numFloors int)&#xa;+ SetMotorDirection(dir MotorDirection)&#xa;+ SetButtonLamp(button ButtonType, floor int, value bool)&#xa;+ SetFloorIndicator(floor int)&#xa;+ SetDoorOpenLamp(value bool)&#xa;+ SetStopLamp(value bool)&#xa;+ PollButtons(receiver chan&lt;- ButtonEvent)&#xa;+ PollFloorSensor(receiver chan&lt;- int)&#xa;+ PollStopButton(receiver chan&lt;- bool)&#xa;+ PollObstructionSwitch(receiver chan&lt;- bool)&#xa;+ GetButton(button ButtonType, floor int) bool&#xa;+ GetFloor() int&#xa;+ GetStop() bool&#xa;+ GetObstruction() bool&#xa;+String() string&#xa;&#xa;&#xa;- read(in [4]byte) [4]byte&#xa;- write(in [4]byte)&#xa;- toByte(a bool) byte&#xa;- toBool(a byte) bool&#xa;&#xa;&#xa;&#xa;" vertex="1">
+          <mxGeometry height="350" width="350" y="170" as="geometry" />
         </mxCell>
         <mxCell id="zkfFHV4jXpPFQw0GAbJ--17" parent="WIyWlLk6GJQsqaUBKTNV-1" style="swimlane;fontStyle=0;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeLast=0;collapsible=1;marginBottom=0;rounded=0;shadow=0;strokeWidth=1;" value="localElevator" vertex="1">
-          <mxGeometry height="610" width="400" x="870" y="70" as="geometry">
+          <mxGeometry height="630" width="400" x="860" y="60" as="geometry">
             <mxRectangle height="26" width="160" x="550" y="140" as="alternateBounds" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="wlXcXkAmzBoVZriTr6Ep-53" parent="zkfFHV4jXpPFQw0GAbJ--17" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" value="&#xa;- floorSensorCh            chan int&#xa;- obstructionCh             chan bool&#xa;- buttonCh                     chan driver.ButtonEvent&#xa;- doorTimeoutCh           chan bool&#xa;- motorLossTimeoutCh  chan bool&#xa;&#xa;- floor                                  int&#xa;- dirn                                   driver.MotorDirection&#xa;- requests                           [config.N_FLOORS][config.N_BUTTONS]bool&#xa;- behaviour                         ElevatorBehaviour&#xa;- obstruction                       bool&#xa;- ableToServiceRequests   bool&#xa;- dirnBehaviourPair            dirnBehaviourPair&#xa;- assignedHallCalls            [N_FLOORS][N_TRAVEL_DIRN]bool&#xa;- completedHallCalls          [N_FLOORS][N_TRAVEL_DIRN]bool&#xa;    &#xa;-  localElevStateCh         chan ElevState&#xa;-  completedHallCallsCh chan [N_FLOORS][N_TRAVEL_DIRN]bool&#xa;-  assignedHallCallsCh   chan [N_FLOORS][N_TRAVEL_DIRN]bool" vertex="1">
-          <mxGeometry height="310" width="400" y="26" as="geometry" />
+        <mxCell id="wlXcXkAmzBoVZriTr6Ep-53" parent="zkfFHV4jXpPFQw0GAbJ--17" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;fontSize=13;" value="- floorSensorCh            chan int&#xa;- obstructionCh             chan bool&#xa;- buttonCh                     chan driver.ButtonEvent&#xa;- doorTimeoutCh           chan bool&#xa;- motorLossTimeoutCh  chan bool&#xa;&#xa;-  localElevStateCh         chan ElevState&#xa;-  completedHallCallsCh chan [N_FLOORS][N_TRAVEL_DIRN]bool&#xa;-  assignedHallCallsCh   chan [N_FLOORS][N_TRAVEL_DIRN]bool&#xa;&#xa;- floor                                  int&#xa;- dirn                                   driver.MotorDirection&#xa;- requests                           [config.N_FLOORS][config.N_BUTTONS]bool&#xa;- behaviour                         ElevatorBehaviour&#xa;- obstruction                       bool&#xa;- ableToServiceRequests   bool&#xa;- dirnBehaviourPair            dirnBehaviourPair&#xa;- assignedHallCalls            [N_FLOORS][N_TRAVEL_DIRN]bool&#xa;- completedHallCalls          [N_FLOORS][N_TRAVEL_DIRN]bool&#xa;   " vertex="1">
+          <mxGeometry height="314" width="400" y="26" as="geometry" />
         </mxCell>
         <mxCell id="zkfFHV4jXpPFQw0GAbJ--23" parent="zkfFHV4jXpPFQw0GAbJ--17" style="line;html=1;strokeWidth=1;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;" value="" vertex="1">
-          <mxGeometry height="8" width="400" y="336" as="geometry" />
+          <mxGeometry height="8" width="400" y="340" as="geometry" />
         </mxCell>
-        <mxCell id="wlXcXkAmzBoVZriTr6Ep-51" parent="zkfFHV4jXpPFQw0GAbJ--17" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" value="+ NewLocalElevator()&#xa;- run()&#xa;- getCabCalls()&#xa;- getElevState()&#xa;- applyInitialRequests(initialCabCalls)&#xa;- sendlocalElevStateCh()&#xa;- setCabLights()&#xa;- ombineHallCallsAndCabCalls(newHallCalls[N_FLOORS][N_DIRN] bool)&#xa;&#xa;- fsmOnReceivedHallCalls(newHallCalls [N_FLOORS][N_DIRN] bool)&#xa;- fsmOnFloorArrival(newFloor)&#xa;- fsmOnDoorTimeout()&#xa;- fsmOnRequestButtonPress(btnFloor, btnType)&#xa;&#xa;- startDoorTimer()&#xa;- startMotorLossTimer(&#xa;- sendCompletedHallCallsToWorldView()&#xa;- String()&#xa;&#xa;&#xa;" vertex="1">
-          <mxGeometry height="266" width="400" y="344" as="geometry" />
+        <mxCell id="wlXcXkAmzBoVZriTr6Ep-51" parent="zkfFHV4jXpPFQw0GAbJ--17" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;fontSize=13;" value="+ NewLocalElevator()&#xa;- run()&#xa;- getCabCalls()&#xa;- getElevState()&#xa;- applyInitialRequests(initialCabCalls)&#xa;- sendlocalElevStateCh()&#xa;- setCabLights()&#xa;- ombineHallCallsAndCabCalls(newHallCalls[N_FLOORS][N_DIRN] bool)&#xa;- startDoorTimer()&#xa;- startMotorLossTimer(&#xa;- sendCompletedHallCallsToWorldView()&#xa;- String()&#xa;&#xa;- fsmOnReceivedHallCalls(newHallCalls [N_FLOORS][N_DIRN] bool)&#xa;- fsmOnFloorArrival(newFloor)&#xa;- fsmOnDoorTimeout()&#xa;- fsmOnRequestButtonPress(btnFloor, btnType)&#xa;&#xa;&#xa;" vertex="1">
+          <mxGeometry height="282" width="400" y="348" as="geometry" />
         </mxCell>
         <mxCell id="wlXcXkAmzBoVZriTr6Ep-15" parent="WIyWlLk6GJQsqaUBKTNV-1" style="swimlane;fontStyle=0;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeLast=0;collapsible=1;marginBottom=0;rounded=0;shadow=0;strokeWidth=1;" value="Communication" vertex="1">
-          <mxGeometry height="580" width="330" x="497" y="740" as="geometry">
+          <mxGeometry height="440" width="346" x="414" y="585" as="geometry">
             <mxRectangle height="26" width="160" x="130" y="380" as="alternateBounds" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="kpsOYJ_HLAeWt4leCoWq-15" parent="wlXcXkAmzBoVZriTr6Ep-15" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" value="- myID&#xa;- bcastPeriod&#xa;-timeoutCheckPeriod&#xa;- peerIDIndex map[string] int&#xa;- NetMsg struct {&#xa;    FromID&#xa;    LocalState&#xa;    BackupPeerState map[string] worldview.PeerState&#xa;}&#xa;- transmitToNetCh NetMsg&#xa;- receiveFromNetCh NetMsg&#xa;-localPeerStateCh worldview.PeerState&#xa;- PeerStateChs [N_elevators-1] worldview.PeerState&#xa;- peersConnectedCh [N_ELEVATORS -1]bool&#xa;- recoveredCabCallsCh [N_FLOORS]bool&#xa;- timeoutCheckPeriod" vertex="1">
-          <mxGeometry height="344" width="330" y="26" as="geometry" />
+        <mxCell id="kpsOYJ_HLAeWt4leCoWq-15" parent="wlXcXkAmzBoVZriTr6Ep-15" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;fontSize=13;" value="- myID&#xa;- bcastPeriod&#xa;-timeoutCheckPeriod&#xa;- peerIDIndex map[string] int&#xa;- NetMsg struct {&#xa;    FromID&#xa;    LocalState&#xa;    BackupPeerState map[string] worldview.PeerState&#xa;}&#xa;- transmitToNetCh NetMsg&#xa;- receiveFromNetCh NetMsg&#xa;-localPeerStateCh worldview.PeerState&#xa;- PeerStateChs [N_elevators-1] worldview.PeerState&#xa;- peersConnectedCh [N_ELEVATORS -1]bool&#xa;- recoveredCabCallsCh [N_FLOORS]bool&#xa;- timeoutCheckPeriod" vertex="1">
+          <mxGeometry height="264" width="346" y="26" as="geometry" />
         </mxCell>
         <mxCell id="wlXcXkAmzBoVZriTr6Ep-18" parent="wlXcXkAmzBoVZriTr6Ep-15" style="line;html=1;strokeWidth=1;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;" value="" vertex="1">
-          <mxGeometry height="24" width="330" y="370" as="geometry" />
+          <mxGeometry height="24" width="346" y="290" as="geometry" />
         </mxCell>
-        <mxCell id="wlXcXkAmzBoVZriTr6Ep-19" parent="wlXcXkAmzBoVZriTr6Ep-15" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontStyle=0" value="+ NewCommunicationModule()&#xa;- run()&#xa;- sendToPeersConnectedCh(connectedElevators&#xa; [config.N_ELEVATORS - 1]bool)&#xa;- sendToPeerStateChs(id_index int, msg NetMsg) &#xa;- getCurrentOrAssignNewPeerIndex(id string) &#xa;- isSameAsPrevious(last map[string]NetMsg, msg NetMsg)  &#xa;" vertex="1">
-          <mxGeometry height="176" width="330" y="394" as="geometry" />
+        <mxCell id="wlXcXkAmzBoVZriTr6Ep-19" parent="wlXcXkAmzBoVZriTr6Ep-15" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontStyle=0;fontSize=13;" value="+ NewCommunicationModule()&#xa;- run()&#xa;- sendToPeersConnectedCh(connectedElevators&#xa; [config.N_ELEVATORS - 1]bool)&#xa;- sendToPeerStateChs(id_index int, msg NetMsg) &#xa;- getCurrentOrAssignNewPeerIndex(id string) &#xa;- isSameAsPrevious(last map[string]NetMsg, msg NetMsg)  &#xa;" vertex="1">
+          <mxGeometry height="126" width="346" y="314" as="geometry" />
         </mxCell>
         <mxCell id="wlXcXkAmzBoVZriTr6Ep-55" parent="WIyWlLk6GJQsqaUBKTNV-1" style="swimlane;fontStyle=0;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeLast=0;collapsible=1;marginBottom=0;rounded=0;shadow=0;strokeWidth=1;" value="Worldview" vertex="1">
-          <mxGeometry height="560" width="480" x="17" y="60" as="geometry">
+          <mxGeometry height="490" width="480" x="17" y="60" as="geometry">
             <mxRectangle height="26" width="160" x="130" y="380" as="alternateBounds" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="wlXcXkAmzBoVZriTr6Ep-66" parent="wlXcXkAmzBoVZriTr6Ep-55" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="- hallCalls                     [N_FLOORS][N_TRAVEL_DIRN] HallCallWithConfirmation&#xa;- thisElevState              localElevator.ElevState&#xa;- otherElevStates         [N_OTHER_ELEVATORS] localElevator.ElevState&#xa;- connectedElevators   [N_OTHER_ELEVATORS] bool&#xa;&#xa;- localElevCh                     &lt;-chan localElevator.ElevState&#xa;- otherElevChs                   [N_OTHER_ELEVATORS] &lt;- chan PeerState &#xa;- buttonPressedCh             &lt;-chan driver.ButtonEvent&#xa;- HCAInputCh                     chan hallCallsAssigner.HRAInput&#xa;- localPeerStateCh             chan PeerState&#xa;- connectedElevatorsCh    &lt;-chan [config.N_OTHER_ELEVATORS] bool&#xa;- completedHallCallsCh    &lt;-chan [config.N_FLOORS][N_TRAVEL_DIRN] bool" vertex="1">
-          <mxGeometry height="174" width="480" y="26" as="geometry" />
+        <mxCell id="wlXcXkAmzBoVZriTr6Ep-66" parent="wlXcXkAmzBoVZriTr6Ep-55" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=13;" value="- hallCalls                     [N_FLOORS][N_TRAVEL_DIRN] HallCallWithConfirmation&#xa;- thisElevState              localElevator.ElevState&#xa;- otherElevStates         [N_OTHER_ELEVATORS] localElevator.ElevState&#xa;- connectedElevators   [N_OTHER_ELEVATORS] bool&#xa;&#xa;- localElevCh                     &lt;-chan localElevator.ElevState&#xa;- otherElevChs                   [N_OTHER_ELEVATORS] &lt;- chan PeerState &#xa;- buttonPressedCh             &lt;-chan driver.ButtonEvent&#xa;- HCAInputCh                     chan hallCallsAssigner.HRAInput&#xa;- localPeerStateCh             chan PeerState&#xa;- connectedElevatorsCh    &lt;-chan [config.N_OTHER_ELEVATORS] bool&#xa;- completedHallCallsCh    &lt;-chan [config.N_FLOORS][N_TRAVEL_DIRN] bool" vertex="1">
+          <mxGeometry height="204" width="480" y="26" as="geometry" />
         </mxCell>
         <mxCell id="wlXcXkAmzBoVZriTr6Ep-58" parent="wlXcXkAmzBoVZriTr6Ep-55" style="line;html=1;strokeWidth=1;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;" value="" vertex="1">
-          <mxGeometry height="30" width="480" y="200" as="geometry" />
+          <mxGeometry height="30" width="480" y="230" as="geometry" />
         </mxCell>
-        <mxCell id="Q7jSoe8_zTf03gCYDV2F-0" edge="1" parent="wlXcXkAmzBoVZriTr6Ep-55" source="sAvcMRzD1i1hYOLoFmbC-60" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=none;endFill=0;">
-          <mxGeometry relative="1" as="geometry">
-            <mxPoint x="513" y="395" as="targetPoint" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="sAvcMRzD1i1hYOLoFmbC-60" parent="wlXcXkAmzBoVZriTr6Ep-55" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" value="+ NewWorldview()&#xa;- run()&#xa;- isAloneOnNetwork() bool&#xa;- sendLocalPeerState()&#xa;- sendHallCallAssignerInput()&#xa;&#xa;- getNumberOfConnectedPeers() int&#xa;&#xa;- getHallCallsWithoutConfirmation() [N_FLOORS][N_TRAVEL_DIRN] OrderState&#xa;- setHallCallLightsOff()&#xa;&#xa;- updateHallCallsAndLights(incomingHallCalls &#xa;[N_FLOORS][N_TRAVEL_DIRN] OrderState, &#xa;senderElevID int)&#xa;&#xa;- updateHallCallAndLight(incomingHallCall OrderState, floor int, &#xa;hallBtn driver.ButtonType, senderElevID int)&#xa;&#xa;" vertex="1">
-          <mxGeometry height="330" width="480" y="230" as="geometry" />
+        <mxCell id="sAvcMRzD1i1hYOLoFmbC-60" parent="wlXcXkAmzBoVZriTr6Ep-55" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;fontSize=13;" value="+ NewWorldview()&#xa;- run()&#xa;- isAloneOnNetwork() bool&#xa;- sendLocalPeerState()&#xa;- sendHallCallAssignerInput()&#xa;- getNumberOfConnectedPeers() int&#xa;- getHallCallsWithoutConfirmation() [N_FLOORS][N_TRAVEL_DIRN] OrderState&#xa;- setHallCallLightsOff()&#xa;- updateHallCallsAndLights(incomingHallCalls &#xa;[N_FLOORS][N_TRAVEL_DIRN] OrderState, &#xa;senderElevID int)&#xa;- updateHallCallAndLight(incomingHallCall OrderState, floor int, &#xa;hallBtn driver.ButtonType, senderElevID int)&#xa;&#xa;" vertex="1">
+          <mxGeometry height="230" width="480" y="260" as="geometry" />
         </mxCell>
         <mxCell id="sAvcMRzD1i1hYOLoFmbC-0" parent="WIyWlLk6GJQsqaUBKTNV-1" style="swimlane;fontStyle=0;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeLast=0;collapsible=1;marginBottom=0;rounded=0;shadow=0;strokeWidth=1;" value="HallCallAssigner" vertex="1">
-          <mxGeometry height="250" width="300" x="527" y="220" as="geometry">
+          <mxGeometry height="250" width="300" x="527" y="60" as="geometry">
             <mxRectangle height="26" width="160" x="550" y="140" as="alternateBounds" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="sAvcMRzD1i1hYOLoFmbC-4" parent="sAvcMRzD1i1hYOLoFmbC-0" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" value="+ HRAInputCh HRAInput&#xa;+ HRAOutputCh  [N_FLOORS][N_TRAVEL_DIRN]bool&#xa;-  thisElevID string&#xa;-  hraExecutable string" vertex="1">
-          <mxGeometry height="54" width="300" y="26" as="geometry" />
+        <mxCell id="sAvcMRzD1i1hYOLoFmbC-4" parent="sAvcMRzD1i1hYOLoFmbC-0" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;fontSize=13;" value="+ HRAInputCh HRAInput&#xa;+ HRAOutputCh  [N_FLOORS][N_TRAVEL_DIRN]bool&#xa;-  thisElevID string&#xa;-  hraExecutable string" vertex="1">
+          <mxGeometry height="74" width="300" y="26" as="geometry" />
         </mxCell>
         <mxCell id="sAvcMRzD1i1hYOLoFmbC-5" parent="sAvcMRzD1i1hYOLoFmbC-0" style="line;html=1;strokeWidth=1;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;" value="" vertex="1">
-          <mxGeometry height="30" width="300" y="80" as="geometry" />
+          <mxGeometry height="30" width="300" y="100" as="geometry" />
         </mxCell>
-        <mxCell id="sAvcMRzD1i1hYOLoFmbC-6" parent="sAvcMRzD1i1hYOLoFmbC-0" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" value="+ NewHallCallAssigner()&#xa;- run()&#xa;- sendAssignedHallCalls(hallCalls &#xa;[config.N_FLOORS][config.N_TRAVEL_DIRN]bool)" vertex="1">
-          <mxGeometry height="96" width="300" y="110" as="geometry" />
+        <mxCell id="sAvcMRzD1i1hYOLoFmbC-6" parent="sAvcMRzD1i1hYOLoFmbC-0" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;fontSize=13;" value="+ NewHallCallAssigner()&#xa;- run()&#xa;- sendAssignedHallCalls(hallCalls &#xa;[config.N_FLOORS][config.N_TRAVEL_DIRN]bool)" vertex="1">
+          <mxGeometry height="110" width="300" y="130" as="geometry" />
         </mxCell>
         <mxCell id="sAvcMRzD1i1hYOLoFmbC-12" parent="WIyWlLk6GJQsqaUBKTNV-1" style="swimlane;fontStyle=0;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeLast=0;collapsible=1;marginBottom=0;rounded=0;shadow=0;strokeWidth=1;" value="Network" vertex="1">
-          <mxGeometry height="374" width="370" x="60" y="740" as="geometry">
+          <mxGeometry height="260" width="370" x="17" y="585" as="geometry">
             <mxRectangle height="26" width="160" x="550" y="140" as="alternateBounds" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="sAvcMRzD1i1hYOLoFmbC-13" parent="sAvcMRzD1i1hYOLoFmbC-12" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" value="- const bufSize&#xa;- typeTaggedJson&#xa;+LocalIP&#xa;+ PeerUpdate&#xa;- const interval time.Millisecond&#xa;- const timeout time.Millisecond&#xa; " vertex="1">
-          <mxGeometry height="154" width="370" y="26" as="geometry" />
+        <mxCell id="sAvcMRzD1i1hYOLoFmbC-13" parent="sAvcMRzD1i1hYOLoFmbC-12" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=13;" value="- const bufSize&#xa;- typeTaggedJson&#xa;+LocalIP&#xa;+ PeerUpdate&#xa;- const interval time.Millisecond&#xa;- const timeout time.Millisecond&#xa; " vertex="1">
+          <mxGeometry height="114" width="370" y="26" as="geometry" />
         </mxCell>
         <mxCell id="sAvcMRzD1i1hYOLoFmbC-16" parent="sAvcMRzD1i1hYOLoFmbC-12" style="line;html=1;strokeWidth=1;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;" value="" vertex="1">
-          <mxGeometry height="8" width="370" y="180" as="geometry" />
+          <mxGeometry height="8" width="370" y="140" as="geometry" />
         </mxCell>
-        <mxCell id="sAvcMRzD1i1hYOLoFmbC-17" parent="sAvcMRzD1i1hYOLoFmbC-12" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" value="+ Transmitter (port int, id string, transmitEnable &lt;-chan bool)&#xa;+ Receiver(port int, peerUpdateCh chan&lt;- PeerUpdate)&#xa;+ LocalIP() (string, error)&#xa;+ DialBroadcastUDP(port int) net.PacketConn&#xa;- checkTypeRecursive(val reflect.Type, offsets []int)&#xa;- checkArgs(chans ...interface{})" vertex="1">
-          <mxGeometry height="178" width="370" y="188" as="geometry" />
-        </mxCell>
-        <mxCell id="Q7jSoe8_zTf03gCYDV2F-2" edge="1" parent="WIyWlLk6GJQsqaUBKTNV-1" source="wlXcXkAmzBoVZriTr6Ep-51" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.35;entryY=-0.009;entryDx=0;entryDy=0;entryPerimeter=0;endArrow=none;endFill=0;" target="zkfFHV4jXpPFQw0GAbJ--0">
-          <mxGeometry relative="1" as="geometry">
-            <Array as="points">
-              <mxPoint x="850" y="547" />
-              <mxPoint x="850" y="700" />
-              <mxPoint x="993" y="700" />
-            </Array>
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="Q7jSoe8_zTf03gCYDV2F-3" edge="1" parent="WIyWlLk6GJQsqaUBKTNV-1" source="sAvcMRzD1i1hYOLoFmbC-60" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.25;entryY=0;entryDx=0;entryDy=0;endArrow=none;endFill=0;" target="zkfFHV4jXpPFQw0GAbJ--0">
-          <mxGeometry relative="1" as="geometry">
-            <Array as="points">
-              <mxPoint x="460" y="710" />
-              <mxPoint x="958" y="710" />
-            </Array>
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="Q7jSoe8_zTf03gCYDV2F-4" edge="1" parent="WIyWlLk6GJQsqaUBKTNV-1" source="sAvcMRzD1i1hYOLoFmbC-60" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.139;entryY=-0.005;entryDx=0;entryDy=0;entryPerimeter=0;endArrow=none;endFill=0;" target="wlXcXkAmzBoVZriTr6Ep-15">
-          <mxGeometry relative="1" as="geometry">
-            <Array as="points">
-              <mxPoint x="430" y="730" />
-              <mxPoint x="543" y="730" />
-            </Array>
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="Q7jSoe8_zTf03gCYDV2F-6" edge="1" parent="WIyWlLk6GJQsqaUBKTNV-1" source="sAvcMRzD1i1hYOLoFmbC-6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=-0.007;entryY=0.905;entryDx=0;entryDy=0;entryPerimeter=0;endArrow=none;endFill=0;" target="wlXcXkAmzBoVZriTr6Ep-53">
-          <mxGeometry relative="1" as="geometry" />
+        <mxCell id="sAvcMRzD1i1hYOLoFmbC-17" parent="sAvcMRzD1i1hYOLoFmbC-12" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;fontSize=13;" value="+ Transmitter (port int, id string, transmitEnable &lt;-chan bool)&#xa;+ Receiver(port int, peerUpdateCh chan&lt;- PeerUpdate)&#xa;+ LocalIP() (string, error)&#xa;+ DialBroadcastUDP(port int) net.PacketConn&#xa;- checkTypeRecursive(val reflect.Type, offsets []int)&#xa;- checkArgs(chans ...interface{})" vertex="1">
+          <mxGeometry height="112" width="370" y="148" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
