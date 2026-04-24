@@ -75,7 +75,7 @@
           <mxGeometry height="110" width="300" y="130" as="geometry" />
         </mxCell>
         <mxCell id="sAvcMRzD1i1hYOLoFmbC-12" parent="WIyWlLk6GJQsqaUBKTNV-1" style="swimlane;fontStyle=0;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeLast=0;collapsible=1;marginBottom=0;rounded=0;shadow=0;strokeWidth=1;" value="Network" vertex="1">
-          <mxGeometry height="260" width="370" x="17" y="585" as="geometry">
+          <mxGeometry height="260" width="370" x="402" y="1100" as="geometry">
             <mxRectangle height="26" width="160" x="550" y="140" as="alternateBounds" />
           </mxGeometry>
         </mxCell>
